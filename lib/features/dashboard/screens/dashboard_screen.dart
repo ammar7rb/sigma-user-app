@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/screens/cart_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/category/screens/category_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/chat/controllers/chat_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/models/navigation_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/dashboard_menu_widget.dart';
@@ -13,7 +14,6 @@ import 'package:flutter_sixvalley_ecommerce/features/wishlist/controllers/wishli
 import 'package:flutter_sixvalley_ecommerce/helper/network_info.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/app_exit_card_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/chat/screens/inbox_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -21,7 +21,6 @@ import 'package:flutter_sixvalley_ecommerce/features/home/screens/aster_theme_ho
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/fashion_theme_home_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/home_screens.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/screens/more_screen_view.dart';
-import 'package:flutter_sixvalley_ecommerce/features/order/screens/order_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:provider/provider.dart';
 
@@ -94,6 +93,11 @@ class DashBoardScreenState extends State<DashBoardScreen> {
                 : const HomePage(),
       ),
       NavigationModel(
+        name: 'CATEGORY',
+        icon: Images.category,
+        screen: const CategoryScreen(fromDashboard: true),
+      ),
+      NavigationModel(
         name: 'inbox',
         icon: Images.messageImage,
         screen: const InboxScreen(),
@@ -104,12 +108,7 @@ class DashBoardScreenState extends State<DashBoardScreen> {
           screen: const CartScreen(showBackButton: false, fromDashboard: true),
           showCartIcon: true),
       NavigationModel(
-          name: 'orders',
-          icon: Images.shoppingImage,
-          screen:
-              const OrderScreen(isBacButtonExist: false, fromDashboard: true)),
-      NavigationModel(
-          name: 'more', icon: Images.moreImage, screen: const MoreScreen()),
+          name: 'profile', icon: Images.moreImage, screen: const MoreScreen()),
     ];
 
     NetworkInfo.checkConnectivity(context);

@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/features/more/widgets/square_item_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/controllers/wishlist_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/helper/responsive_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:provider/provider.dart';
 
 class MoreHorizontalSection extends StatelessWidget {
@@ -18,94 +13,128 @@ class MoreHorizontalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ConfigModel? configModel = Provider.of<SplashController>(context, listen: false).configModel;
+    final ConfigModel? configModel =
+        Provider.of<SplashController>(context, listen: false).configModel;
 
-    return Consumer<ProfileController>(builder: (context, profileProvider,_) {
-      final bool isGuestMode = !Provider.of<AuthController>(context, listen: false).isLoggedIn();
-      return SizedBox(height: ResponsiveHelper.isTab(context)? 135 :130, child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-        child: Center(child: ListView(
-          scrollDirection:Axis.horizontal,
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
-          children: [
-            SquareButtonWidget(
-              image: Images.offerIcon,
-              title: getTranslated('offers', context),
-              navigateTo: null,
-              count: 0,
-              hasCount: false,
-              onTap: () {
-                RouterHelper.getOfferProductListScreenRoute(action: RouteAction.push);
-              },
-            ),
-
-            if(!isGuestMode)SquareButtonWidget(
-              image: Images.wallet,
-              title: getTranslated('wallet_my_wallet', context),
-              navigateTo: null,
-              onTap: () {
-                RouterHelper.getWalletRoute(action: RouteAction.push, isBackButtonExist: true);
-              },
-              count: 1,
-              hasCount: false,
-              subTitle: 'amount',
-              isWallet: true,
-              balance: profileProvider.balance,
-            ),
-
-
-            if(!isGuestMode && configModel?.loyaltyPointStatus == 1) SquareButtonWidget(
-              image: Images.loyaltyPoint,
-              title: getTranslated('loyalty_point', context),
-              onTap: () => RouterHelper.getLoyaltyPointScreenRoute(action: RouteAction.push),
-              count: 1,
-              hasCount: false,
-              isWallet: true,
-              subTitle: 'point',
-              balance: profileProvider.loyaltyPoint, isLoyalty: true,
-            ),
-
-
-            if(!isGuestMode) SquareButtonWidget(
-              image: Images.shoppingImage,
-              title: getTranslated('orders', context),
-              navigateTo: null,
-              onTap: () {
-                RouterHelper.getOrderScreenRoute(isBackButtonExist: true);
-              },
-              count: 1,
-              hasCount: false,
-              isWallet: true,
-              subTitle: 'orders',
-              balance: profileProvider.userInfoModel?.totalOrder ?? 0,
-              isLoyalty: true,
-            ),
-
-            SquareButtonWidget(
-              image: Images.cartImage,
-              title: getTranslated('cart', context),
-              onTap: () => RouterHelper.getCartScreenRoute(action: RouteAction.push),
-              navigateTo: null,
-              count: Provider.of<CartController>(context,listen: false).cartList.length,
-              hasCount: true,
-            ),
-
-            Consumer<WishListController>(builder: (context, wishListController, _) {
-              return SquareButtonWidget(
-                image: Images.wishlist, title: getTranslated('wishlist', context),
-                navigateTo: null,
-                onTap: () {
-                  RouterHelper.getWishListRoute(action: RouteAction.push);
-                },
-                count: wishListController.wishList?.length ?? 0,
-                hasCount: (!isGuestMode  && (wishListController.wishList?.length ?? 0) > 0),
-              );
-            }),
-
-          ],
-        )),
-      ));
-    });
+    final bool isGuestMode =
+        !Provider.of<AuthController>(context, listen: false).isLoggedIn();
+    final items = <_QuickItem>[
+      if (!isGuestMode)
+        _QuickItem(
+            Icons.account_balance_wallet_rounded,
+            getTranslated('wallet_my_wallet', context) ?? 'Wallet',
+            () => RouterHelper.getWalletRoute(
+                action: RouteAction.push, isBackButtonExist: true)),
+      _QuickItem(
+          Icons.shopping_cart_rounded,
+          getTranslated('cart', context) ?? 'Cart',
+          () => RouterHelper.getCartScreenRoute(action: RouteAction.push),
+          badge: Provider.of<CartController>(context, listen: false)
+              .cartList
+              .length),
+      _QuickItem(
+          Icons.favorite_rounded,
+          getTranslated('wishlist', context) ?? 'Wishlist',
+          () => RouterHelper.getWishListRoute(action: RouteAction.push),
+          badge:
+              Provider.of<WishListController>(context).wishList?.length ?? 0),
+      if (isGuestMode)
+        _QuickItem(
+            Icons.local_offer_rounded,
+            getTranslated('offers', context) ?? 'Offers',
+            () => RouterHelper.getOfferProductListScreenRoute(
+                action: RouteAction.push)),
+      if (!isGuestMode && configModel?.loyaltyPointStatus == 1)
+        _QuickItem(
+            Icons.workspace_premium_rounded,
+            getTranslated('loyalty_point', context) ?? 'Loyalty',
+            () => RouterHelper.getLoyaltyPointScreenRoute(
+                action: RouteAction.push)),
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: items
+            .take(4)
+            .map((item) => Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: _QuickCard(item: item),
+                  ),
+                ))
+            .toList(),
+      ),
+    );
   }
+}
+
+class _QuickItem {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final int badge;
+  const _QuickItem(this.icon, this.label, this.onTap, {this.badge = 0});
+}
+
+class _QuickCard extends StatelessWidget {
+  final _QuickItem item;
+  const _QuickCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            height: 94,
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Theme.of(context).primaryColor.withValues(alpha: .13),
+              ),
+            ),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Stack(clipBehavior: Clip.none, children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: .10),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(item.icon,
+                      color: Theme.of(context).primaryColor, size: 21),
+                ),
+                if (item.badge > 0)
+                  Positioned(
+                    top: -6,
+                    right: -7,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                          color: Color(0xFFFF4D5E), shape: BoxShape.circle),
+                      child: Text('${item.badge}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+              ]),
+              const SizedBox(height: 7),
+              Text(item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w700)),
+            ]),
+          ),
+        ),
+      );
 }

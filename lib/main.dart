@@ -134,11 +134,15 @@ Future<void> main() async {
     return;
   }
 
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp();
+  // Firebase and flutter_downloader use native Android/iOS configuration.
+  // Skipping them on Web keeps the production UI preview functional instead
+  // of failing before runApp; notification setup below is already best-effort.
+  if (!kIsWeb) {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+    await FlutterDownloader.initialize(debug: kDebugMode, ignoreSsl: false);
   }
-
-  await FlutterDownloader.initialize(debug: kDebugMode, ignoreSsl: false);
   await di.init();
 
   flutterLocalNotificationsPlugin

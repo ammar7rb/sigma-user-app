@@ -91,7 +91,8 @@ class _AccountOverviewSection extends StatelessWidget {
                       color: Theme.of(context).primaryColor,
                       onTap: () async {
                         await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const CustomerWalletScreen(initialWallet: 'purchase'),
+                          builder: (_) => const CustomerWalletScreen(
+                              initialWallet: 'purchase'),
                         ));
                         await onChanged();
                       },
@@ -108,7 +109,8 @@ class _AccountOverviewSection extends StatelessWidget {
                       color: const Color(0xFF14A673),
                       onTap: () async {
                         await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const CustomerWalletScreen(initialWallet: 'insurance'),
+                          builder: (_) => const CustomerWalletScreen(
+                              initialWallet: 'insurance'),
                         ));
                         await onChanged();
                       },
@@ -324,14 +326,14 @@ class _MoreScreenState extends State<MoreScreen> {
     return Scaffold(
       body: CustomScrollView(slivers: [
         SliverAppBar(
-            floating: true,
+            floating: false,
             elevation: 0,
-            expandedHeight: 160,
-            pinned: true,
+            expandedHeight: 218,
+            pinned: false,
             centerTitle: false,
             automaticallyImplyLeading: false,
-            backgroundColor: Theme.of(context).highlightColor,
-            collapsedHeight: 160,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            collapsedHeight: 218,
             flexibleSpace: const ProfileInfoSectionWidget()),
         SliverToBoxAdapter(
             child: Container(
@@ -362,7 +364,7 @@ class _MoreScreenState extends State<MoreScreen> {
                     child: Text(getTranslated('general', context) ?? '',
                         style: textRegular.copyWith(
                             fontSize: Dimensions.fontSizeExtraLarge,
-                            color: Theme.of(context).colorScheme.onPrimary)),
+                            color: Theme.of(context).colorScheme.onSurface)),
                   ),
                   Consumer<SplashController>(
                       builder: (context, splashController, _) {
@@ -373,21 +375,24 @@ class _MoreScreenState extends State<MoreScreen> {
                         padding:
                             const EdgeInsets.all(Dimensions.paddingSizeSmall),
                         decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                Dimensions.fontSizeExtraSmall),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Theme.of(context)
-                                      .hintColor
-                                      .withValues(alpha: .05),
-                                  blurRadius: 1,
-                                  spreadRadius: 1,
-                                  offset: const Offset(0, 1))
-                            ],
-                            color:
-                                Provider.of<ThemeController>(context).darkTheme
-                                    ? Colors.white.withValues(alpha: .05)
-                                    : Theme.of(context).cardColor),
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Theme.of(context)
+                                    .hintColor
+                                    .withValues(alpha: .05),
+                                blurRadius: 1,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 1))
+                          ],
+                          color: Provider.of<ThemeController>(context).darkTheme
+                              ? Colors.white.withValues(alpha: .05)
+                              : Theme.of(context).cardColor,
+                          border: Border.all(
+                              color: Theme.of(context)
+                                  .dividerColor
+                                  .withValues(alpha: .20)),
+                        ),
                         child: Column(children: [
                           MenuButtonWidget(
                             image: Images.trackOrderIcon,
@@ -397,6 +402,14 @@ class _MoreScreenState extends State<MoreScreen> {
                                   action: RouteAction.push);
                             },
                           ),
+                          if (authController.isLoggedIn())
+                            MenuButtonWidget(
+                              image: Images.shoppingImage,
+                              title: getTranslated('orders', context),
+                              onTap: () => RouterHelper.getOrderScreenRoute(
+                                  action: RouteAction.push,
+                                  isBackButtonExist: true),
+                            ),
                           if (authController.isLoggedIn())
                             MenuButtonWidget(
                               image: Images.user,
@@ -434,14 +447,6 @@ class _MoreScreenState extends State<MoreScreen> {
                                       action: RouteAction.push);
                                 },
                               ),
-                          MenuButtonWidget(
-                            image: Images.category,
-                            title: getTranslated('CATEGORY', context),
-                            onTap: () {
-                              RouterHelper.getCategoryScreenRoute(
-                                  action: RouteAction.push);
-                            },
-                          ),
                           if (authController.isLoggedIn())
                             MenuButtonWidget(
                               image: Images.restockIcon,
@@ -508,7 +513,7 @@ class _MoreScreenState extends State<MoreScreen> {
                           getTranslated('help_and_support', context) ?? '',
                           style: textRegular.copyWith(
                               fontSize: Dimensions.fontSizeExtraLarge,
-                              color: Theme.of(context).colorScheme.onPrimary))),
+                              color: Theme.of(context).colorScheme.onSurface))),
                   Padding(
                       padding:
                           const EdgeInsets.all(Dimensions.paddingSizeDefault),
@@ -516,8 +521,7 @@ class _MoreScreenState extends State<MoreScreen> {
                           padding:
                               const EdgeInsets.all(Dimensions.paddingSizeSmall),
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                  Dimensions.fontSizeExtraSmall),
+                              borderRadius: BorderRadius.circular(22),
                               boxShadow: [
                                 BoxShadow(
                                     color: Theme.of(context)
@@ -678,7 +682,7 @@ class _MoreScreenState extends State<MoreScreen> {
                               'Legal & Privacy',
                           style: textRegular.copyWith(
                               fontSize: Dimensions.fontSizeExtraLarge,
-                              color: Theme.of(context).colorScheme.onPrimary)),
+                              color: Theme.of(context).colorScheme.onSurface)),
                     ),
                     Padding(
                       padding:

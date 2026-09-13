@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
@@ -65,7 +66,11 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _route() {
-    NetworkInfo.checkConnectivity(context);
+    // connectivity_plus streams can fail before the browser plugin is ready.
+    // The API call itself remains the source of truth for Web connectivity.
+    if (!kIsWeb) {
+      NetworkInfo.checkConnectivity(context);
+    }
     Provider.of<SplashController>(context, listen: false).initConfig(
       context,
       (ConfigModel? configModel) {
@@ -74,9 +79,9 @@ class SplashScreenState extends State<SplashScreen> {
           Get.context!,
           listen: false,
         ).configModel?.userAppVersionControl;
-        if (Platform.isAndroid) {
+        if (!kIsWeb && Platform.isAndroid) {
           minimumVersion = appVersion?.forAndroid?.version ?? '0';
-        } else if (Platform.isIOS) {
+        } else if (!kIsWeb && Platform.isIOS) {
           minimumVersion = appVersion?.forIos?.version ?? '0';
         }
         Provider.of<SplashController>(
@@ -230,9 +235,9 @@ class SplashScreenState extends State<SplashScreen> {
           Get.context!,
           listen: false,
         ).configModel?.userAppVersionControl;
-        if (Platform.isAndroid) {
+        if (!kIsWeb && Platform.isAndroid) {
           minimumVersion = appVersion?.forAndroid?.version ?? '0';
-        } else if (Platform.isIOS) {
+        } else if (!kIsWeb && Platform.isIOS) {
           minimumVersion = appVersion?.forIos?.version ?? '0';
         }
         Provider.of<SplashController>(

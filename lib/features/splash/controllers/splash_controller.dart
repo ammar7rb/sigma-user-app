@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_sixvalley_ecommerce/data/local/cache_response.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/business_pages_model.dart';
@@ -49,49 +50,55 @@ class SplashController extends ChangeNotifier {
 
   Future<bool> initConfig(
     BuildContext context,
-      Function(ConfigModel? configModel)? onLocalDataReceived,
-      Function(ConfigModel? configModel)? onApiDataReceived,
-      ) async {
+    Function(ConfigModel? configModel)? onLocalDataReceived,
+    Function(ConfigModel? configModel)? onApiDataReceived,
+  ) async {
     // final ThemeController themeController = Provider.of<ThemeController>(context, listen: false);
 
-   var configLocalData =  await database.getCacheResponseById(AppConstants.configUri);
+    final configLocalData = kIsWeb
+        ? null
+        : await database.getCacheResponseById(AppConstants.configUri);
 
-   bool localMaintainanceMode = false;
+    bool localMaintainanceMode = false;
 
-   isConfigCall = false;
+    isConfigCall = false;
 
-   if(configLocalData != null) {
-     _configModel = ConfigModel.fromJson(jsonDecode(configLocalData.response));
+    if (configLocalData != null) {
+      _configModel = ConfigModel.fromJson(jsonDecode(configLocalData.response));
 
-     localMaintainanceMode = (_configModel?.maintenanceModeData?.maintenanceStatus == 1 && _configModel?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp == 1);
+      localMaintainanceMode =
+          (_configModel?.maintenanceModeData?.maintenanceStatus == 1 &&
+              _configModel?.maintenanceModeData?.selectedMaintenanceSystem
+                      ?.customerApp ==
+                  1);
 
-     String? currencyCode = splashServiceInterface!.getCurrency();
+      String? currencyCode = splashServiceInterface!.getCurrency();
 
-     for(CurrencyList currencyList in _configModel!.currencyList!) {
-       if(currencyList.id == _configModel!.systemDefaultCurrency) {
-         if(currencyCode == null || currencyCode.isEmpty) {
-           currencyCode = currencyList.code;
-         }
-         _defaultCurrency = currencyList;
-       }
-       if(currencyList.code == 'USD') {
-         _usdCurrency = currencyList;
-       }
-     }
-     getCurrencyData(currencyCode);
+      for (CurrencyList currencyList in _configModel!.currencyList!) {
+        if (currencyList.id == _configModel!.systemDefaultCurrency) {
+          if (currencyCode == null || currencyCode.isEmpty) {
+            currencyCode = currencyList.code;
+          }
+          _defaultCurrency = currencyList;
+        }
+        if (currencyList.code == 'USD') {
+          _usdCurrency = currencyList;
+        }
+      }
+      getCurrencyData(currencyCode);
 
-     if(onLocalDataReceived != null) {
-       onLocalDataReceived(configModel);
-     }
-
-   }
+      if (onLocalDataReceived != null) {
+        onLocalDataReceived(configModel);
+      }
+    }
 
     _hasConnection = true;
     ApiResponseModel apiResponse = await splashServiceInterface!.getConfig();
 
     // _configModel = ConfigModel.fromJson(apiResponse.response!.data);
     bool isSuccess;
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
       isSuccess = true;
       _configModel = ConfigModel.fromJson(apiResponse.response!.data);
       isConfigCall = true;
@@ -102,17 +109,17 @@ class SplashController extends ChangeNotifier {
 
       _configModel?.localMaintenanceMode = localMaintainanceMode;
 
-      if(onApiDataReceived != null) {
+      if (onApiDataReceived != null) {
         onApiDataReceived(configModel);
       }
 
-
       String? currencyCode = splashServiceInterface!.getCurrency();
 
-      try{
+      try {
         await FirebaseMessaging.instance.getToken();
-        await FirebaseMessaging.instance.subscribeToTopic(AppConstants.maintenanceModeTopic);
-      }catch (e) {
+        await FirebaseMessaging.instance
+            .subscribeToTopic(AppConstants.maintenanceModeTopic);
+      } catch (e) {
         debugPrint("====FirebaseException===>>$e");
       }
 
@@ -121,51 +128,58 @@ class SplashController extends ChangeNotifier {
       //   secondaryColor: ColorHelper.hexCodeToColor(_configModel?.secondaryColorCode),
       // );
 
-
-      for(CurrencyList currencyList in _configModel!.currencyList!) {
-        if(currencyList.id == _configModel!.systemDefaultCurrency) {
-          if(currencyCode == null || currencyCode.isEmpty) {
+      for (CurrencyList currencyList in _configModel!.currencyList!) {
+        if (currencyList.id == _configModel!.systemDefaultCurrency) {
+          if (currencyCode == null || currencyCode.isEmpty) {
             currencyCode = currencyList.code;
           }
           _defaultCurrency = currencyList;
         }
-        if(currencyList.code == 'USD') {
+        if (currencyList.code == 'USD') {
           _usdCurrency = currencyList;
         }
       }
       getCurrencyData(currencyCode);
 
-      if(_configModel?.maintenanceModeData?.maintenanceStatus == 0){
-        if(_configModel?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp == 1 ) {
-          if(_configModel?.maintenanceModeData?.maintenanceTypeAndDuration?.maintenanceDuration == 'customize') {
-
+      if (_configModel?.maintenanceModeData?.maintenanceStatus == 0) {
+        if (_configModel
+                ?.maintenanceModeData?.selectedMaintenanceSystem?.customerApp ==
+            1) {
+          if (_configModel?.maintenanceModeData?.maintenanceTypeAndDuration
+                  ?.maintenanceDuration ==
+              'customize') {
             DateTime now = DateTime.now();
-            DateTime specifiedDateTime = DateTime.parse(_configModel!.maintenanceModeData!.maintenanceTypeAndDuration!.startDate!);
+            DateTime specifiedDateTime = DateTime.parse(_configModel!
+                .maintenanceModeData!.maintenanceTypeAndDuration!.startDate!);
 
             Duration difference = specifiedDateTime.difference(now);
 
-            if(difference.inMinutes > 0 && (difference.inMinutes < 60 || difference.inMinutes == 60)){
+            if (difference.inMinutes > 0 &&
+                (difference.inMinutes < 60 || difference.inMinutes == 60)) {
               _startTimer(specifiedDateTime);
             }
-
           }
         }
       }
 
-      if(configLocalData != null) {
-        await database.updateCacheResponse(AppConstants.configUri, CacheResponseCompanion(
-          endPoint: const Value(AppConstants.configUri),
-          header: Value(jsonEncode(apiResponse.response!.headers.map)),
-          response: Value(jsonEncode(apiResponse.response!.data)),
-        ));
-      } else {
-        await database.insertCacheResponse(
-          CacheResponseCompanion(
-            endPoint: const Value(AppConstants.configUri),
-            header: Value(jsonEncode(apiResponse.response!.headers.map)),
-            response: Value(jsonEncode(apiResponse.response!.data)),
-          ),
-        );
+      if (!kIsWeb) {
+        if (configLocalData != null) {
+          await database.updateCacheResponse(
+              AppConstants.configUri,
+              CacheResponseCompanion(
+                endPoint: const Value(AppConstants.configUri),
+                header: Value(jsonEncode(apiResponse.response!.headers.map)),
+                response: Value(jsonEncode(apiResponse.response!.data)),
+              ));
+        } else {
+          await database.insertCacheResponse(
+            CacheResponseCompanion(
+              endPoint: const Value(AppConstants.configUri),
+              header: Value(jsonEncode(apiResponse.response!.headers.map)),
+              response: Value(jsonEncode(apiResponse.response!.data)),
+            ),
+          );
+        }
       }
       _configModel = ConfigModel.fromJson(apiResponse.response!.data);
 
@@ -183,14 +197,13 @@ class SplashController extends ChangeNotifier {
     return isSuccess;
   }
 
-
   void setFirstTimeConnectionCheck(bool isChecked) {
     _firstTimeConnectionCheck = isChecked;
   }
 
   void getCurrencyData(String? currencyCode) {
     for (var currency in _configModel!.currencyList!) {
-      if(currencyCode == currency.code) {
+      if (currencyCode == currency.code) {
         _myCurrency = currency;
         _currencyIndex = _configModel!.currencyList!.indexOf(currency);
         continue;
@@ -199,28 +212,31 @@ class SplashController extends ChangeNotifier {
   }
 
   Future<void> getBusinessPagesList(String type) async {
-    ApiResponseModel apiResponse = await splashServiceInterface!.getBusinessPages(type);
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-
-      if(type == 'default') {
+    ApiResponseModel apiResponse =
+        await splashServiceInterface!.getBusinessPages(type);
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      if (type == 'default') {
         _defaultBusinessPages = [];
-        apiResponse.response?.data.forEach((data) { _defaultBusinessPages?.add(BusinessPageModel.fromJson(data));});
+        apiResponse.response?.data.forEach((data) {
+          _defaultBusinessPages?.add(BusinessPageModel.fromJson(data));
+        });
       } else {
         _businessPages = [];
-        apiResponse.response?.data.forEach((data) { _businessPages?.add(BusinessPageModel.fromJson(data));});
+        apiResponse.response?.data.forEach((data) {
+          _businessPages?.add(BusinessPageModel.fromJson(data));
+        });
       }
-
     } else {
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
     }
 
     notifyListeners();
   }
 
-
-
   void setCurrency(int index) {
-    splashServiceInterface!.setCurrency(_configModel!.currencyList![index].code!);
+    splashServiceInterface!
+        .setCurrency(_configModel!.currencyList![index].code!);
     getCurrencyData(_configModel!.currencyList![index].code);
     notifyListeners();
   }
@@ -241,22 +257,19 @@ class SplashController extends ChangeNotifier {
     splashServiceInterface!.disableIntro();
   }
 
-  void changeAnnouncementOnOff(bool on){
+  void changeAnnouncementOnOff(bool on) {
     _onOff = !_onOff;
     notifyListeners();
   }
 
-
-  void _startTimer (DateTime startTime) {
+  void _startTimer(DateTime startTime) {
     Timer.periodic(const Duration(seconds: 30), (Timer timer) {
-
       DateTime now = DateTime.now();
 
       if (now.isAfter(startTime) || now.isAtSameMomentAs(startTime)) {
         timer.cancel();
         RouterHelper.getMaintenanceRoute(action: RouteAction.pushReplacement);
       }
-
     });
   }
 
@@ -269,11 +282,10 @@ class SplashController extends ChangeNotifier {
   }
 
   bool isMaintenanceModeScreen() {
-    if (_buildContext == null || configModel?.maintenanceModeData?.maintenanceStatus == 1) {
+    if (_buildContext == null ||
+        configModel?.maintenanceModeData?.maintenanceStatus == 1) {
       return false;
     }
     return ModalRoute.of(_buildContext!)?.settings.name == 'MaintenanceScreen';
   }
-
-
 }

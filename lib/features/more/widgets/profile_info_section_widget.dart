@@ -10,6 +10,7 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/not_logged_in_bott
 import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
+import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 
 class ProfileInfoSectionWidget extends StatelessWidget {
   const ProfileInfoSectionWidget({super.key});
@@ -17,148 +18,179 @@ class ProfileInfoSectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfileController>(builder: (context, profile, _) {
-      bool isGuestMode =
-          !Provider.of<AuthController>(context, listen: false).isLoggedIn();
+      final auth = Provider.of<AuthController>(context, listen: false);
+      bool isGuestMode = !auth.isLoggedIn();
+      final rememberedAccount = auth.getUserData();
+      final hasRememberedAccount =
+          (rememberedAccount?.email?.trim().isNotEmpty ?? false) ||
+              (rememberedAccount?.phoneNumber?.trim().isNotEmpty ?? false);
+      final theme = Provider.of<ThemeController>(context);
+      final locale = Provider.of<LocalizationController>(context);
       return Container(
-          decoration: BoxDecoration(
-              color: Provider.of<ThemeController>(context).darkTheme
-                  ? Theme.of(context).primaryColor.withValues(alpha: .30)
-                  : Theme.of(context).primaryColor),
-          child: Stack(children: [
+          color: Theme.of(context).scaffoldBackgroundColor,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(children: [
+            Row(children: [
+              Text(getTranslated('profile', context) ?? 'Profile',
+                  style: textBold.copyWith(fontSize: 23)),
+              const Spacer(),
+              _HeaderAction(
+                label: locale.isLtr ? 'AR' : 'EN',
+                icon: Icons.language_rounded,
+                onTap: () => locale.setLanguage(
+                  locale.isLtr
+                      ? const Locale('ar', 'SA')
+                      : const Locale('en', 'US'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _HeaderAction(
+                icon: theme.darkTheme
+                    ? Icons.light_mode_rounded
+                    : Icons.dark_mode_rounded,
+                onTap: theme.toggleTheme,
+              ),
+            ]),
+            const SizedBox(height: 12),
             Container(
-                transform: Matrix4.translationValues(-10, 0, 0),
-                child: Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: SizedBox(
-                        width: 110,
-                        child: Image.asset(Images.shadow,
-                            opacity: const AlwaysStoppedAnimation(0.75))))),
-            Positioned(
-                right: -110,
-                bottom: -100,
-                child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(100),
-                        border: Border.all(
-                            color: Theme.of(context)
-                                .cardColor
-                                .withValues(alpha: .05),
-                            width: 25)))),
-            Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    Dimensions.paddingSizeDefault,
-                    70.0,
-                    Dimensions.paddingSizeDefault,
-                    30),
-                child: Row(children: [
-                  InkWell(
-                    onTap: () {
-                      if (isGuestMode) {
-                        showModalBottomSheet(
-                            backgroundColor: Colors.transparent,
-                            context: context,
-                            builder: (_) => NotLoggedInBottomSheetWidget(
-                                fromPage: RouterHelper.profileScreen1));
-                      } else {
-                        if (profile.userInfoModel != null) {
-                          RouterHelper.getProfileScreen1Route(
-                              action: RouteAction.push);
-                        }
-                      }
-                    },
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            border: Provider.of<AuthController>(context,
-                                        listen: false)
-                                    .isLoggedIn()
-                                ? null
-                                : Border.all(color: Colors.white, width: 3),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Provider.of<AuthController>(context,
-                                      listen: false)
-                                  .isLoggedIn()
-                              ? CustomImageWidget(
-                                  image:
-                                      '${profile.userInfoModel?.imageFullUrl?.path}',
-                                  width: 70,
-                                  height: 70,
-                                  fit: BoxFit.cover,
-                                  placeholder: Images.guestProfile)
-                              : Image.asset(Images.guestProfile),
-                        )),
-                  ),
-                  const SizedBox(width: Dimensions.paddingSizeDefault),
-                  Expanded(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                          !isGuestMode
-                              ? '${profile.userInfoModel?.fName ?? ''} ${profile.userInfoModel?.lName ?? ''}'
-                              : 'Guest',
-                          style: textMedium.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .secondaryContainer,
-                              fontSize: Dimensions.fontSizeExtraLarge)),
-                      if (!isGuestMode &&
-                          profile.userInfoModel?.phone != null &&
-                          profile.userInfoModel!.phone!.isNotEmpty)
-                        const SizedBox(height: Dimensions.paddingSizeSmall),
-                      if (!isGuestMode)
-                        Text(profile.userInfoModel?.phone ?? '',
-                            style: textRegular.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .secondaryContainer,
-                                fontSize: Dimensions.fontSizeLarge)),
-                      if (isGuestMode) ...[
-                        const SizedBox(height: 8),
-                        FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Theme.of(context).primaryColor,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          onPressed: () => RouterHelper.getLoginRoute(
-                            action: RouteAction.push,
-                            fromPage:
-                                '${RouterHelper.dashboardScreen}?page=more',
-                          ),
-                          child: Text(
-                              getTranslated('sign_in', context) ?? 'Sign in'),
-                        ),
-                      ],
-                    ],
-                  )),
-                  InkWell(
-                    onTap: () =>
-                        Provider.of<ThemeController>(context, listen: false)
-                            .toggleTheme(),
-                    child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                            width: 40,
-                            child: Image.asset(
-                                Provider.of<ThemeController>(context).darkTheme
-                                    ? Images.sunnyDay
-                                    : Images.theme,
-                                color: Provider.of<ThemeController>(context)
-                                        .darkTheme
-                                    ? Colors.white
-                                    : null))),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF075ACB), Color(0xFF249DEB)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF075ACB).withValues(alpha: .20),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   )
-                ])),
+                ],
+              ),
+              child: Row(children: [
+                InkWell(
+                  onTap: () {
+                    if (isGuestMode) {
+                      showModalBottomSheet(
+                          backgroundColor: Colors.transparent,
+                          context: context,
+                          builder: (_) => NotLoggedInBottomSheetWidget(
+                              fromPage: RouterHelper.profileScreen1));
+                    } else {
+                      if (profile.userInfoModel != null) {
+                        RouterHelper.getProfileScreen1Route(
+                            action: RouteAction.push);
+                      }
+                    }
+                  },
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: .18),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: .35)),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Provider.of<AuthController>(context,
+                                    listen: false)
+                                .isLoggedIn()
+                            ? CustomImageWidget(
+                                image:
+                                    '${profile.userInfoModel?.imageFullUrl?.path}',
+                                width: 58,
+                                height: 58,
+                                fit: BoxFit.cover,
+                                placeholder: Images.guestProfile)
+                            : const Icon(Icons.person_outline_rounded,
+                                color: Colors.white, size: 32),
+                      )),
+                ),
+                const SizedBox(width: Dimensions.paddingSizeDefault),
+                Expanded(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                        !isGuestMode
+                            ? '${profile.userInfoModel?.fName ?? ''} ${profile.userInfoModel?.lName ?? ''}'
+                            : (getTranslated('welcome_to_eFood', context) ??
+                                'Welcome to Sigma'),
+                        style: textBold.copyWith(
+                            color: Colors.white,
+                            fontSize: Dimensions.fontSizeExtraLarge)),
+                    if (!isGuestMode &&
+                        profile.userInfoModel?.phone != null &&
+                        profile.userInfoModel!.phone!.isNotEmpty)
+                      const SizedBox(height: Dimensions.paddingSizeSmall),
+                    if (!isGuestMode)
+                      Text(profile.userInfoModel?.phone ?? '',
+                          style: textRegular.copyWith(
+                              color: Colors.white.withValues(alpha: .82),
+                              fontSize: Dimensions.fontSizeLarge)),
+                    if (isGuestMode && hasRememberedAccount) ...[
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Theme.of(context).primaryColor,
+                          visualDensity: VisualDensity.compact,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(13)),
+                        ),
+                        onPressed: () => RouterHelper.getLoginRoute(
+                          action: RouteAction.push,
+                          fromPage: '${RouterHelper.dashboardScreen}?page=more',
+                        ),
+                        child: Text(
+                            getTranslated('sign_in', context) ?? 'Sign in'),
+                      ),
+                    ],
+                  ],
+                )),
+                if (!isGuestMode)
+                  IconButton(
+                    onPressed: () => RouterHelper.getProfileScreen1Route(
+                        action: RouteAction.push),
+                    icon: const Icon(Icons.edit_rounded, color: Colors.white),
+                  ),
+              ]),
+            ),
           ]));
     });
   }
+}
+
+class _HeaderAction extends StatelessWidget {
+  final IconData icon;
+  final String? label;
+  final VoidCallback onTap;
+  const _HeaderAction({required this.icon, required this.onTap, this.label});
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(13),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(13),
+          onTap: onTap,
+          child: SizedBox(
+            height: 42,
+            width: label == null ? 42 : 58,
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+              if (label != null) ...[
+                const SizedBox(width: 3),
+                Text(label!,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+              ],
+            ]),
+          ),
+        ),
+      );
 }

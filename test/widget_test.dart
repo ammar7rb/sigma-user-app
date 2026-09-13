@@ -22,6 +22,29 @@ void main() {
         isEmpty);
   });
 
+  test('production dashboard uses the live redesigned customer surfaces', () {
+    final dashboard =
+        File('lib/features/dashboard/screens/dashboard_screen.dart')
+            .readAsStringSync();
+    final more = File('lib/features/more/screens/more_screen_view.dart')
+        .readAsStringSync();
+    final mainSource = File('lib/main.dart').readAsStringSync();
+
+    expect(dashboard, contains('const HomePage()'));
+    expect(dashboard,
+        contains('screen: const CategoryScreen(fromDashboard: true)'));
+    expect(dashboard, contains("name: 'CATEGORY'"));
+    expect(dashboard, contains('screen: const MoreScreen()'));
+    expect(dashboard, contains("name: 'profile'"));
+    expect(dashboard, isNot(contains("name: 'orders'")));
+    expect(dashboard, isNot(contains('ProfileDashboardPreview')));
+    expect(more, contains('ProfileInfoSectionWidget'));
+    expect(more, contains('CustomerWalletScreen'));
+    expect(more, contains('PendingPostPurchaseInvoicesScreen'));
+    expect(more, contains('RouterHelper.getOrderScreenRoute'));
+    expect(mainSource, contains('if (!kIsWeb)'));
+  });
+
   test('first payment preserves server total without adding second stage tax',
       () {
     final quote = OrderInsuranceQuoteModel.fromJson({
