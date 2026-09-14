@@ -1119,5 +1119,8 @@
 "transfer_using_admin_details":"Transfer using the payment details configured by the administration.",
 "sender_name":"Sender name",
 "sender_phone_or_account":"Sender phone number or account",
-"select_transfer_channel":"Choose electronic wallet or InstaPay"
+"select_transfer_channel":"Choose electronic wallet or InstaPay",
+"review_required_policies":"Review the required policies before accepting",
+"policy_version":"Version",
+"policy_content_unavailable":"Policy content is currently unavailable"
 }
