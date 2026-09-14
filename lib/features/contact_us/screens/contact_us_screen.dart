@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/contact_us/controllers/contact_us_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/contact_us/domain/models/contact_us_body.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
@@ -29,14 +30,17 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   TextEditingController messageController = TextEditingController();
   final GlobalKey<FormState> contactFormKey = GlobalKey<FormState>();
 
-
   @override
   void initState() {
     super.initState();
-    Provider.of<AuthController>(context, listen: false).setCountryCode('+20', notify: false);
+    Provider.of<AuthController>(context, listen: false)
+        .setCountryCode('+20', notify: false);
     if (widget.isPasswordReset) {
-      subjectController.text = getTranslated('password_reset_support_subject', context) ?? 'Password reset support';
-      messageController.text = getTranslated('password_reset_support_request_message', context) ??
+      subjectController.text =
+          getTranslated('password_reset_support_subject', context) ??
+              'Password reset support';
+      messageController.text = getTranslated(
+              'password_reset_support_request_message', context) ??
           'I need help resetting my password. Please contact me after verifying my account details.';
     }
   }
@@ -44,107 +48,146 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(centerTitle: true,title: '${getTranslated('contact_us', context)}'),
-      body: Consumer<AuthController>(
-        builder: (context, authProvider, _) {
-          return Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.homePagePadding),
-            child: SingleChildScrollView(child: Form(
-              key: contactFormKey,
-              autovalidateMode: AutovalidateMode.disabled,
-              child: Column(children: [
-
-                SizedBox(width: MediaQuery.of(context).size.width/2,child: Image.asset(Images.contactUsBg)),
+      appBar: CustomAppBar(
+          centerTitle: true,
+          title:
+              '${getTranslated(widget.isPasswordReset ? 'password_reset_support_title' : 'contact_us', context)}'),
+      body: Consumer<AuthController>(builder: (context, authProvider, _) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: Dimensions.homePagePadding),
+          child: SingleChildScrollView(
+              child: Form(
+            key: contactFormKey,
+            autovalidateMode: AutovalidateMode.disabled,
+            child: Column(
+              children: [
+                SizedBox(
+                    width: MediaQuery.of(context).size.width / 2,
+                    child: Image.asset(Images.contactUsBg)),
                 CustomTextFieldWidget(
                   prefixIcon: Images.user,
                   controller: fullNameController,
                   required: true,
                   labelText: getTranslated('full_name', context),
                   hintText: getTranslated('enter_full_name', context),
-                  validator: (value)=> ValidateCheck.validateEmptyText(value, 'name_is_required'),
+                  validator: (value) => ValidateCheck.validateEmptyText(
+                      value, 'name_is_required'),
                 ),
                 const SizedBox(height: Dimensions.paddingSizeDefault),
-
                 CustomTextFieldWidget(
                   hintText: getTranslated('email', context),
-                    prefixIcon: Images.email,
-                    required: true,
-                    labelText: getTranslated('email', context),
-                    controller: emailController,
-                  validator: (value) =>ValidateCheck.validateEmail(value),
-
-                ),
-                const SizedBox(height: Dimensions.paddingSizeDefault),
-
-
-                CustomTextFieldWidget(
-                    hintText: getTranslated('enter_mobile_number', context),
-                    labelText: getTranslated('enter_mobile_number', context),
-                    controller: phoneController,
-                    required: true,
-                    showCodePicker: false,
-                    countryDialCode: '+20',
-                    isAmount: true,
-                    inputAction: TextInputAction.next,
-                    inputType: TextInputType.phone,
-                  validator: (value)=> ValidateCheck.validateEmptyText(value, 'phone_is_required'),
-
-                ),
-                const SizedBox(height: Dimensions.paddingSizeDefault),
-
-
-                CustomTextFieldWidget(
+                  prefixIcon: Images.email,
                   required: true,
-                  labelText: getTranslated('subject', context),
-                  hintText: getTranslated('subject', context),
-                  controller: subjectController,
-                  validator: (value)=> ValidateCheck.validateEmptyText(value, 'subject_is_required'),
-
+                  labelText: getTranslated('email', context),
+                  controller: emailController,
+                  validator: (value) => ValidateCheck.validateEmail(value),
                 ),
                 const SizedBox(height: Dimensions.paddingSizeDefault),
-
-
-                CustomTextFieldWidget(maxLines: 5,
+                CustomTextFieldWidget(
+                  hintText: getTranslated('enter_mobile_number', context),
+                  labelText: getTranslated('enter_mobile_number', context),
+                  controller: phoneController,
+                  required: true,
+                  showCodePicker: false,
+                  countryDialCode: '+20',
+                  isAmount: true,
+                  inputAction: TextInputAction.next,
+                  inputType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return getTranslated('phone_is_required', context);
+                    }
+                    return EgyptPhoneHelper.isValidLocal(value)
+                        ? null
+                        : getTranslated('enter_valid_egyptian_mobile', context);
+                  },
+                ),
+                if (!widget.isPasswordReset) ...[
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                  CustomTextFieldWidget(
+                    required: true,
+                    labelText: getTranslated('subject', context),
+                    hintText: getTranslated('subject', context),
+                    controller: subjectController,
+                    validator: (value) => ValidateCheck.validateEmptyText(
+                        value, 'subject_is_required'),
+                  ),
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                  CustomTextFieldWidget(
+                    maxLines: 5,
                     required: true,
                     controller: messageController,
                     labelText: getTranslated('message', context),
                     hintText: getTranslated('message', context),
-                  validator: (value)=> ValidateCheck.validateEmptyText(value, 'message_is_required'),
-
-                ),
-              ],),
-            )),
-          );
-        }
-      ),
-      bottomNavigationBar: Consumer<ContactUsController>(
-        builder: (context, profileProvider, _) {
-          return Padding(
-            padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-            child: CustomButton(
-              isLoading: profileProvider.isLoading,
-              buttonText: getTranslated('send_request', context),
-              onTap: (){
-                if(contactFormKey.currentState?.validate() ?? false) {
-
-                  String name = fullNameController.text.trim();
-                  String email = emailController.text.trim();
-                  String phone = phoneController.text.trim();
-                  String subject = subjectController.text.trim();
-                  String message = messageController.text.trim();
-
-                  ContactUsBody contactUsBody = ContactUsBody(name: name, email: email, phone: phone, subject: subject, message: message);
-
-                   profileProvider.contactUs(contactUsBody).then((isSuccess){
-                     if(isSuccess) {
-                       Navigator.of(Get.context!).pop();
-                     }
-                  });
-                }
-              },
+                    validator: (value) => ValidateCheck.validateEmptyText(
+                        value, 'message_is_required'),
+                  ),
+                ] else ...[
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                  Semantics(
+                    label: getTranslated(
+                        'password_reset_support_identity_notice', context),
+                    child: Container(
+                      width: double.infinity,
+                      padding:
+                          const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .primaryColor
+                            .withValues(alpha: .08),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        getTranslated('password_reset_direct_support_notice',
+                                context) ??
+                            'After submitting your account details, a password-reset request will be sent directly to support.',
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
-          );
-        }
-      ),
+          )),
+        );
+      }),
+      bottomNavigationBar:
+          Consumer<ContactUsController>(builder: (context, profileProvider, _) {
+        return Padding(
+          padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+          child: CustomButton(
+            isLoading: profileProvider.isLoading,
+            buttonText: getTranslated(
+                widget.isPasswordReset
+                    ? 'send_to_password_support'
+                    : 'send_request',
+                context),
+            onTap: () {
+              if (contactFormKey.currentState?.validate() ?? false) {
+                String name = fullNameController.text.trim();
+                String email = emailController.text.trim();
+                String phone =
+                    EgyptPhoneHelper.toInternational(phoneController.text);
+                String subject = subjectController.text.trim();
+                String message = messageController.text.trim();
+
+                ContactUsBody contactUsBody = ContactUsBody(
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    subject: subject,
+                    message: message);
+
+                profileProvider.contactUs(contactUsBody).then((isSuccess) {
+                  if (isSuccess) {
+                    Navigator.of(Get.context!).pop();
+                  }
+                });
+              }
+            },
+          ),
+        );
+      }),
     );
   }
 }

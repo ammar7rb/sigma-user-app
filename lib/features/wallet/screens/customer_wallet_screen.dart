@@ -6,12 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/add_fund_to_wallet_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_insurance/screens/pending_post_purchase_invoices_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 
 /// The same restricted balances and review queue used by the customer website.
 class CustomerWalletScreen extends StatefulWidget {
@@ -110,17 +108,29 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                     if (error != null) Text(error!),
                     SegmentedButton<String>(
                       segments: [
-                        ButtonSegment(value: 'purchase', label: Text(tr('purchase_wallet')), icon: const Icon(Icons.shopping_bag_outlined)),
-                        ButtonSegment(value: 'insurance', label: Text(tr('insurance_wallet')), icon: const Icon(Icons.shield_outlined)),
+                        ButtonSegment(
+                            value: 'purchase',
+                            label: Text(tr('purchase_wallet')),
+                            icon: const Icon(Icons.shopping_bag_outlined)),
+                        ButtonSegment(
+                            value: 'insurance',
+                            label: Text(tr('insurance_wallet')),
+                            icon: const Icon(Icons.shield_outlined)),
                       ],
                       selected: {selectedWallet},
-                      onSelectionChanged: (value) => setState(() => selectedWallet = value.first),
+                      onSelectionChanged: (value) =>
+                          setState(() => selectedWallet = value.first),
                     ),
                     const SizedBox(height: 14),
                     if (selectedWallet == 'purchase')
-                      balance('purchase_wallet', data!['purchase_balance'], Icons.shopping_bag_outlined, 'purchase')
+                      balance('purchase_wallet', data!['purchase_balance'],
+                          Icons.shopping_bag_outlined, 'purchase')
                     else
-                      balance('insurance_wallet', insurance['available_balance'], Icons.shield_outlined, 'insurance'),
+                      balance(
+                          'insurance_wallet',
+                          insurance['available_balance'],
+                          Icons.shield_outlined,
+                          'insurance'),
                     if ((int.tryParse(
                                 '${data!['pending_invoices_count'] ?? 0}') ??
                             0) >
@@ -140,72 +150,79 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                           ),
                         ),
                       )),
-                    if (selectedWallet == 'insurance') card(Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              '${tr('insurance_held_balance')}: ${money(insurance['held_balance'])}'),
-                          if (insurance['next_maturity_at'] != null)
+                    if (selectedWallet == 'insurance')
+                      card(Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                                '${tr('next_insurance_maturity')}: ${insurance['next_maturity_at']}'),
-                          const SizedBox(height: 8),
-                          Text(tr('wallet_reuse_notice')),
-                        ])),
+                                '${tr('insurance_held_balance')}: ${money(insurance['held_balance'])}'),
+                            if (insurance['next_maturity_at'] != null)
+                              Text(
+                                  '${tr('next_insurance_maturity')}: ${insurance['next_maturity_at']}'),
+                            const SizedBox(height: 8),
+                            Text(tr('wallet_reuse_notice')),
+                          ])),
                     Text(tr('wallet_deposit_history'),
                         style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 12),
                     for (final item in pagedItems('deposits'))
                       if (item['wallet_type'] == selectedWallet)
-                      card(ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(item['wallet_type'] == 'insurance'
-                              ? Icons.shield_outlined
-                              : Icons.shopping_bag_outlined),
-                          title: Text(item['status'] == 'approved'
-                              ? tr('wallet_deposit_success')
-                              : '${money(item['amount'])} · ${tr('wallet_status_${item['status']}')}'),
-                          subtitle: Text('${item['created_at']}${item['status'] == 'approved' || item['review_note'] == null ? '' : '\n${item['review_note']}'}'))),
+                        card(ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(item['wallet_type'] == 'insurance'
+                                ? Icons.shield_outlined
+                                : Icons.shopping_bag_outlined),
+                            title: Text(item['status'] == 'approved'
+                                ? tr('wallet_deposit_success')
+                                : '${money(item['amount'])} · ${tr('wallet_status_${item['status']}')}'),
+                            subtitle: Text(
+                                '${item['created_at']}${item['status'] == 'approved' || item['review_note'] == null ? '' : '\n${item['review_note']}'}'))),
                     if (pagedItems('deposits').isEmpty)
                       Padding(
                           padding: const EdgeInsets.all(16),
                           child: Text(tr('wallet_no_records'))),
-                    if (selectedWallet == 'insurance') Text(tr('wallet_order_history'),
-                        style: Theme.of(context).textTheme.titleLarge),
-                    if (selectedWallet == 'insurance') const SizedBox(height: 12),
+                    if (selectedWallet == 'insurance')
+                      Text(tr('wallet_order_history'),
+                          style: Theme.of(context).textTheme.titleLarge),
+                    if (selectedWallet == 'insurance')
+                      const SizedBox(height: 12),
                     for (final item in pagedItems('orders'))
                       if (selectedWallet == 'insurance')
-                      card(ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.receipt_long_outlined),
-                          title:
-                              Text('#${item['id']} · ${money(item['amount'])}'),
-                          subtitle: Text(
-                              '${tr('insurance_wallet')}: ${money(item['insurance']?['amount'])}\n${tr('next_insurance_maturity')}: ${item['insurance']?['matures_at'] ?? tr('wallet_not_scheduled')}'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => RouterHelper.getOrderDetailsScreenRoute(
-                              orderId: item['id'],
-                              action: RouteAction.push,
-                              isNotification: true))),
-                    if (selectedWallet == 'purchase') Text(tr('wallet_history'),
-                        style: Theme.of(context).textTheme.titleLarge),
+                        card(ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.receipt_long_outlined),
+                            title: Text(
+                                '#${item['id']} · ${money(item['amount'])}'),
+                            subtitle: Text(
+                                '${tr('insurance_wallet')}: ${money(item['insurance']?['amount'])}\n${tr('next_insurance_maturity')}: ${item['insurance']?['matures_at'] ?? tr('wallet_not_scheduled')}'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () =>
+                                RouterHelper.getOrderDetailsScreenRoute(
+                                    orderId: item['id'],
+                                    action: RouteAction.push,
+                                    isNotification: true))),
+                    if (selectedWallet == 'purchase')
+                      Text(tr('wallet_history'),
+                          style: Theme.of(context).textTheme.titleLarge),
                     for (final item in pagedItems('purchase_entries'))
                       if (selectedWallet == 'purchase')
-                      card(ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                              '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
-                          subtitle: Text(
-                              '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'))),
-                    if (selectedWallet == 'insurance') Text(tr('wallet_insurance_history'),
-                        style: Theme.of(context).textTheme.titleLarge),
+                        card(ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                                '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
+                            subtitle: Text(
+                                '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'))),
+                    if (selectedWallet == 'insurance')
+                      Text(tr('wallet_insurance_history'),
+                          style: Theme.of(context).textTheme.titleLarge),
                     for (final item in list(data!['insurance_entries']))
                       if (selectedWallet == 'insurance')
-                      card(ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                              '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
-                          subtitle: Text(
-                              '${item['order_id'] == null ? '' : '#${item['order_id']} · '}${item['created_at']}'))),
+                        card(ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                                '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
+                            subtitle: Text(
+                                '${item['order_id'] == null ? '' : '#${item['order_id']} · '}${item['created_at']}'))),
                     Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -254,11 +271,10 @@ class CustomerDepositScreen extends StatefulWidget {
 class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
   final form = GlobalKey<FormState>();
   final amount = TextEditingController();
-  final reference = TextEditingController();
-  final note = TextEditingController();
-  final Map<String, String> information = {};
+  final senderName = TextEditingController();
+  final senderPhone = TextEditingController();
   final String requestKey = _uuid();
-  String? method;
+  String? channel;
   XFile? proof;
   bool busy = false;
   String? error;
@@ -272,24 +288,38 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
     return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
-  Map? get offline {
-    for (final item in widget.config['offline_methods'] as List? ?? const []) {
-      if (method == 'offline:${item['id']}') return item as Map;
+  Map? get transferMethod {
+    final methods = (widget.config['offline_methods'] as List? ?? const [])
+        .whereType<Map>()
+        .toList();
+    if (channel == null || methods.isEmpty) return null;
+    bool matches(Map item, String needle) =>
+        '${item['method_name']} ${item['method_fields']}'
+            .toLowerCase()
+            .contains(needle);
+    if (channel == 'instapay') {
+      return methods
+              .where((item) => matches(item, 'insta') || matches(item, 'انستا'))
+              .firstOrNull ??
+          (methods.length > 1 ? methods[1] : methods.first);
     }
-    return null;
+    return methods
+            .where((item) => matches(item, 'wallet') || matches(item, 'محفظ'))
+            .firstOrNull ??
+        methods.first;
   }
 
   @override
   void dispose() {
     amount.dispose();
-    reference.dispose();
-    note.dispose();
+    senderName.dispose();
+    senderPhone.dispose();
     super.dispose();
   }
 
   Future<void> submit() async {
     if (busy || !form.currentState!.validate()) return;
-    if (offline != null && proof == null) {
+    if (transferMethod != null && proof == null) {
       setState(() => error = tr('wallet_proof_required'));
       return;
     }
@@ -300,7 +330,7 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
     try {
       final api = di.sl<DioClient>();
       final currency = context.read<SplashController>().myCurrency!.code;
-      if (offline != null) {
+      if (transferMethod != null) {
         final bytes = await proof!.readAsBytes();
         if (bytes.length > 5 * 1024 * 1024) throw StateError('proof_size');
         await api.post('/api/v1/customer/wallet/deposits',
@@ -308,12 +338,12 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
               'wallet_type': widget.wallet,
               'amount': amount.text.trim(),
               'currency_code': currency,
-              'method_id': offline!['id'],
+              'method_id': transferMethod!['id'],
               'request_key': requestKey,
-              'payment_reference': reference.text.trim(),
-              'payment_note': note.text.trim(),
-              for (final entry in information.entries)
-                'method_information[${entry.key}]': entry.value,
+              'payment_reference': requestKey,
+              'method_information[sender_name]': senderName.text.trim(),
+              'method_information[sender_wallet_or_phone]':
+                  senderPhone.text.trim(),
               'payment_proof':
                   MultipartFile.fromBytes(bytes, filename: proof!.name),
             }));
@@ -321,23 +351,6 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(tr('wallet_deposit_pending'))));
         Navigator.of(context).pop();
-      } else {
-        final response = await api.post(AppConstants.addFundToWallet, data: {
-          'wallet_type': widget.wallet,
-          'amount': amount.text.trim(),
-          'current_currency_code': currency,
-          'payment_method': method!.substring(8),
-          'payment_platform': 'app',
-          'payment_request_from': 'app',
-        });
-        if (!mounted) return;
-        final url = response.data['redirect_link'];
-        if (url is! String || Uri.tryParse(url)?.hasAbsolutePath != true) {
-          throw StateError('payment_url');
-        }
-        await Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => AddFundToWalletScreen(url: url)));
-        if (mounted) Navigator.of(context).pop();
       }
     } catch (exception) {
       if (mounted) {
@@ -378,64 +391,50 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                       : tr('wallet_invalid_amount');
                 }),
             const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
-                initialValue: method,
-                isExpanded: true,
-                decoration: InputDecoration(labelText: tr('payment_method')),
-                items: [
-                  for (final item
-                      in widget.config['offline_methods'] as List? ?? const [])
-                    DropdownMenuItem(
-                        value: 'offline:${item['id']}',
-                        child: Text('${item['method_name']}')),
-                  for (final item
-                      in widget.config['digital_methods'] as List? ?? const [])
-                    DropdownMenuItem(
-                        value: 'digital:${item['key']}',
-                        child: Text('${item['key']}'))
-                ],
-                onChanged: busy
-                    ? null
-                    : (value) => setState(() {
-                          method = value;
-                          information.clear();
-                        }),
-                validator: (value) =>
-                    value == null ? tr('select_payment_method') : null),
-            if (offline != null) ...[
+            Row(children: [
+              Expanded(
+                  child: _CustomerTransferChoice(
+                icon: Icons.account_balance_wallet_outlined,
+                title: tr('electronic_wallet_payment'),
+                selected: channel == 'wallet',
+                onTap: busy ? null : () => setState(() => channel = 'wallet'),
+              )),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _CustomerTransferChoice(
+                icon: Icons.account_balance_rounded,
+                title: tr('instapay_payment'),
+                selected: channel == 'instapay',
+                onTap: busy ? null : () => setState(() => channel = 'instapay'),
+              )),
+            ]),
+            if (transferMethod != null) ...[
               const SizedBox(height: 16),
-              for (final field in offline!['method_fields'] as List? ?? [])
+              Text(tr('transfer_using_admin_details'),
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              for (final field
+                  in transferMethod!['method_fields'] as List? ?? [])
                 Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: SelectableText(
                         '${field['input_name'] ?? ''}: ${field['input_data'] ?? ''}')),
               TextFormField(
-                  controller: reference,
+                  controller: senderName,
+                  maxLength: 100,
                   decoration: InputDecoration(
-                      labelText: tr('wallet_payment_reference')),
+                      counterText: '', labelText: tr('sender_name')),
                   validator: (value) =>
                       (value?.trim().isEmpty ?? true) ? tr('required') : null),
-              for (final field
-                  in offline!['method_informations'] as List? ?? [])
-                if (field['customer_input'] != null &&
-                    field['customer_input'] != 'payment_screenshot')
-                  TextFormField(
-                      key: ValueKey('$method:${field['customer_input']}'),
-                      decoration: InputDecoration(
-                          labelText: '${field['customer_input']}'),
-                      onChanged: (value) =>
-                          information['${field['customer_input']}'] = value,
-                      validator: (value) => (field['is_required'] == 1 ||
-                                  field['is_required'] == true ||
-                                  field['is_required'] == '1') &&
-                              (value?.trim().isEmpty ?? true)
-                          ? tr('required')
-                          : null),
               TextFormField(
-                  controller: note,
-                  maxLines: 3,
-                  decoration:
-                      InputDecoration(labelText: tr('wallet_deposit_note'))),
+                  controller: senderPhone,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 30,
+                  decoration: InputDecoration(
+                      counterText: '',
+                      labelText: tr('sender_phone_or_account')),
+                  validator: (value) =>
+                      (value?.trim().isEmpty ?? true) ? tr('required') : null),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                   onPressed: busy
@@ -459,7 +458,7 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                           color: Theme.of(context).colorScheme.error))),
             const SizedBox(height: 24),
             FilledButton(
-                onPressed: busy ? null : submit,
+                onPressed: busy || transferMethod == null ? null : submit,
                 child: busy
                     ? const SizedBox(
                         height: 20,
@@ -467,4 +466,50 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2))
                     : Text(tr('proceed'))),
           ])));
+}
+
+class _CustomerTransferChoice extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool selected;
+  final VoidCallback? onTap;
+  const _CustomerTransferChoice(
+      {required this.icon,
+      required this.title,
+      required this.selected,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: selected
+            ? Theme.of(context).primaryColor.withValues(alpha: .09)
+            : Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+              color: selected
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).dividerColor),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(children: [
+              Icon(icon, color: Theme.of(context).primaryColor),
+              const SizedBox(height: 8),
+              Text(title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  size: 20),
+            ]),
+          ),
+        ),
+      );
 }
