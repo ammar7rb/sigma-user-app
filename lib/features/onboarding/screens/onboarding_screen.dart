@@ -37,7 +37,15 @@ class OnBoardingScreen extends StatelessWidget {
                           return Padding(padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.end, children: [
-                                Image.asset(onBoardingList.onBoardingList[index].imageUrl,),
+                                SizedBox(
+                                  height: height * .42,
+                                  width: double.infinity,
+                                  child: Image.asset(
+                                    onBoardingList.onBoardingList[index].imageUrl,
+                                    fit: BoxFit.contain,
+                                    filterQuality: FilterQuality.high,
+                                  ),
+                                ),
                                 Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault),
                                   child: Text(onBoardingList.onBoardingList[index].title ?? '',
                                       style: titilliumBold.copyWith(fontSize: 18), textAlign: TextAlign.center),),

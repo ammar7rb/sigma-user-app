@@ -199,7 +199,7 @@ class Images {
   static const String notVerifiedSvg = 'assets/svg/not_verified_svg.svg';
 
 
-  static const String onBoarding1 = 'assets/images/onboarding_image_one.png';
+  static const String onBoarding1 = 'assets/images/onboarding_medical_marketplace.png';
   static const String onBoarding2 = 'assets/images/onboarding_image_two.png';
   static const String onBoarding3 = 'assets/images/onboarding_image_three.png';
 

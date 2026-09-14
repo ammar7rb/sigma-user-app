@@ -200,9 +200,15 @@ class AuthController with ChangeNotifier {
   Future registration(RegisterModel register, Function callback, ConfigModel config, String? fromPage, VoidCallback? onLoginSuccess) async {
     _isLoading = true;
     notifyListeners();
-    ApiResponseModel apiResponse = await authServiceInterface.registration(register.toJson());
-
-    _isLoading = false;
+    ApiResponseModel apiResponse;
+    try {
+      apiResponse = await authServiceInterface.registration(register.toJson());
+    } catch (error) {
+      apiResponse = ApiResponseModel.withError(error.toString());
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       Map map = apiResponse.response!.data;
       String? tempToken = '', token = '', message = '';
@@ -218,7 +224,10 @@ class AuthController with ChangeNotifier {
       if(token != null && token.isNotEmpty) {
         authServiceInterface.saveUserToken(token);
         await authServiceInterface.updateDeviceToken();
-        navigateToHome(fromPage, onLoginSuccess);
+        // A newly-created account always starts from the real home screen.
+        // Returning to the profile route made registration appear to finish on
+        // a nearly-empty page when sign-up was opened from the Profile tab.
+        navigateToHome(null, onLoginSuccess);
 
       } else if (tempToken != null && tempToken.isNotEmpty) {
         String type;
@@ -230,7 +239,7 @@ class AuthController with ChangeNotifier {
           type = 'email';
 
         }
-        sendVerificationCode(
+        await sendVerificationCode(
           config,
           SignUpModel(email: register.email, phone: register.phone),
           type: type, fromPage: FromPage.login

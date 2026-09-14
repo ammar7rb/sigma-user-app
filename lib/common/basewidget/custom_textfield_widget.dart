@@ -169,8 +169,9 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
               : widget.inputType == TextInputType.url ? [AutofillHints.url]
               : widget.inputType == TextInputType.visiblePassword ? [AutofillHints.password] : null,
           obscureText: widget.isPassword ? _obscureText : false,
-          inputFormatters: widget.inputType == TextInputType.phone ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'[0-9+]'))]
-              : widget.isAmount ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))] : widget.inputFormatters,
+          inputFormatters: widget.inputFormatters ?? (widget.inputType == TextInputType.phone
+              ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+              : widget.isAmount ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))] : null),
           decoration: InputDecoration(
             isDense: widget.isDense,
             contentPadding: widget.padding ?? EdgeInsets.all(Dimensions.fontSizeDefault),

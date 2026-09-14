@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/register_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/widgets/condition_check_box_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
@@ -49,7 +51,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
     var splashController = Provider.of<SplashController>(context,listen: false);
     var authController = Provider.of<AuthController>(context, listen: false);
     var profileController = Provider.of<ProfileController>(context, listen: false);
-    String phone = authController.countryDialCode +_phoneController.text.trim();
+    String phone = EgyptPhoneHelper.toInternational(_phoneController.text);
     if (isRoute) {
       if(splashController.configModel!.emailVerification!){
         authController.sendOtpToEmail(_emailController.text.toString(), tempToken!).then((value) async {
@@ -172,7 +174,18 @@ class SignUpWidgetState extends State<SignUpWidget> {
                           showCodePicker: false,
                           countryDialCode: '+20',
                           isAmount: true,
-                          validator: (value)=> ValidateCheck.validatePhoneNoText(value, authProvider.countryDialCode, "phone_must_be_required"),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(11),
+                          ],
+                          validator: (value) {
+                            if ((value ?? '').trim().isEmpty) {
+                              return getTranslated('phone_must_be_required', context);
+                            }
+                            return EgyptPhoneHelper.isValidLocal(value!)
+                                ? null
+                                : getTranslated('enter_valid_phone_number', context);
+                          },
                           inputAction: TextInputAction.next,
                           inputType: TextInputType.phone)),
 
@@ -249,7 +262,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                             String firstName = _firstNameController.text.trim();
                             String lastName = _lastNameController.text.trim();
                             String email = _emailController.text.trim();
-                            String phoneNumber = authProvider.countryDialCode +_phoneController.text.trim();
+                            String phoneNumber = EgyptPhoneHelper.toInternational(_phoneController.text);
                             String password = _passwordController.text.trim();
 
                             if (signUpFormKey.currentState?.validate() ?? false) {
