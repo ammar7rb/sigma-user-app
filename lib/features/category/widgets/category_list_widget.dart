@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/controllers/category_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/widgets/category_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +17,20 @@ class CategoryListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CategoryController>(
       builder: (context, categoryProvider, child) {
-        return Column(children: [
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Theme.of(context).dividerColor),
+            boxShadow: [BoxShadow(
+              color: Colors.black.withValues(alpha: .045),
+              blurRadius: 18,
+              offset: const Offset(0, 7),
+            )],
+          ),
+          child: Column(children: [
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraExtraSmall),
@@ -34,7 +46,7 @@ class CategoryListWidget extends StatelessWidget {
           const SizedBox(height: Dimensions.paddingSizeSmall),
 
           categoryProvider.categoryList.isNotEmpty ?
-          SizedBox( height: Provider.of<LocalizationController>(context, listen: false).isLtr ? MediaQuery.of(context).size.width/3.2 : MediaQuery.of(context).size.width/3,
+          SizedBox(height: 126,
             child: ListView.builder(
               padding: EdgeInsets.zero,
               scrollDirection: Axis.horizontal,
@@ -57,7 +69,7 @@ class CategoryListWidget extends StatelessWidget {
               },
             ),
           ) : const CategoryShimmerWidget(),
-        ]);
+        ]));
 
       },
     );

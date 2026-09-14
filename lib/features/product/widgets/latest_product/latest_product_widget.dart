@@ -27,13 +27,13 @@ class LatestProductWidget extends StatelessWidget {
       RouterHelper.getProductDetailsRoute(action: RouteAction.push, productId: productModel.id, slug: productModel.slug!);
       },
 
-      child: Padding(padding: EdgeInsets.only(left: Dimensions.paddingSizeSmall),
+      child: Padding(padding: EdgeInsets.zero,
         child: Stack(
           children: [
             Container(
               padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
               decoration: BoxDecoration(
-                borderRadius:  const BorderRadius.all(Radius.circular(Dimensions.paddingSizeSmall)),
+                borderRadius: const BorderRadius.all(Radius.circular(18)),
                 color: Provider.of<ThemeController>(context, listen: false).darkTheme?
                 Theme.of(context).highlightColor : Theme.of(context).highlightColor,
                   boxShadow: [

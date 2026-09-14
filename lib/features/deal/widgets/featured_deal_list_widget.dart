@@ -22,8 +22,8 @@ class FeaturedDealsListWidget extends StatelessWidget {
         return featuredDealProvider.featuredDealProductList != null? featuredDealProvider.featuredDealProductList!.isNotEmpty ?
         CarouselSlider.builder(
           options: CarouselOptions(
-            aspectRatio: 2.5,
-            viewportFraction: 0.86,
+            aspectRatio: 2.15,
+            viewportFraction: 0.91,
             autoPlay: true,
             pauseAutoPlayOnTouch: true,
             pauseAutoPlayOnManualNavigate: true,
@@ -57,5 +57,4 @@ class FeaturedDealsListWidget extends StatelessWidget {
     );
   }
 }
-
 

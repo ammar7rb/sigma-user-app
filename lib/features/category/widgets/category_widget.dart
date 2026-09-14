@@ -36,19 +36,19 @@ class CategoryWidget extends StatelessWidget {
                   : Dimensions.homePagePadding),
       child: Column(children: [
         Container(
-            height: 70,
-            width: 70,
+            height: 78,
+            width: 78,
             decoration: BoxDecoration(
                 border: Border.all(
                     color:
                         Theme.of(context).primaryColor.withValues(alpha: .125),
-                    width: .25),
+                    width: 1),
                 borderRadius:
-                    BorderRadius.circular(Dimensions.paddingSizeSmall),
-                color: Theme.of(context).primaryColor.withValues(alpha: .125)),
+                    BorderRadius.circular(18),
+                color: Theme.of(context).primaryColor.withValues(alpha: .075)),
             child: ClipRRect(
                 borderRadius:
-                    BorderRadius.circular(Dimensions.paddingSizeSmall),
+                    BorderRadius.circular(18),
                 child: category.medicalIcon != null &&
                         medicalCategoryIcons.containsKey(category.medicalIcon)
                     ? Icon(medicalCategoryIcons[category.medicalIcon],
@@ -58,7 +58,7 @@ class CategoryWidget extends StatelessWidget {
         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
         Center(
             child: SizedBox(
-                width: 70,
+                width: 82,
                 child: Text(category.name ?? '',
                     textAlign: TextAlign.center,
                     maxLines: 2,

@@ -30,9 +30,14 @@ class LatestProductListWidget extends StatelessWidget {
         }
 
         return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           padding:
               const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-          color: Theme.of(context).cardColor,
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Theme.of(context).dividerColor),
+          ),
           child: Column(
             children: [
               TitleRowWidget(
@@ -53,7 +58,7 @@ class LatestProductListWidget extends StatelessWidget {
                   separatorBuilder: (_, __) =>
                       const SizedBox(width: Dimensions.paddingSizeSmall),
                   itemBuilder: (context, index) => SizedBox(
-                    width: MediaQuery.sizeOf(context).width * .82,
+                    width: MediaQuery.sizeOf(context).width * .72,
                     child: LatestProductWidget(productModel: products[index]),
                   ),
                 ),

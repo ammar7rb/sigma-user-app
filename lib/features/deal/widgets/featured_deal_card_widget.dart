@@ -31,7 +31,7 @@ class FeaturedDealWidget extends StatelessWidget {
               AnimatedContainer(
                 margin: isCenterElement == null ? null :  EdgeInsets.symmetric(vertical : isCenterElement! ? 0 : 5),
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                    borderRadius: BorderRadius.circular(20),
                     color: Theme.of(context).cardColor,
                     border: Border.all(color: Theme.of(context).colorScheme.onTertiary),
                     boxShadow: [
@@ -47,12 +47,12 @@ class FeaturedDealWidget extends StatelessWidget {
                       padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: 0.05), width: 1),
                           color: Theme.of(context).highlightColor,
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
+                          borderRadius: BorderRadius.circular(14),
                           child: CustomImageWidget(
                             image: '${product.thumbnailFullUrl?.path}',
                             height: constrains.maxHeight * 0.8,
