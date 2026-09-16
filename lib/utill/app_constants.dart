@@ -63,6 +63,8 @@ class AppConstants {
   static const String updateProfileUri = '/api/v1/customer/update-profile';
   static const String customerUri = '/api/v1/customer/info';
   static const String addressListUri = '/api/v1/customer/address/list';
+  static const String shippingGovernoratesUri =
+      '/api/v1/mapapi/shipping-governorates';
   static const String removeAddressUri = '/api/v1/customer/address';
   static const String addAddressUri = '/api/v1/customer/address/add';
   static const String getWishListUri = '/api/v1/customer/wish-list';

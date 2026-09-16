@@ -11,16 +11,26 @@ import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:provider/provider.dart';
 
-
-class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
+class AddressRepository implements AddressRepoInterface<ApiResponseModel> {
   final DioClient? dioClient;
   AddressRepository({this.dioClient});
-
 
   @override
   Future<ApiResponseModel> getDeliveryRestrictedCountryList() async {
     try {
-      final response = await dioClient!.get(AppConstants.deliveryRestrictedCountryList);
+      final response =
+          await dioClient!.get(AppConstants.deliveryRestrictedCountryList);
+      return ApiResponseModel.withSuccess(response);
+    } catch (e) {
+      return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
+    }
+  }
+
+  @override
+  Future<ApiResponseModel> getShippingGovernorates() async {
+    try {
+      final response =
+          await dioClient!.get(AppConstants.shippingGovernoratesUri);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -30,7 +40,8 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
   @override
   Future<ApiResponseModel> getDeliveryRestrictedZipList() async {
     try {
-      final response = await dioClient!.get(AppConstants.deliveryRestrictedZipList);
+      final response =
+          await dioClient!.get(AppConstants.deliveryRestrictedZipList);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -38,9 +49,11 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
   }
 
   @override
-  Future<ApiResponseModel> getDeliveryRestrictedZipBySearch(String zipcode) async {
+  Future<ApiResponseModel> getDeliveryRestrictedZipBySearch(
+      String zipcode) async {
     try {
-      final response = await dioClient!.get('${AppConstants.deliveryRestrictedZipList}?search=$zipcode');
+      final response = await dioClient!
+          .get('${AppConstants.deliveryRestrictedZipList}?search=$zipcode');
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -48,20 +61,22 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
   }
 
   @override
-  Future<ApiResponseModel> getDeliveryRestrictedCountryBySearch(String country) async {
+  Future<ApiResponseModel> getDeliveryRestrictedCountryBySearch(
+      String country) async {
     try {
-      final response = await dioClient!.get('${AppConstants.deliveryRestrictedCountryList}?search=$country');
+      final response = await dioClient!
+          .get('${AppConstants.deliveryRestrictedCountryList}?search=$country');
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
     }
   }
-
 
   @override
   Future<ApiResponseModel> getList({int? offset}) async {
     try {
-      final response = await dioClient!.get('${AppConstants.addressListUri}?guest_id=${Provider.of<AuthController>(Get.context!, listen: false).getGuestToken()}');
+      final response = await dioClient!.get(
+          '${AppConstants.addressListUri}?guest_id=${Provider.of<AuthController>(Get.context!, listen: false).getGuestToken()}');
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -72,9 +87,8 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
   Future<ApiResponseModel> delete(int? id) async {
     try {
       final response = await dioClient!.post(
-        '${AppConstants.removeAddressUri}?address_id=$id&guest_id=${Provider.of<AuthController>(Get.context!, listen: false).getGuestToken()}',
-        data: {"_method" : 'delete'}
-      );
+          '${AppConstants.removeAddressUri}?address_id=$id&guest_id=${Provider.of<AuthController>(Get.context!, listen: false).getGuestToken()}',
+          data: {"_method": 'delete'});
       ApiResponseModel res = ApiResponseModel.withSuccess(response);
       return res;
     } catch (e) {
@@ -82,11 +96,11 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
     }
   }
 
-
   @override
   Future<ApiResponseModel> add(AddressModel addressModel) async {
     try {
-      Response response = await dioClient!.post(AppConstants.addAddressUri, data: addressModel.toJson());
+      Response response = await dioClient!
+          .post(AppConstants.addAddressUri, data: addressModel.toJson());
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -94,19 +108,20 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
   }
 
   @override
-  Future<ApiResponseModel> update(Map<String, dynamic> addressModel, int addressId) async {
+  Future<ApiResponseModel> update(
+      Map<String, dynamic> addressModel, int addressId) async {
     try {
-      Response response = await dioClient!.post(AppConstants.updateAddressUri, data: addressModel);
+      Response response = await dioClient!
+          .post(AppConstants.updateAddressUri, data: addressModel);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
     }
   }
-
 
   @override
   List<LabelAsModel> getAddressType() {
-    List<LabelAsModel> labelAsList= [
+    List<LabelAsModel> labelAsList = [
       LabelAsModel('home', Images.homeImage),
       LabelAsModel('office', Images.officeImage),
       LabelAsModel('others', Images.address),
@@ -114,15 +129,9 @@ class AddressRepository implements AddressRepoInterface<ApiResponseModel>{
     return labelAsList;
   }
 
-
-
-
   @override
   Future get(String id) {
     // TODO: implement get
     throw UnimplementedError();
   }
-
 }
-
-

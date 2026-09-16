@@ -13,93 +13,118 @@ class AddressController with ChangeNotifier {
   AddressController({required this.addressServiceInterface});
 
   List<String> _restrictedCountryList = [];
-  List<String> get restrictedCountryList =>_restrictedCountryList;
-  List<RestrictedZipModel> _restrictedZipList =[];
+  List<String> get restrictedCountryList => _restrictedCountryList;
+  List<RestrictedZipModel> _restrictedZipList = [];
   List<RestrictedZipModel> get restrictedZipList => _restrictedZipList;
   final List<String> _zipNameList = [];
   List<String> get zipNameList => _zipNameList;
   final TextEditingController _searchZipController = TextEditingController();
   TextEditingController get searchZipController => _searchZipController;
-  final TextEditingController _searchCountryController = TextEditingController();
+  final TextEditingController _searchCountryController =
+      TextEditingController();
   TextEditingController get searchCountryController => _searchCountryController;
   List<AddressModel>? _addressList;
   List<AddressModel>? get addressList => _addressList;
-  
+  List<String> _shippingGovernorates = [];
+  List<String> get shippingGovernorates => _shippingGovernorates;
 
   Future<void> getRestrictedDeliveryCountryList() async {
-    ApiResponseModel apiResponse = await addressServiceInterface.getDeliveryRestrictedCountryList();
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+    ApiResponseModel apiResponse =
+        await addressServiceInterface.getDeliveryRestrictedCountryList();
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
       _restrictedCountryList = [];
-      apiResponse.response!.data.forEach((address) => _restrictedCountryList.add(address));
+      apiResponse.response!.data
+          .forEach((address) => _restrictedCountryList.add(address));
     } else {
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
     }
     notifyListeners();
   }
 
+  Future<void> getShippingGovernorates() async {
+    final apiResponse = await addressServiceInterface.getShippingGovernorates();
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      _shippingGovernorates = List<String>.from(
+          apiResponse.response!.data['governorates'] ?? const []);
+    } else {
+      ApiChecker.checkApi(apiResponse);
+    }
+    notifyListeners();
+  }
 
   Future<void> getRestrictedDeliveryZipList() async {
-    ApiResponseModel apiResponse = await addressServiceInterface.getDeliveryRestrictedZipList();
-    if (apiResponse.response != null && apiResponse.response?.statusCode == 200) {
+    ApiResponseModel apiResponse =
+        await addressServiceInterface.getDeliveryRestrictedZipList();
+    if (apiResponse.response != null &&
+        apiResponse.response?.statusCode == 200) {
       _restrictedZipList = [];
-      apiResponse.response!.data.forEach((address) => _restrictedZipList.add(RestrictedZipModel.fromJson(address)));
+      apiResponse.response!.data.forEach((address) =>
+          _restrictedZipList.add(RestrictedZipModel.fromJson(address)));
     } else {
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
     }
     notifyListeners();
   }
 
-  
   Future<void> getDeliveryRestrictedZipBySearch(String searchName) async {
     _restrictedZipList = [];
-    ApiResponseModel response = await addressServiceInterface.getDeliveryRestrictedZipBySearch(searchName);
-    if(response.response!.statusCode == 200) {
+    ApiResponseModel response = await addressServiceInterface
+        .getDeliveryRestrictedZipBySearch(searchName);
+    if (response.response!.statusCode == 200) {
       _restrictedZipList = [];
       response.response!.data.forEach((address) {
         _restrictedZipList.add(RestrictedZipModel.fromJson(address));
       });
-    }else {
-      ApiChecker.checkApi(response);
-    }
-   notifyListeners();
-  }
-
-
-  Future<void> getDeliveryRestrictedCountryBySearch( String searchName) async {
-    _restrictedCountryList = [];
-    ApiResponseModel response = await addressServiceInterface.getDeliveryRestrictedCountryBySearch(searchName);
-    if(response.response!.statusCode == 200) {
-      _restrictedCountryList = [];
-      response.response!.data.forEach((address) => _restrictedCountryList.add(address));
-    }else {
+    } else {
       ApiChecker.checkApi(response);
     }
     notifyListeners();
   }
 
+  Future<void> getDeliveryRestrictedCountryBySearch(String searchName) async {
+    _restrictedCountryList = [];
+    ApiResponseModel response = await addressServiceInterface
+        .getDeliveryRestrictedCountryBySearch(searchName);
+    if (response.response!.statusCode == 200) {
+      _restrictedCountryList = [];
+      response.response!.data
+          .forEach((address) => _restrictedCountryList.add(address));
+    } else {
+      ApiChecker.checkApi(response);
+    }
+    notifyListeners();
+  }
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-
-
-  Future<List<AddressModel>?> getAddressList({bool fromRemove = false, bool isShipping = false, bool isBilling = false, bool all = false }) async {
+  Future<List<AddressModel>?> getAddressList(
+      {bool fromRemove = false,
+      bool isShipping = false,
+      bool isBilling = false,
+      bool all = false}) async {
     _addressList = null;
-    _addressList = await addressServiceInterface.getList(isShipping: isShipping, isBilling: isBilling, fromRemove: fromRemove, all: all);
+    _addressList = await addressServiceInterface.getList(
+        isShipping: isShipping,
+        isBilling: isBilling,
+        fromRemove: fromRemove,
+        all: all);
     notifyListeners();
     return _addressList;
   }
 
-
-
-
   Future<void> deleteAddress(int id) async {
     ApiResponseModel apiResponse = await addressServiceInterface.delete(id);
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      showCustomSnackBarWidget(apiResponse.response!.data['message'], Get.context!, snackBarType: SnackBarType.success);
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      showCustomSnackBarWidget(
+          apiResponse.response!.data['message'], Get.context!,
+          snackBarType: SnackBarType.success);
       getAddressList(fromRemove: true);
     } else {
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
     }
     notifyListeners();
   }
@@ -107,10 +132,14 @@ class AddressController with ChangeNotifier {
   Future<ApiResponseModel> addAddress(AddressModel addressModel) async {
     _isLoading = true;
     notifyListeners();
-    ApiResponseModel apiResponse = await addressServiceInterface.add(addressModel);
+    ApiResponseModel apiResponse =
+        await addressServiceInterface.add(addressModel);
     _isLoading = false;
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      showCustomSnackBarWidget(apiResponse.response!.data["message"], Get.context!, snackBarType: SnackBarType.success);
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      showCustomSnackBarWidget(
+          apiResponse.response!.data["message"], Get.context!,
+          snackBarType: SnackBarType.success);
       getAddressList();
     } else {
       ApiChecker.checkApi(apiResponse);
@@ -119,35 +148,36 @@ class AddressController with ChangeNotifier {
     return apiResponse;
   }
 
-
-  Future<void> updateAddress(BuildContext context, {required AddressModel addressModel, int? addressId}) async {
+  Future<void> updateAddress(BuildContext context,
+      {required AddressModel addressModel, int? addressId}) async {
     _isLoading = true;
     notifyListeners();
-    ApiResponseModel apiResponse = await addressServiceInterface.update(addressModel.toJson(), addressId!);
+    ApiResponseModel apiResponse =
+        await addressServiceInterface.update(addressModel.toJson(), addressId!);
     _isLoading = false;
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
       Navigator.pop(Get.context!);
       getAddressList();
-      showCustomSnackBarWidget(apiResponse.response!.data["message"], Get.context!, snackBarType: SnackBarType.success);
-    }else {
+      showCustomSnackBarWidget(
+          apiResponse.response!.data["message"], Get.context!,
+          snackBarType: SnackBarType.success);
+    } else {
       ApiChecker.checkApi(apiResponse);
     }
 
     notifyListeners();
   }
 
-  void setZip(String zip){
+  void setZip(String zip) {
     _searchZipController.text = zip;
     notifyListeners();
   }
-  
-  void setCountry(String country){
+
+  void setCountry(String country) {
     _searchCountryController.text = country;
     notifyListeners();
   }
-
-  
-
 
   List<LabelAsModel> addressTypeList = [];
   int _selectAddressIndex = 0;
@@ -156,7 +186,7 @@ class AddressController with ChangeNotifier {
 
   void updateAddressIndex(int index, bool notify) {
     _selectAddressIndex = index;
-    if(notify) {
+    if (notify) {
       notifyListeners();
     }
   }
@@ -171,10 +201,8 @@ class AddressController with ChangeNotifier {
 
   void resetAddressList({bool isUpdate = true}) {
     _addressList = [];
-    if(isUpdate){
+    if (isUpdate) {
       notifyListeners();
     }
   }
-
-
 }

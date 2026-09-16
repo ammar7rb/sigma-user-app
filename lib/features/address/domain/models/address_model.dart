@@ -15,24 +15,24 @@ class AddressModel {
   bool? isBilling;
   String? guestId;
   String? email;
-  AddressModel(
-      {this.id,
-        this.contactPersonName,
-        this.addressType,
-        this.address,
-        this.city,
-        this.zip,
-        this.phone,
-        this.createdAt,
-        this.updatedAt,
-        this.state,
-        this.country,
-        this.latitude,
-        this.longitude,
-        this.isBilling,
-        this.guestId,
-        this.email,
-      });
+  AddressModel({
+    this.id,
+    this.contactPersonName,
+    this.addressType,
+    this.address,
+    this.city,
+    this.zip,
+    this.phone,
+    this.createdAt,
+    this.updatedAt,
+    this.state,
+    this.country,
+    this.latitude,
+    this.longitude,
+    this.isBilling,
+    this.guestId,
+    this.email,
+  });
 
   AddressModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -48,7 +48,7 @@ class AddressModel {
     country = json['country'];
     latitude = json['latitude'];
     longitude = json['longitude'];
-    isBilling = json['is_billing']??false;
+    isBilling = json['is_billing'] ?? false;
     email = json['email'];
   }
 

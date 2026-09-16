@@ -90,6 +90,24 @@ void main() {
         isNot(contains('ستختار عنوان وطريقة الشحن في الخطوة التالية')));
   });
 
+  test('delivery address and shipping prices use the live governorate API', () {
+    final address =
+        File('lib/features/address/screens/add_new_address_screen.dart')
+            .readAsStringSync();
+    final constants = File('lib/utill/app_constants.dart').readAsStringSync();
+    final shipping =
+        File('lib/features/shipping/controllers/shipping_controller.dart')
+            .readAsStringSync();
+
+    expect(address, contains('_mapAddressPickerEnabled = false'));
+    expect(address, contains('addressController.shippingGovernorates'));
+    expect(address, contains('latitude: null'));
+    expect(address, contains('longitude: null'));
+    expect(constants, contains('/api/v1/mapapi/shipping-governorates'));
+    expect(shipping, contains('quoteForAddress'));
+    expect(shipping, contains('selectQuoteForAddress'));
+  });
+
   test('first payment preserves server total without adding second stage tax',
       () {
     final quote = OrderInsuranceQuoteModel.fromJson({

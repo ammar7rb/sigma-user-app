@@ -368,27 +368,6 @@ class _AddressPreview extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 16),
-          Container(
-              height: 190,
-              decoration:
-                  _card(context).copyWith(color: const Color(0xFFEAF3FF)),
-              child: Stack(children: [
-                const Center(
-                    child: Icon(Icons.location_on_rounded,
-                        size: 54, color: Color(0xFF168BEB))),
-                PositionedDirectional(
-                    top: 12,
-                    end: 12,
-                    child: _icon(context, Icons.fullscreen_rounded)),
-                const Positioned(
-                    bottom: 14,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                        child: Text('حدد الموقع على الخريطة',
-                            style: TextStyle(fontWeight: FontWeight.w700)))),
-              ])),
-          const SizedBox(height: 16),
           const _PreviewField(
               label: 'اسم المستلم', icon: Icons.person_outline_rounded),
           const SizedBox(height: 12),

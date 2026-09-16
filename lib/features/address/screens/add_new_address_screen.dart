@@ -18,10 +18,7 @@ import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/success_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -63,16 +60,15 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
   static const String _egyptDialCode = '+20';
   static const String _egyptCountryName = 'Egypt';
   static const LatLng _egyptCenter = LatLng(26.8206, 30.8025);
+  final bool _mapAddressPickerEnabled = false;
   String zip = '', country = 'EG';
-  late LatLng _defaut;
+  late final LatLng _defaut = _egyptCenter;
 
   final GlobalKey<FormState> _addressFormKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-
-    _defaut = _egyptCenter;
 
     // Billing addresses are not part of this checkout. Every saved address is
     // a delivery address, so users never need to choose a second type here.
@@ -82,34 +78,16 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
     _countryCodeController.text = _egyptCountryName;
     Provider.of<AddressController>(context, listen: false).getAddressType();
     Provider.of<AddressController>(context, listen: false)
+        .getShippingGovernorates();
+    Provider.of<AddressController>(context, listen: false)
         .getRestrictedDeliveryCountryList();
     Provider.of<AddressController>(context, listen: false)
         .getRestrictedDeliveryZipList();
 
-    _checkPermission(
-        () => Provider.of<LocationController>(context, listen: false)
-            .getCurrentLocation(context, true, mapController: _controller),
-        context);
     if (widget.isEnableUpdate && widget.address != null) {
-      _updateAddress = false;
-
-      Provider.of<LocationController>(context, listen: false).updateMapPosition(
-          CameraPosition(
-              target: LatLng(
-            (widget.address!.latitude != null &&
-                    widget.address!.latitude != '0' &&
-                    widget.address!.latitude != '')
-                ? double.parse(widget.address!.latitude!)
-                : _defaut.latitude,
-            (widget.address!.longitude != null &&
-                    widget.address!.longitude != '0' &&
-                    widget.address!.longitude != '')
-                ? double.parse(widget.address!.longitude!)
-                : _defaut.longitude,
-          )),
-          true,
-          widget.address!.address,
-          context);
+      Provider.of<LocationController>(context, listen: false)
+          .locationController
+          .text = widget.address!.address ?? '';
       _contactPersonNameController.text =
           '${widget.address?.contactPersonName}';
       _countryCodeController.text = _egyptCountryName;
@@ -276,11 +254,12 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                             const SizedBox(
                                 height: Dimensions.paddingSizeDefaultAddress),
 
-                            Provider.of<SplashController>(context,
-                                            listen: false)
-                                        .configModel!
-                                        .mapApiStatus ==
-                                    1
+                            _mapAddressPickerEnabled &&
+                                    Provider.of<SplashController>(context,
+                                                listen: false)
+                                            .configModel!
+                                            .mapApiStatus ==
+                                        1
                                 ? SizedBox(
                                     height:
                                         MediaQuery.of(context).size.width / 2,
@@ -611,7 +590,10 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                               hint: Text(
                                   getTranslated('governorate', context) ??
                                       'Governorate'),
-                              items: EgyptLocationHelper.governorates
+                              items: (addressController
+                                          .shippingGovernorates.isNotEmpty
+                                      ? addressController.shippingGovernorates
+                                      : EgyptLocationHelper.governorates)
                                   .map(
                                       (governorate) => DropdownMenuItem<String>(
                                             value: governorate,
@@ -738,25 +720,9 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                 buttonText: widget.isEnableUpdate
                                     ? getTranslated('update_address', context)
                                     : getTranslated('save_location', context),
-                                onTap: locationController.loading
+                                onTap: addressController.isLoading
                                     ? null
                                     : () {
-                                        if (!_isInsideEgypt(LatLng(
-                                            locationController
-                                                .position.latitude,
-                                            locationController
-                                                .position.longitude))) {
-                                          showCustomSnackBarWidget(
-                                              getTranslated(
-                                                      'select_address_inside_egypt',
-                                                      context) ??
-                                                  '',
-                                              Get.context!,
-                                              snackBarType:
-                                                  SnackBarType.warning);
-                                          return;
-                                        }
-
                                         if (_addressFormKey.currentState
                                                 ?.validate() ??
                                             false) {
@@ -790,20 +756,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                             isBilling: false,
                                             address: locationController
                                                 .locationController.text,
-                                            latitude: widget.isEnableUpdate
-                                                ? locationController
-                                                    .position.latitude
-                                                    .toString()
-                                                : locationController
-                                                    .position.latitude
-                                                    .toString(),
-                                            longitude: widget.isEnableUpdate
-                                                ? locationController
-                                                    .position.longitude
-                                                    .toString()
-                                                : locationController
-                                                    .position.longitude
-                                                    .toString(),
+                                            latitude: null,
+                                            longitude: null,
                                           );
 
                                           if (widget.isEnableUpdate) {
@@ -813,17 +767,6 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                                 context,
                                                 addressModel: addressModel,
                                                 addressId: addressModel.id);
-                                          } else if (false &&
-                                              _countryCodeController.text
-                                                  .trim()
-                                                  .isEmpty) {
-                                            showCustomSnackBarWidget(
-                                                getTranslated(
-                                                    'country_is_required',
-                                                    context),
-                                                Get.context!,
-                                                snackBarType:
-                                                    SnackBarType.warning);
                                           } else {
                                             addressController
                                                 .addAddress(addressModel)
@@ -860,43 +803,13 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
     );
   }
 
+  // Retained only for the dormant legacy map widget. Customer checkout keeps
+  // that widget disabled and prices delivery from the governorate form.
   static bool _isInsideEgypt(LatLng point) =>
       point.latitude >= 21.5 &&
       point.latitude <= 31.8 &&
       point.longitude >= 24.5 &&
       point.longitude <= 37.2;
-  void _checkPermission(Function callback, BuildContext context) async {
-    LocationPermission permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.whileInUse) {
-      InkWell(
-          onTap: () async {
-            Navigator.pop(context);
-            await Geolocator.requestPermission();
-            _checkPermission(callback, Get.context!);
-          },
-          child: AlertDialog(
-              content: SuccessDialog(
-                  icon: Icons.location_on_outlined,
-                  title: '',
-                  description: getTranslated('you_denied', Get.context!))));
-    } else if (permission == LocationPermission.deniedForever) {
-      InkWell(
-          onTap: () async {
-            if (context.mounted) {}
-            Navigator.pop(context);
-            await Geolocator.openAppSettings();
-            _checkPermission(callback, Get.context!);
-          },
-          child: AlertDialog(
-              content: SuccessDialog(
-                  icon: Icons.location_on_outlined,
-                  title: '',
-                  description: getTranslated('you_denied', Get.context!))));
-    } else {
-      callback();
-    }
-  }
 }
 
 enum Address { shipping, billing }
