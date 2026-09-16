@@ -120,6 +120,67 @@ void main() {
     expect(pubspec, contains('family: Cairo'));
   });
 
+  test('every visual preview has an API-backed production counterpart', () {
+    const counterparts = <String, List<String>>{
+      'lib/features/home/screens/home_design_preview.dart': [
+        'lib/features/home/screens/home_screens.dart',
+        'ProductController',
+      ],
+      'lib/features/more/screens/profile_dashboard_preview.dart': [
+        'lib/features/more/screens/more_screen_view.dart',
+        'ProfileController',
+      ],
+      'lib/features/checkout/screens/checkout_phase_preview.dart': [
+        'lib/features/checkout/screens/checkout_screen.dart',
+        'CheckoutController',
+      ],
+      'lib/features/dashboard/screens/phase_five_preview.dart': [
+        'lib/features/cart/screens/cart_screen.dart',
+        'CartController',
+      ],
+      'lib/features/dashboard/screens/phase_six_preview.dart': [
+        'lib/features/dashboard/screens/dashboard_screen.dart',
+        'HomePage',
+      ],
+      'lib/features/dashboard/screens/phase_one_preview.dart': [
+        'lib/features/dashboard/screens/dashboard_screen.dart',
+        'CategoryScreen',
+      ],
+      'lib/features/dashboard/screens/customer_polish_preview.dart': [
+        'lib/features/offline_payment/screens/offline_payment_screen.dart',
+        'CheckoutController',
+      ],
+    };
+
+    for (final entry in counterparts.entries) {
+      expect(File(entry.key).existsSync(), isTrue,
+          reason: 'Missing visual reference ${entry.key}');
+      final productionFile = File(entry.value.first);
+      expect(productionFile.existsSync(), isTrue,
+          reason: 'Missing production counterpart for ${entry.key}');
+      expect(productionFile.readAsStringSync(), contains(entry.value.last),
+          reason: '${entry.key} is not connected to its production state');
+    }
+
+    final routes = File('lib/helper/route_healper.dart').readAsStringSync();
+    final dashboard =
+        File('lib/features/dashboard/screens/dashboard_screen.dart')
+            .readAsStringSync();
+    const forbiddenPreviewTypes = <String>[
+      'PhaseOnePreview',
+      'HomeDesignPreview',
+      'ProfileDashboardPreview',
+      'CheckoutPhasePreview',
+      'PhaseFivePreview',
+      'PhaseSixPreview',
+      'CustomerPolishPreview',
+    ];
+    for (final type in forbiddenPreviewTypes) {
+      expect(routes, isNot(contains(type)));
+      expect(dashboard, isNot(contains(type)));
+    }
+  });
+
   test('delivery address and shipping prices use the live governorate API', () {
     final address =
         File('lib/features/address/screens/add_new_address_screen.dart')
