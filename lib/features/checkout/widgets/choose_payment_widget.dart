@@ -19,15 +19,15 @@ class ChoosePaymentWidget extends StatelessWidget {
     return Consumer<CheckoutController>(builder: (context, orderProvider, _) {
       return Consumer<SplashController>(builder: (context, configProvider, _) {
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: 0),
+          margin: const EdgeInsets.symmetric(
+              horizontal: Dimensions.paddingSizeDefault),
+          padding:
+              const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            boxShadow: [
-              BoxShadow(
-                  color: Theme.of(context).hintColor.withValues(alpha: 0.2),
-                  spreadRadius: 3,
-                  blurRadius: 3)
-            ],
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: .35)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +68,7 @@ class ChoosePaymentWidget extends StatelessWidget {
                       ),
                     ]),
               ),
-              const SizedBox(height: Dimensions.paddingSizeDefault),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
 
               if (orderProvider.isWalletChecked ||
                   orderProvider.isOfflineChecked ||

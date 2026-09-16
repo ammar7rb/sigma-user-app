@@ -44,7 +44,7 @@ class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
           widget.hasPhysical
               ? Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                         color: Theme.of(context)
                             .dividerColor
@@ -54,8 +54,8 @@ class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
                           color: Theme.of(context)
                               .hintColor
                               .withValues(alpha: 0.08),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6))
+                          blurRadius: 10,
+                          offset: const Offset(0, 3))
                     ],
                     color: Theme.of(context).cardColor,
                   ),
@@ -65,8 +65,9 @@ class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(
-                              Dimensions.paddingSizeDefault),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: Dimensions.paddingSizeDefault,
+                              vertical: Dimensions.paddingSizeSmall),
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +84,8 @@ class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
                                         child: Text(
                                           '${getTranslated('delivery_to', context)}',
                                           style: textMedium.copyWith(
-                                            fontSize: Dimensions.fontSizeLarge,
+                                            fontSize:
+                                                Dimensions.fontSizeDefault,
                                             color: Theme.of(context)
                                                 .textTheme
                                                 .bodyLarge
@@ -111,7 +113,7 @@ class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
                         ),
                         SizedBox(
                             height: 1, child: const Divider(thickness: .200)),
-                        const SizedBox(height: Dimensions.paddingSizeDefault),
+                        const SizedBox(height: Dimensions.paddingSizeSmall),
                         Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

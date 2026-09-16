@@ -24,6 +24,8 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/not_logged_in_bott
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/widgets/cart_page_shimmer_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/widgets/cart_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/checkout_condition_checkbox.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shipping/widgets/shipping_method_bottom_sheet_widget.dart';
 import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:provider/provider.dart';
@@ -225,7 +227,7 @@ class CartScreenState extends State<CartScreen> {
                 ? Consumer<SplashController>(
                     builder: (context, configProvider, _) {
                     return Container(
-                        height: cartList.isNotEmpty ? 110 : 0,
+                        height: cartList.isNotEmpty ? 154 : 0,
                         padding: const EdgeInsets.symmetric(
                             horizontal: Dimensions.paddingSizeDefault,
                             vertical: Dimensions.paddingSizeSmall),
@@ -234,6 +236,9 @@ class CartScreenState extends State<CartScreen> {
                             borderRadius: BorderRadius.circular(10)),
                         child: cartList.isNotEmpty
                             ? Column(children: [
+                                const CheckoutConditionCheckBox(),
+                                const SizedBox(
+                                    height: Dimensions.paddingSizeExtraSmall),
                                 Padding(
                                   padding: const EdgeInsets.only(
                                       bottom: Dimensions.paddingSizeSmall),
@@ -335,6 +340,21 @@ class CartScreenState extends State<CartScreen> {
                                     Expanded(
                                       child: InkWell(
                                         onTap: () async {
+                                          if (!context
+                                              .read<CheckoutController>()
+                                              .isAcceptTerms) {
+                                            showCustomSnackBarWidget(
+                                                getTranslated(
+                                                        'please_accept_terms_and_conditions',
+                                                        context) ??
+                                                    getTranslated(
+                                                        'terms_condition',
+                                                        context),
+                                                Get.context!,
+                                                snackBarType:
+                                                    SnackBarType.warning);
+                                            return;
+                                          }
                                           bool hasNull = false;
                                           bool minimum = false;
                                           bool stockOutProduct = false;

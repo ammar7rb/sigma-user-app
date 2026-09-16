@@ -238,6 +238,18 @@ class _CartPreview extends StatelessWidget {
                       ]),
                     ])),
               ])),
+          const SizedBox(height: 14),
+          Container(
+              padding: const EdgeInsets.all(14),
+              decoration: _card(context),
+              child: Row(children: [
+                Icon(Icons.check_box_rounded,
+                    color: Theme.of(context).primaryColor),
+                const SizedBox(width: 10),
+                const Expanded(
+                    child: Text('أوافق على الشروط والأحكام وسياسة الاسترجاع',
+                        style: TextStyle(fontWeight: FontWeight.w700))),
+              ])),
         ]),
         bottom: _BottomAction(label: 'المتابعة للدفع', total: '20.00 ج.م'),
       );
@@ -249,8 +261,6 @@ class _CheckoutPreview extends StatelessWidget {
   Widget build(BuildContext context) => _Page(
         title: 'إتمام الطلب',
         child: ListView(padding: const EdgeInsets.all(16), children: [
-          const _Progress(),
-          const SizedBox(height: 16),
           _section(context, Icons.location_on_outlined, 'عنوان التوصيل',
               'اختر عنوانًا لحساب الشحن وموعد الوصول'),
           const SizedBox(height: 12),
@@ -258,7 +268,7 @@ class _CheckoutPreview extends StatelessWidget {
               'أضف الكود إن كان متاحًا'),
           const SizedBox(height: 12),
           Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: _card(context),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +276,7 @@ class _CheckoutPreview extends StatelessWidget {
                     const Text('طريقة الدفع',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     _paymentChoice(
                         context,
                         Icons.account_balance_wallet_outlined,
@@ -376,19 +386,6 @@ class _AddressPreview extends StatelessWidget {
               icon: Icons.phone_outlined,
               hint: '+20 10xxxxxxxx'),
           const SizedBox(height: 12),
-          const Row(children: [
-            Expanded(
-                child: _PreviewChoice('المنزل', Icons.home_outlined, true)),
-            SizedBox(width: 8),
-            Expanded(
-                child:
-                    _PreviewChoice('العمل', Icons.work_outline_rounded, false)),
-            SizedBox(width: 8),
-            Expanded(
-                child:
-                    _PreviewChoice('أخرى', Icons.location_on_outlined, false))
-          ]),
-          const SizedBox(height: 12),
           const _PreviewField(
               label: 'عنوان التسليم', icon: Icons.location_on_outlined),
           const SizedBox(height: 12),
@@ -397,6 +394,14 @@ class _AddressPreview extends StatelessWidget {
           const SizedBox(height: 12),
           const _PreviewField(
               label: 'المدينة', icon: Icons.location_city_outlined),
+          const SizedBox(height: 12),
+          const _PreviewField(
+              label: 'الحي أو المنطقة', icon: Icons.map_outlined),
+          const SizedBox(height: 12),
+          const _PreviewField(label: 'الشارع', icon: Icons.signpost_outlined),
+          const SizedBox(height: 12),
+          const _PreviewField(
+              label: 'علامة مميزة', icon: Icons.near_me_outlined),
           const SizedBox(height: 90),
         ]),
         bottom: const _BottomAction(label: 'حفظ العنوان'),
@@ -859,15 +864,23 @@ class _BottomAction extends StatelessWidget {
               ]),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             if (total != null)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+              Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).primaryColor.withValues(alpha: .08),
+                      borderRadius: BorderRadius.circular(16)),
                   child: Row(children: [
                     const Text('الإجمالي',
                         style: TextStyle(color: Colors.grey)),
                     const Spacer(),
                     Text(total!,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w900))
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900))
                   ])),
             SizedBox(
                 width: double.infinity,
@@ -935,12 +948,12 @@ class _Amount extends StatelessWidget {
 Widget _section(
         BuildContext context, IconData icon, String title, String subtitle) =>
     Container(
-        padding: const EdgeInsets.all(17),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: _card(context),
         child: Row(children: [
           Container(
-              width: 46,
-              height: 46,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withValues(alpha: .1),
                   borderRadius: BorderRadius.circular(14)),
@@ -952,9 +965,9 @@ Widget _section(
                   children: [
                 Text(title,
                     style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(color: Colors.grey))
+                        fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12))
               ])),
           const Icon(Icons.chevron_left_rounded)
         ]));

@@ -9,7 +9,6 @@ import 'package:flutter_sixvalley_ecommerce/helper/egypt_location_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
-import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
@@ -48,6 +47,9 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _zipCodeController = TextEditingController();
   final TextEditingController _countryCodeController = TextEditingController();
+  final TextEditingController _districtController = TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _landmarkController = TextEditingController();
   final FocusNode _addressNode = FocusNode();
   final FocusNode _nameNode = FocusNode();
   final FocusNode _emailNode = FocusNode();
@@ -99,6 +101,10 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
         _selectedGovernorate = savedGovernorate;
       }
       _zipCodeController.text = '${widget.address?.zip}';
+      _districtController.text =
+          widget.address?.district ?? widget.address?.area ?? '';
+      _streetController.text = widget.address?.street ?? '';
+      _landmarkController.text = widget.address?.landmark ?? '';
       if (widget.address!.addressType == 'Home') {
         Provider.of<AddressController>(context, listen: false)
             .updateAddressIndex(0, false);
@@ -420,84 +426,6 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                             ])))
                                 : const SizedBox(),
 
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: Dimensions.paddingSizeExtraSmall),
-                              child: Text(getTranslated('label_us', context)!,
-                                  style: textRegular.copyWith(
-                                    color: Theme.of(context).hintColor,
-                                    fontSize: Dimensions.fontSizeLarge,
-                                  )),
-                            ),
-
-                            SizedBox(
-                                height: 50,
-                                child: RepaintBoundary(
-                                  child: ListView.builder(
-                                      shrinkWrap: true,
-                                      scrollDirection: Axis.horizontal,
-                                      physics: const BouncingScrollPhysics(),
-                                      itemCount: addressController
-                                          .addressTypeList.length,
-                                      itemBuilder: (context, index) => InkWell(
-                                          onTap: () => addressController
-                                              .updateAddressIndex(index, true),
-                                          child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  vertical: Dimensions
-                                                      .paddingSizeDefault,
-                                                  horizontal: Dimensions
-                                                      .paddingSizeLarge),
-                                              margin: const EdgeInsets.only(
-                                                  right: 17),
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(16),
-                                                  border: Border.all(
-                                                      color: addressController.selectAddressIndex == index
-                                                          ? Theme.of(context)
-                                                              .primaryColor
-                                                          : Theme.of(context)
-                                                              .primaryColor
-                                                              .withValues(
-                                                                  alpha: .125))),
-                                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                                SizedBox(
-                                                    width: 20,
-                                                    child: Image.asset(
-                                                        addressController
-                                                            .addressTypeList[
-                                                                index]
-                                                            .icon,
-                                                        color:
-                                                            addressController
-                                                                        .selectAddressIndex ==
-                                                                    index
-                                                                ? Theme.of(
-                                                                        context)
-                                                                    .primaryColor
-                                                                : Theme.of(
-                                                                        context)
-                                                                    .primaryColor
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            .35))),
-                                                const SizedBox(
-                                                  width: Dimensions
-                                                      .paddingSizeSmall,
-                                                ),
-                                                Text(
-                                                    getTranslated(
-                                                        addressController
-                                                            .addressTypeList[
-                                                                index]
-                                                            .title,
-                                                        context)!,
-                                                    style:
-                                                        textRegular.copyWith())
-                                              ])))),
-                                )),
-
                             CustomTextFieldWidget(
                               labelText:
                                   getTranslated('delivery_address', context),
@@ -512,6 +440,45 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                               validator: (value) =>
                                   ValidateCheck.validateEmptyText(
                                       value, "address_is_required"),
+                            ),
+                            const SizedBox(
+                                height: Dimensions.paddingSizeDefaultAddress),
+
+                            CustomTextFieldWidget(
+                              required: true,
+                              labelText: 'الحي أو المنطقة',
+                              hintText: 'مثال: الحي السابع',
+                              prefixIcon: Images.city,
+                              controller: _districtController,
+                              inputType: TextInputType.streetAddress,
+                              inputAction: TextInputAction.next,
+                              validator: (value) =>
+                                  ValidateCheck.validateEmptyText(
+                                      value, 'area_is_required'),
+                            ),
+                            const SizedBox(
+                                height: Dimensions.paddingSizeDefaultAddress),
+                            CustomTextFieldWidget(
+                              required: true,
+                              labelText: 'الشارع',
+                              hintText: 'اسم الشارع ورقم المبنى',
+                              prefixIcon: Images.address,
+                              controller: _streetController,
+                              inputType: TextInputType.streetAddress,
+                              inputAction: TextInputAction.next,
+                              validator: (value) =>
+                                  ValidateCheck.validateEmptyText(
+                                      value, 'street_is_required'),
+                            ),
+                            const SizedBox(
+                                height: Dimensions.paddingSizeDefaultAddress),
+                            CustomTextFieldWidget(
+                              labelText: 'علامة مميزة',
+                              hintText: 'مثال: بجوار مستشفى أو صيدلية',
+                              prefixIcon: Images.address,
+                              controller: _landmarkController,
+                              inputType: TextInputType.streetAddress,
+                              inputAction: TextInputAction.next,
                             ),
                             const SizedBox(
                                 height: Dimensions.paddingSizeDefaultAddress),
@@ -728,11 +695,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                             false) {
                                           AddressModel addressModel =
                                               AddressModel(
-                                            addressType: addressController
-                                                .addressTypeList[
-                                                    addressController
-                                                        .selectAddressIndex]
-                                                .title,
+                                            addressType: 'Home',
                                             contactPersonName:
                                                 _contactPersonNameController
                                                     .text,
@@ -758,6 +721,14 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                                 .locationController.text,
                                             latitude: null,
                                             longitude: null,
+                                            district:
+                                                _districtController.text.trim(),
+                                            area:
+                                                _districtController.text.trim(),
+                                            street:
+                                                _streetController.text.trim(),
+                                            landmark:
+                                                _landmarkController.text.trim(),
                                           );
 
                                           if (widget.isEnableUpdate) {

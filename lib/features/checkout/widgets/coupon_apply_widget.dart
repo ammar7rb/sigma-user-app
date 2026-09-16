@@ -12,117 +12,146 @@ import 'package:provider/provider.dart';
 class CouponApplyWidget extends StatelessWidget {
   final TextEditingController couponController;
   final double orderAmount;
-  const CouponApplyWidget({super.key, required this.couponController, required this.orderAmount});
+  const CouponApplyWidget(
+      {super.key, required this.couponController, required this.orderAmount});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CouponController>(
-      builder: (context, couponProvider, _) {
-        return Padding(padding: const EdgeInsets.only(left:0),
-
-          child: Container(width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color:Theme.of(context).cardColor,
-              boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:0.2), spreadRadius:3, blurRadius: 3)],
-            ),
-
-            child: (couponProvider.discount != null && couponProvider.discount != 0)?
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+    return Consumer<CouponController>(builder: (context, couponProvider, _) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 0),
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          margin: const EdgeInsets.symmetric(
+              horizontal: Dimensions.paddingSizeDefault),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: .35)),
+          ),
+          child: (couponProvider.discount != null &&
+                  couponProvider.discount != 0)
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Dimensions.paddingSizeDefault),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CustomAssetImageWidget(Images.addCouponIcon, height: 20, width: 20,),
-                      SizedBox(width: Dimensions.paddingSizeDefault),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          SizedBox(height: Dimensions.paddingSizeSmall),
-
-                          Text(
-                            '${getTranslated('coupon_applied', context)}',
-                            style: textMedium.copyWith(
-                              fontSize: Dimensions.fontSizeLarge,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
-                            ),
+                          CustomAssetImageWidget(
+                            Images.addCouponIcon,
+                            height: 20,
+                            width: 20,
                           ),
-
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+                          SizedBox(width: Dimensions.paddingSizeDefault),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-                                child: Text(
-                                  couponProvider.couponCode,
-                                  style: textRegular.copyWith(
-                                    fontSize: Dimensions.fontSizeLarge,
-                                    color: Theme.of(context).textTheme.titleMedium?.color,
+                              SizedBox(height: Dimensions.paddingSizeSmall),
+                              Text(
+                                '${getTranslated('coupon_applied', context)}',
+                                style: textMedium.copyWith(
+                                  fontSize: Dimensions.fontSizeLarge,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color,
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal:
+                                            Dimensions.paddingSizeExtraSmall),
+                                    child: Text(
+                                      couponProvider.couponCode,
+                                      style: textRegular.copyWith(
+                                        fontSize: Dimensions.fontSizeLarge,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.color,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal:
+                                            Dimensions.paddingSizeExtraSmall),
+                                    child: Text(
+                                      '(-${PriceConverter.convertPrice(context, couponProvider.discount)} off)',
+                                      style: textBold.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onTertiaryContainer),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-                                child: Text(
-                                  '(-${PriceConverter.convertPrice(context, couponProvider.discount)} off)',
-                                  style: textBold.copyWith(color: Theme.of(context).colorScheme.onTertiaryContainer),
-                                ),
-                              ),
+                              SizedBox(height: Dimensions.paddingSizeSmall),
                             ],
                           ),
-
-                          SizedBox(height: Dimensions.paddingSizeSmall),
                         ],
+                      ),
+                      InkWell(
+                        onTap: () => couponProvider.removeCoupon(),
+                        child: Icon(Icons.clear,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.error),
                       ),
                     ],
                   ),
-
-                  InkWell(
-                    onTap: ()=> couponProvider.removeCoupon(),
-                    child: Icon(Icons.clear, size: 20, color: Theme.of(context).colorScheme.error),
-                  ),
-                ],
-              ),
-            ):
-
-
-            InkWell(onTap: ()=> showModalBottomSheet(context: context,
-              isScrollControlled: true, backgroundColor: Colors.transparent,
-              builder: (c) =>   CouponBottomSheetWidget(orderAmount: orderAmount)),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeDefault),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                )
+              : InkWell(
+                  onTap: () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (c) =>
+                          CouponBottomSheetWidget(orderAmount: orderAmount)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Dimensions.paddingSizeDefault,
+                        vertical: Dimensions.paddingSizeSmall),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomAssetImageWidget(Images.addCouponIcon, height: 20, width: 20,),
-                        SizedBox(width: Dimensions.paddingSizeSmall),
-
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomAssetImageWidget(
+                              Images.addCouponIcon,
+                              height: 20,
+                              width: 20,
+                            ),
+                            SizedBox(width: Dimensions.paddingSizeSmall),
+                            Text(
+                              '${getTranslated('add_coupon', context)}',
+                              style: textMedium.copyWith(
+                                fontSize: Dimensions.fontSizeLarge,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
+                              ),
+                            ),
+                          ],
+                        ),
                         Text(
-                          '${getTranslated('add_coupon', context)}',
+                          '${getTranslated('add_more', context)}',
                           style: textMedium.copyWith(
-                            fontSize: Dimensions.fontSizeLarge,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
+                              color: Theme.of(context).primaryColor),
                         ),
                       ],
                     ),
-
-                    Text(
-                      '${getTranslated('add_more', context)}',
-                      style: textMedium.copyWith(color: Theme.of(context).primaryColor),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-        );
-      }
-    );
+        ),
+      );
+    });
   }
 }

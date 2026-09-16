@@ -15,6 +15,10 @@ class AddressModel {
   bool? isBilling;
   String? guestId;
   String? email;
+  String? district;
+  String? area;
+  String? street;
+  String? landmark;
   AddressModel({
     this.id,
     this.contactPersonName,
@@ -32,6 +36,10 @@ class AddressModel {
     this.isBilling,
     this.guestId,
     this.email,
+    this.district,
+    this.area,
+    this.street,
+    this.landmark,
   });
 
   AddressModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +58,10 @@ class AddressModel {
     longitude = json['longitude'];
     isBilling = json['is_billing'] ?? false;
     email = json['email'];
+    district = json['district'];
+    area = json['area'];
+    street = json['street'];
+    landmark = json['landmark'];
   }
 
   Map<String, dynamic> toJson() {
@@ -70,6 +82,10 @@ class AddressModel {
     data['is_billing'] = isBilling;
     data['guest_id'] = guestId;
     data['email'] = email;
+    data['district'] = district;
+    data['area'] = area;
+    data['street'] = street;
+    data['landmark'] = landmark;
     return data;
   }
 }

@@ -206,6 +206,43 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: Dimensions.paddingSizeDefault,
+                                  vertical: Dimensions.paddingSizeSmall),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .primaryColor
+                                    .withValues(alpha: .08),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(children: [
+                                Text(
+                                  getTranslated('total_payable', context) ?? '',
+                                  style: textMedium.copyWith(
+                                      color: Theme.of(context).hintColor),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  PriceConverter.convertPrice(
+                                    context,
+                                    orderProvider.orderInsuranceQuote
+                                            ?.firstPaymentAmount ??
+                                        (_order +
+                                            selectedShippingFee -
+                                            widget.discount -
+                                            (_referralDiscount ?? 0) -
+                                            (_couponDiscount ?? 0) +
+                                            _tax),
+                                  ),
+                                  style: textBold.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: Dimensions.fontSizeLarge,
+                                  ),
+                                ),
+                              ]),
+                            ),
+                            const SizedBox(height: Dimensions.paddingSizeSmall),
                             const CheckoutConditionCheckBox(),
                             const SizedBox(height: Dimensions.paddingSizeSmall),
                             CustomButton(
@@ -328,7 +365,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(0),
                   children: [
-                    const _CheckoutProgressHeader(),
                     if (!orderProvider.insuranceQuoteLoading &&
                         orderProvider.orderInsuranceQuote == null)
                       TextButton.icon(
@@ -388,8 +424,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                     Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(20)),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                             color: Theme.of(context)
                                 .dividerColor
@@ -399,9 +434,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                           horizontal: Dimensions.paddingSizeDefault),
                       padding: const EdgeInsets.fromLTRB(
                         Dimensions.paddingSizeDefault,
-                        Dimensions.paddingSizeDefault,
-                        Dimensions.paddingSizeDefault,
                         Dimensions.paddingSizeSmall,
+                        Dimensions.paddingSizeDefault,
+                        0,
                       ),
                       child: Text(
                         getTranslated('order_summary', context) ?? '',
@@ -416,15 +451,13 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                           horizontal: Dimensions.paddingSizeDefault),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
-                        borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(20)),
-                        border: Border.all(
-                            color: Theme.of(context)
-                                .dividerColor
-                                .withValues(alpha: .35)),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: Dimensions.paddingSizeDefault),
+                      padding: const EdgeInsets.fromLTRB(
+                          Dimensions.paddingSizeDefault,
+                          0,
+                          Dimensions.paddingSizeDefault,
+                          Dimensions.paddingSizeSmall),
                       child: Consumer<CheckoutController>(
                         builder: (context, checkoutController, child) {
                           _couponDiscount =
