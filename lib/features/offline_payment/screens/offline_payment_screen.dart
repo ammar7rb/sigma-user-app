@@ -33,6 +33,9 @@ class OfflinePaymentScreen extends StatefulWidget {
 
 class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
   TextEditingController paymentController = TextEditingController();
+  final TextEditingController senderNameController = TextEditingController();
+  final TextEditingController senderIdentifierController =
+      TextEditingController();
   final GlobalKey<FormState> offlineFormKey = GlobalKey<FormState>();
   File? _pickedImage;
 
@@ -334,6 +337,34 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                 }),
                           ),
                         ),
+                        const SizedBox(height: 14),
+                        CustomTextFieldWidget(
+                          controller: senderNameController,
+                          required: true,
+                          labelText: 'الاسم الثلاثي للمحوّل',
+                          hintText: 'اكتب الاسم كما ظهر في عملية التحويل',
+                          inputAction: TextInputAction.next,
+                          inputType: TextInputType.name,
+                          validator: (value) => ValidateCheck.validateEmptyText(
+                              value, 'sender_name_is_required'),
+                        ),
+                        const SizedBox(height: 14),
+                        CustomTextFieldWidget(
+                          controller: senderIdentifierController,
+                          required: true,
+                          labelText: checkoutProvider.selectedTransferChannel ==
+                                  'instapay'
+                              ? 'رقم الهاتف أو معرّف إنستا باي'
+                              : 'رقم المحفظة التي تم التحويل منها',
+                          hintText: checkoutProvider.selectedTransferChannel ==
+                                  'instapay'
+                              ? 'مثال: name@instapay أو رقم الهاتف'
+                              : 'رقم المحفظة الإلكترونية',
+                          inputAction: TextInputAction.next,
+                          inputType: TextInputType.text,
+                          validator: (value) => ValidateCheck.validateEmptyText(
+                              value, 'sender_identifier_is_required'),
+                        ),
                         const SizedBox(
                           height: 20,
                         ),
@@ -361,6 +392,16 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                 child: CustomButton(
                   isLoading: checkoutProvider.isLoading,
                   onTap: () {
+                    if (senderNameController.text.trim().isEmpty ||
+                        senderIdentifierController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'يرجى إدخال اسم المحوّل والرقم أو المعرّف المستخدم في التحويل.'),
+                        ),
+                      );
+                      return;
+                    }
                     if (offlineFormKey.currentState?.validate() ?? false) {
                       String paymentNote = paymentController.text.trim();
                       String orderNote =
@@ -390,6 +431,9 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                         orderNote: orderNote,
                         couponCode: couponCode,
                         couponAmount: couponCodeAmount,
+                        senderName: senderNameController.text.trim(),
+                        senderIdentifier:
+                            senderIdentifierController.text.trim(),
                         isfOffline: true,
                       );
                     }

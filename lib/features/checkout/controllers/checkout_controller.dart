@@ -85,6 +85,8 @@ class CheckoutController with ChangeNotifier {
     String? paymentNote,
     int? id,
     String? name,
+    String? senderName,
+    String? senderIdentifier,
     bool isfOffline = false,
   }) async {
     String imagePath = '';
@@ -107,8 +109,11 @@ class CheckoutController with ChangeNotifier {
         }
       }
 
-      String base64EncodedJson =
-          base64Encode(utf8.encode(jsonEncode(methodInformations)));
+      String base64EncodedJson = base64Encode(utf8.encode(jsonEncode({
+        ...methodInformations,
+        'sender_name': senderName?.trim() ?? '',
+        'sender_identifier': senderIdentifier?.trim() ?? '',
+      })));
 
       inputValueList = [base64EncodedJson];
       keyList = ['method_informations'];

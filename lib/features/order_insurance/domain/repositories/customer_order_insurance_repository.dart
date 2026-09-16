@@ -9,45 +9,51 @@ class CustomerOrderInsuranceRepository {
   const CustomerOrderInsuranceRepository({required this.dioClient});
 
   Future<ApiResponseModel> getClaim(int orderId) => _guard(
-    () => dioClient.get(AppConstants.customerOrderInsuranceUri(orderId)),
-  );
+        () => dioClient.get(AppConstants.customerOrderInsuranceUri(orderId)),
+      );
 
   Future<ApiResponseModel> pay(int orderId, String paymentMethod) => _guard(
-    () => dioClient.post(
-      AppConstants.customerOrderInsurancePayUri(orderId),
-      data: {'payment_method': paymentMethod},
-    ),
-  );
+        () => dioClient.post(
+          AppConstants.customerOrderInsurancePayUri(orderId),
+          data: {'payment_method': paymentMethod},
+        ),
+      );
 
   Future<ApiResponseModel> submitOffline({
     required int orderId,
     required String methodId,
     required String proofPath,
+    required String senderName,
+    required String senderIdentifier,
     String? note,
   }) async {
     return _guard(() async {
       final data = FormData.fromMap({
         'method_id': methodId,
         'payment_note': note ?? '',
+        'sender_name': senderName,
+        'sender_identifier': senderIdentifier,
         'payment_proof': await MultipartFile.fromFile(proofPath),
       });
-      return dioClient.post(AppConstants.customerOrderInsuranceOfflineUri(orderId), data: data);
+      return dioClient.post(
+          AppConstants.customerOrderInsuranceOfflineUri(orderId),
+          data: data);
     });
   }
 
   Future<ApiResponseModel> openSupport(int orderId, String message) => _guard(
-    () => dioClient.post(
-      AppConstants.customerOrderInsuranceSupportUri(orderId),
-      data: {'message': message},
-    ),
-  );
+        () => dioClient.post(
+          AppConstants.customerOrderInsuranceSupportUri(orderId),
+          data: {'message': message},
+        ),
+      );
 
   Future<ApiResponseModel> decline(int orderId, String reason) => _guard(
-    () => dioClient.post(
-      AppConstants.customerOrderInsuranceDeclineUri(orderId),
-      data: {'reason': reason},
-    ),
-  );
+        () => dioClient.post(
+          AppConstants.customerOrderInsuranceDeclineUri(orderId),
+          data: {'reason': reason},
+        ),
+      );
 
   Future<ApiResponseModel> _guard(Future<Response> Function() operation) async {
     try {

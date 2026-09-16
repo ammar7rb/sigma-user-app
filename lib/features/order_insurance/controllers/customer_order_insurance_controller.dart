@@ -49,13 +49,28 @@ class CustomerOrderInsuranceController extends ChangeNotifier {
     return redirect;
   }
 
-  Future<bool> submitOffline(int orderId, String methodId, String proofPath, String note) async {
+  Future<bool> submitOffline(
+    int orderId,
+    String methodId,
+    String proofPath,
+    String note, {
+    required String senderName,
+    required String senderIdentifier,
+  }) async {
     _setLoading(true);
     final response = await repository.submitOffline(
-      orderId: orderId, methodId: methodId, proofPath: proofPath, note: note,
+      orderId: orderId,
+      methodId: methodId,
+      proofPath: proofPath,
+      note: note,
+      senderName: senderName,
+      senderIdentifier: senderIdentifier,
     );
     final success = _ok(response);
-    if (success) await load(orderId); else _error = response.error?.toString();
+    if (success)
+      await load(orderId);
+    else
+      _error = response.error?.toString();
     _setLoading(false);
     return success;
   }
@@ -73,7 +88,10 @@ class CustomerOrderInsuranceController extends ChangeNotifier {
     _setLoading(true);
     final response = await repository.decline(orderId, reason);
     final success = _ok(response);
-    if (success) await load(orderId); else _error = response.error?.toString();
+    if (success)
+      await load(orderId);
+    else
+      _error = response.error?.toString();
     _setLoading(false);
     return success;
   }

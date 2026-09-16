@@ -101,11 +101,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           .getAvailableCouponList();
     }
 
-    if (Provider.of<CheckoutController>(context, listen: false).isAcceptTerms) {
-      Provider.of<CheckoutController>(context, listen: false)
-          .toggleTermsCheck(isUpdate: false);
-    }
-
     // Billing addresses are not collected in this store. The delivery address
     // is the only address used for physical orders.
     _billingAddress = false;
@@ -291,6 +286,26 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                                   .toString()
                                               : '';
                                       if (orderProvider.isWalletChecked) {
+                                        final payableAmount = orderProvider
+                                                .orderInsuranceQuote
+                                                ?.firstPaymentAmount ??
+                                            (_order +
+                                                selectedShippingFee -
+                                                widget.discount -
+                                                (_referralDiscount ?? 0) -
+                                                (_couponDiscount ?? 0) +
+                                                _tax);
+                                        final availableBalance = profileProvider
+                                                .userInfoModel?.walletBalance ??
+                                            0;
+                                        if (availableBalance < payableAmount) {
+                                          await _showPurchaseBalanceShortfall(
+                                            payableAmount: payableAmount,
+                                            availableBalance:
+                                                availableBalance.toDouble(),
+                                          );
+                                          return;
+                                        }
                                         await orderProvider
                                             .payWithPurchaseWallet(
                                                 addressId,
@@ -610,6 +625,17 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       );
       final firstOrderId = int.tryParse(orderID.split(',').first.trim());
       if (firstOrderId != null) {
+        final firstPaymentIsAwaitingAdmin =
+            Provider.of<CheckoutController>(Get.context!, listen: false)
+                .isOfflineChecked;
+        if (firstPaymentIsAwaitingAdmin) {
+          RouterHelper.getOrderScreenRoute(
+            isBackButtonExist: true,
+            action: RouteAction.pushReplacement,
+            fromPlaceOrder: true,
+          );
+          return;
+        }
         final requiresInsurance =
             await Provider.of<CustomerOrderInsuranceController>(Get.context!,
                     listen: false)
@@ -631,6 +657,41 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       showCustomSnackBarWidget(message, Get.context!,
           snackBarType: SnackBarType.error);
     }
+  }
+
+  Future<void> _showPurchaseBalanceShortfall({
+    required double payableAmount,
+    required double availableBalance,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(Icons.account_balance_wallet_outlined,
+            color: Theme.of(context).primaryColor, size: 38),
+        title: const Text('رصيد المشتريات غير كافٍ'),
+        content: Text(
+          'المبلغ المطلوب ${PriceConverter.convertPrice(context, payableAmount)}، '
+          'والرصيد المتاح ${PriceConverter.convertPrice(context, availableBalance)}. '
+          'يمكنك إيداع رصيد مشتريات الآن أو اختيار طريقة دفع أخرى.',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('اختيار طريقة أخرى'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              RouterHelper.getWalletRoute(
+                  action: RouteAction.push, isBackButtonExist: true);
+            },
+            icon: const Icon(Icons.add_card_rounded),
+            label: const Text('إيداع رصيد مشتريات الآن'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

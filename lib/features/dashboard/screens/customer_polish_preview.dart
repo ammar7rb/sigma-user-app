@@ -29,6 +29,7 @@ class CustomerPolishPreview extends StatelessWidget {
     final dark = brightness == Brightness.dark;
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Cairo',
       brightness: brightness,
       colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF0868D7), brightness: brightness),
@@ -43,6 +44,8 @@ class CustomerPolishPreview extends StatelessWidget {
         'checkout' => const _CheckoutPreview(),
         'shipping' => const _ShippingPreview(),
         'address' => const _AddressPreview(),
+        'transfer' => const _TransferPreview(),
+        'insurance' => const _InsurancePreview(),
         'product' => const _ProductPreview(),
         'profile' => const _ProfilePreview(),
         'activation' => const _ActivationPreview(),
@@ -405,6 +408,89 @@ class _AddressPreview extends StatelessWidget {
           const SizedBox(height: 90),
         ]),
         bottom: const _BottomAction(label: 'حفظ العنوان'),
+      );
+}
+
+class _TransferPreview extends StatelessWidget {
+  const _TransferPreview();
+  @override
+  Widget build(BuildContext context) => _Page(
+        title: 'بيانات التحويل',
+        child: ListView(padding: const EdgeInsets.all(16), children: [
+          Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: .09),
+                  borderRadius: BorderRadius.circular(18)),
+              child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('حوّل المبلغ إلى بيانات الحساب التالية',
+                        style: TextStyle(fontWeight: FontWeight.w900)),
+                    SizedBox(height: 7),
+                    Text('محفظة سيجما: 0100 000 0000\nالمبلغ: 1,320.00 ج.م')
+                  ])),
+          const SizedBox(height: 14),
+          const _PreviewField(
+              label: 'الاسم الثلاثي للمحوّل', icon: Icons.person_outline),
+          const SizedBox(height: 12),
+          const _PreviewField(
+              label: 'رقم المحفظة أو معرّف إنستا باي',
+              icon: Icons.numbers_rounded),
+          const SizedBox(height: 12),
+          Container(
+              height: 125,
+              decoration: _card(context),
+              child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_photo_alternate_outlined, size: 34),
+                    SizedBox(height: 6),
+                    Text('إضافة صورة إثبات التحويل')
+                  ])),
+          const SizedBox(height: 12),
+          const _PreviewField(
+              label: 'ملاحظة إضافية (اختياري)', icon: Icons.notes_rounded),
+        ]),
+        bottom: const _BottomAction(label: 'تم الدفع'),
+      );
+}
+
+class _InsurancePreview extends StatelessWidget {
+  const _InsurancePreview();
+  @override
+  Widget build(BuildContext context) => _Page(
+        title: 'تأمين الطلب',
+        child: ListView(padding: const EdgeInsets.all(16), children: [
+          Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(18)),
+              child: const Text(
+                  'تم استلام دفع المشتريات. يلزم سداد التأمين لاستكمال مراجعة الطلب. يُعاد التأمين إلى رصيد التأمين بعد المدة التي تحددها الإدارة ويمكن استخدامه مرة أخرى.',
+                  style: TextStyle(height: 1.55, fontWeight: FontWeight.w700))),
+          const SizedBox(height: 14),
+          Container(
+              padding: const EdgeInsets.all(16),
+              decoration: _card(context),
+              child: const Column(children: [
+                _Amount('قيمة التأمين', '100.00 ج.م'),
+                _Amount('الضريبة', '20.00 ج.م'),
+                Divider(),
+                _Amount('المطلوب', '120.00 ج.م', bold: true),
+              ])),
+          const SizedBox(height: 14),
+          _paymentChoice(context, Icons.shield_outlined, 'رصيد التأمين',
+              'الرصيد غير كافٍ — يمكنك الإيداع', false),
+          const SizedBox(height: 8),
+          _paymentChoice(context, Icons.phone_android_rounded,
+              'محفظة إلكترونية', 'التحويل ورفع إثبات الدفع', true),
+          const SizedBox(height: 8),
+          _paymentChoice(context, Icons.account_balance_rounded, 'إنستا باي',
+              'التحويل ورفع إثبات الدفع', false),
+        ]),
+        bottom: const _BottomAction(label: 'متابعة الدفع'),
       );
 }
 
