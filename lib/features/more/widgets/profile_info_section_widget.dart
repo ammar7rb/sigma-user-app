@@ -20,10 +20,6 @@ class ProfileInfoSectionWidget extends StatelessWidget {
     return Consumer<ProfileController>(builder: (context, profile, _) {
       final auth = Provider.of<AuthController>(context, listen: false);
       bool isGuestMode = !auth.isLoggedIn();
-      final rememberedAccount = auth.getUserData();
-      final hasRememberedAccount =
-          (rememberedAccount?.email?.trim().isNotEmpty ?? false) ||
-              (rememberedAccount?.phoneNumber?.trim().isNotEmpty ?? false);
       final theme = Provider.of<ThemeController>(context);
       final locale = Provider.of<LocalizationController>(context);
       return Container(
@@ -133,9 +129,9 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                           style: textRegular.copyWith(
                               color: Colors.white.withValues(alpha: .82),
                               fontSize: Dimensions.fontSizeLarge)),
-                    if (isGuestMode && hasRememberedAccount) ...[
+                    if (isGuestMode) ...[
                       const SizedBox(height: 8),
-                      FilledButton(
+                      FilledButton.icon(
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Theme.of(context).primaryColor,
@@ -147,7 +143,8 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                           action: RouteAction.push,
                           fromPage: '${RouterHelper.dashboardScreen}?page=more',
                         ),
-                        child: Text(
+                        icon: const Icon(Icons.login_rounded, size: 18),
+                        label: Text(
                             getTranslated('sign_in', context) ?? 'Sign in'),
                       ),
                     ],

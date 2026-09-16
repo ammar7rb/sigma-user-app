@@ -206,6 +206,7 @@ class CheckoutController with ChangeNotifier {
     _paymentMethodIndex = -1;
     isOfflineChecked = false;
     isWalletChecked = false;
+    selectedTransferChannel = '';
   }
 
   void shippingAddressNull() {
@@ -314,6 +315,11 @@ class CheckoutController with ChangeNotifier {
   String selectedTransferChannel = '';
 
   void selectOfflineTransferChannel(String channel, int methodIndex) {
+    if (methodIndex < 0 ||
+        offlinePaymentModel?.offlineMethods == null ||
+        methodIndex >= offlinePaymentModel!.offlineMethods!.length) {
+      return;
+    }
     if (!isOfflineChecked) {
       setOfflineChecked('offline', notify: false);
     }

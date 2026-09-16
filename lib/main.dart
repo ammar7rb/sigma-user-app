@@ -65,6 +65,7 @@ import 'features/dashboard/screens/phase_six_preview.dart';
 import 'features/home/screens/home_design_preview.dart';
 import 'features/more/screens/profile_dashboard_preview.dart';
 import 'features/checkout/screens/checkout_phase_preview.dart';
+import 'features/dashboard/screens/customer_polish_preview.dart';
 import 'helper/custom_delegate.dart';
 import 'localization/app_localization.dart';
 
@@ -107,6 +108,13 @@ Future<void> main() async {
           runApp(PhaseSixPreview(
             isDark: Uri.base.queryParameters['theme'] == 'dark',
             page: Uri.base.queryParameters['page'] ?? 'login',
+          ));
+          return;
+        }
+        if (homeDesign == 8) {
+          runApp(CustomerPolishPreview(
+            isDark: Uri.base.queryParameters['theme'] == 'dark',
+            page: Uri.base.queryParameters['page'] ?? 'home',
           ));
           return;
         }

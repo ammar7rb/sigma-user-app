@@ -8,7 +8,6 @@ import 'package:flutter_sixvalley_ecommerce/helper/date_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -85,9 +84,15 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final rawSubject = widget.supportTicketModel.subject?.trim() ?? '';
+    final title =
+        rawSubject.isEmpty || rawSubject == 'customer_account_activation'
+            ? (getTranslated('customer_account_activation', context) ??
+                'تفعيل الحساب')
+            : rawSubject;
     return Scaffold(
       appBar: CustomAppBar(
-        title: widget.supportTicketModel.subject,
+        title: title,
       ),
       body:
           Consumer<SupportTicketController>(builder: (context, support, child) {
@@ -120,7 +125,7 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
           })),
           support.pickedImageFileStored.isNotEmpty
               ? Container(
-                  height: 90,
+                  height: 72,
                   width: MediaQuery.of(context).size.width,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: ListView.builder(
@@ -133,8 +138,8 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                               child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
                                   child: SizedBox(
-                                      height: 80,
-                                      width: 80,
+                                      height: 62,
+                                      width: 62,
                                       child: Image.file(
                                           File(support
                                               .pickedImageFileStored[index]
@@ -164,17 +169,25 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                 )),
               ),
               child: Container(
-                constraints: const BoxConstraints(minHeight: 56),
-                padding: const EdgeInsetsDirectional.only(start: 14, end: 7),
+                constraints: const BoxConstraints(minHeight: 54),
+                padding: const EdgeInsetsDirectional.only(start: 14, end: 6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(color: Theme.of(context).dividerColor),
                 ),
                 child: Row(children: [
+                  IconButton(
+                    tooltip:
+                        getTranslated('attach_image', context) ?? 'إرفاق صورة',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => support.pickMultipleImage(false),
+                    icon: Icon(Icons.add_photo_alternate_outlined,
+                        size: 21, color: Theme.of(context).primaryColor),
+                  ),
                   Expanded(
                       child: Padding(
-                    padding: EdgeInsets.only(top: 5),
+                    padding: const EdgeInsets.only(top: 3),
                     child: TextField(
                         controller: _controller,
                         style: textRegular.copyWith(
@@ -189,12 +202,9 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                             hintStyle: titilliumRegular.copyWith(
                                 color: Theme.of(context).hintColor,
                                 fontSize: Dimensions.fontSizeDefault),
-                            border: InputBorder.none,
-                            suffixIcon: InkWell(
-                                onTap: () => support.pickMultipleImage(false),
-                                child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Image.asset(Images.attachment))))),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 10),
+                            border: InputBorder.none)),
                   )),
                   IconButton(
                     onPressed: () {

@@ -169,6 +169,34 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withValues(alpha: .07),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.add_location_alt_outlined,
+                      color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    getTranslated('address_form_hint', context) ??
+                        'أضف بيانات التوصيل بدقة لحساب الشحن وموعد الوصول.',
+                    style: textMedium.copyWith(height: 1.45),
+                  ),
+                ),
+              ]),
+            ),
             Consumer<AddressController>(
               builder: (context, addressController, child) {
                 return Consumer<LocationController>(
@@ -258,8 +286,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                         MediaQuery.of(context).size.width / 2,
                                     width: MediaQuery.of(context).size.width,
                                     child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                            Dimensions.paddingSizeSmall),
+                                        borderRadius: BorderRadius.circular(22),
                                         child: Stack(
                                             clipBehavior: Clip.none,
                                             children: [
@@ -445,13 +472,16 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                               margin: const EdgeInsets.only(
                                                   right: 17),
                                               decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(
-                                                      Dimensions
-                                                          .paddingSizeSmall),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
                                                   border: Border.all(
                                                       color: addressController.selectAddressIndex == index
-                                                          ? Theme.of(context).primaryColor
-                                                          : Theme.of(context).primaryColor.withValues(alpha: .125))),
+                                                          ? Theme.of(context)
+                                                              .primaryColor
+                                                          : Theme.of(context)
+                                                              .primaryColor
+                                                              .withValues(
+                                                                  alpha: .125))),
                                               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                                                 SizedBox(
                                                     width: 20,
@@ -569,7 +599,13 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                               decoration: InputDecoration(
                                 labelText:
                                     getTranslated('governorate', context),
-                                border: const OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Theme.of(context).cardColor,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).dividerColor),
+                                ),
                                 prefixIcon: Image.asset(Images.city),
                               ),
                               hint: Text(

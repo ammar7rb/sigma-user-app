@@ -48,7 +48,7 @@
   "wallet_deposit_pending": "تم إرسال الإيداع للمراجعة",
   "wallet_deposit_failed": "تعذر إرسال الإيداع. راجع البيانات وحجم الإيصال ثم حاول مجددًا",
   "on_boarding_title_one": "مرحبا بكم في",
-  "on_boarding_title_two": "مستلزمات طبية موثوقة",
+  "on_boarding_title_two": "دفع آمن وبسيط",
   "on_boarding_title_three": "توصيل أسرع وأكثر أمانًا",
   "on_boarding_description_one": "كل احتياجاتك من المستلزمات الطبية في مكان واحد، بمنتجات واضحة وعروض مناسبة.",
   "on_boarding_description_two": "اختر منتجات الرعاية الصحية بسهولة وادفع بالطريقة الأنسب لك عبر تجربة آمنة وواضحة.",
@@ -61,7 +61,10 @@
   "flash_deal": "صفقة فلاش",
   "brand": "العلامات التجارية",
   "featured_products": "المنتجات المميزة",
-  "featured_deals": "العروض المميزة",
+  "featured_deals": "صفقة اليوم",
+  "customer_account_activation": "تفعيل الحساب",
+  "attach_image": "إرفاق صورة",
+  "address_form_hint": "أضف بيانات التوصيل بدقة لحساب الشحن وموعد الوصول.",
   "top_seller": "المتجر العلوي",
   "latest_products": "أحدث المنتجات",
   "product_details": "تفاصيل المنتج",
@@ -1117,5 +1120,7 @@
 "select_transfer_channel":"اختر المحفظة الإلكترونية أو إنستا باي",
 "review_required_policies":"راجع السياسات المطلوبة واضغط على كل سياسة لقراءة تفاصيلها قبل الموافقة",
 "policy_version":"الإصدار",
-"policy_content_unavailable":"محتوى السياسة غير متاح حاليًا"
+"policy_content_unavailable":"محتوى السياسة غير متاح حاليًا",
+"wallet_proof_too_large":"يجب ألا يتجاوز حجم إثبات التحويل 5 ميجابايت.",
+"wallet_proof_invalid_type":"ارفع إثبات التحويل كصورة بصيغة JPG أو PNG أو WEBP."
 }

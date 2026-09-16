@@ -8,53 +8,57 @@ import 'package:flutter_sixvalley_ecommerce/features/deal/widgets/featured_deal_
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 
-
 class FeaturedDealsListWidget extends StatelessWidget {
   final bool isHomePage;
   const FeaturedDealsListWidget({super.key, this.isHomePage = true});
 
   @override
   Widget build(BuildContext context) {
-
-    return isHomePage?
-    Consumer<FeaturedDealController>(
-      builder: (context, featuredDealProvider, child) {
-        return featuredDealProvider.featuredDealProductList != null? featuredDealProvider.featuredDealProductList!.isNotEmpty ?
-        CarouselSlider.builder(
-          options: CarouselOptions(
-            aspectRatio: 2.15,
-            viewportFraction: 0.91,
-            autoPlay: true,
-            pauseAutoPlayOnTouch: true,
-            pauseAutoPlayOnManualNavigate: true,
-            pauseAutoPlayInFiniteScroll: true,
-            enlargeFactor: 0.2,
-            enlargeCenterPage: true,
-            enableInfiniteScroll: true,
-            disableCenter: true,
-            onPageChanged: (index, reason) => featuredDealProvider.changeSelectedIndex(index)
-          ),
-          itemCount: featuredDealProvider.featuredDealProductList?.length,
-          itemBuilder: (context, index, _) => FeaturedDealWidget(
-            isHomePage: isHomePage,
-            product: featuredDealProvider.featuredDealProductList![index],
-            isCenterElement: index == featuredDealProvider.featuredDealSelectedIndex,
-          ),
-        ) : const SizedBox() : const FindWhatYouNeedShimmer();
-      }):
-
-    Consumer<FeaturedDealController>(
-      builder: (context, featuredDealProvider, _) {
-        return RepaintBoundary(
-          child: MasonryGridView.count(
-            itemCount: featuredDealProvider.featuredDealProductList?.length,
-            crossAxisCount: ResponsiveHelper.isTab(context) ? 3 : 2,
-            padding: const EdgeInsets.all(0),
-            itemBuilder: (BuildContext context, int index) => ProductWidget(productModel: featuredDealProvider.featuredDealProductList![index]),
-          ),
-        );
-      }
-    );
+    return isHomePage
+        ? Consumer<FeaturedDealController>(
+            builder: (context, featuredDealProvider, child) {
+            return featuredDealProvider.featuredDealProductList != null
+                ? featuredDealProvider.featuredDealProductList!.isNotEmpty
+                    ? CarouselSlider.builder(
+                        options: CarouselOptions(
+                            aspectRatio: 1.95,
+                            viewportFraction: 0.92,
+                            autoPlay: true,
+                            pauseAutoPlayOnTouch: true,
+                            pauseAutoPlayOnManualNavigate: true,
+                            pauseAutoPlayInFiniteScroll: true,
+                            enlargeFactor: 0.2,
+                            enlargeCenterPage: true,
+                            enableInfiniteScroll: true,
+                            disableCenter: true,
+                            onPageChanged: (index, reason) =>
+                                featuredDealProvider
+                                    .changeSelectedIndex(index)),
+                        itemCount: featuredDealProvider
+                            .featuredDealProductList?.length,
+                        itemBuilder: (context, index, _) => FeaturedDealWidget(
+                          isHomePage: isHomePage,
+                          product: featuredDealProvider
+                              .featuredDealProductList![index],
+                          isCenterElement: index ==
+                              featuredDealProvider.featuredDealSelectedIndex,
+                        ),
+                      )
+                    : const SizedBox()
+                : const FindWhatYouNeedShimmer();
+          })
+        : Consumer<FeaturedDealController>(
+            builder: (context, featuredDealProvider, _) {
+            return RepaintBoundary(
+              child: MasonryGridView.count(
+                itemCount: featuredDealProvider.featuredDealProductList?.length,
+                crossAxisCount: ResponsiveHelper.isTab(context) ? 3 : 2,
+                padding: const EdgeInsets.all(0),
+                itemBuilder: (BuildContext context, int index) => ProductWidget(
+                    productModel:
+                        featuredDealProvider.featuredDealProductList![index]),
+              ),
+            );
+          });
   }
 }
-

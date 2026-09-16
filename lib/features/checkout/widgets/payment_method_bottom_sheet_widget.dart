@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/domain/models/offline_payment_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
@@ -22,11 +23,20 @@ class PaymentMethodBottomSheetWidget extends StatelessWidget {
 
     return Consumer<CheckoutController>(
       builder: (context, checkoutController, _) {
+        final hasPurchaseBalance = configModel?.walletStatus == 1 &&
+            Provider.of<AuthController>(context, listen: false).isLoggedIn();
         final hasOffline = !onlyDigital &&
             configModel?.offlinePayment != null &&
             (checkoutController
                     .offlinePaymentModel?.offlineMethods?.isNotEmpty ??
                 false);
+        final methods =
+            checkoutController.offlinePaymentModel?.offlineMethods ?? [];
+        final walletIndex = hasOffline ? _channelIndex(methods, 'wallet') : -1;
+        final instaPayIndex =
+            hasOffline ? _channelIndex(methods, 'instapay') : -1;
+        final hasAnyMethod =
+            hasPurchaseBalance || walletIndex >= 0 || instaPayIndex >= 0;
 
         return Container(
           constraints: BoxConstraints(
@@ -61,12 +71,71 @@ class PaymentMethodBottomSheetWidget extends StatelessWidget {
               ]),
               const SizedBox(height: Dimensions.paddingSizeDefault),
               Expanded(
-                child: hasOffline
+                child: hasAnyMethod
                     ? SingleChildScrollView(
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _transferMethods(context, checkoutController),
+                              if (hasPurchaseBalance)
+                                _PaymentOptionTile(
+                                  icon: Icons.account_balance_wallet_outlined,
+                                  title: getTranslated(
+                                          'purchase_wallet', context) ??
+                                      '',
+                                  subtitle: getTranslated(
+                                          'purchase_wallet_only_notice',
+                                          context) ??
+                                      '',
+                                  selected: checkoutController.isWalletChecked,
+                                  onTap:
+                                      checkoutController.selectPurchaseWallet,
+                                ),
+                              if (hasPurchaseBalance &&
+                                  (walletIndex >= 0 || instaPayIndex >= 0))
+                                const SizedBox(
+                                    height: Dimensions.paddingSizeSmall),
+                              if (walletIndex >= 0)
+                                _PaymentOptionTile(
+                                  icon: Icons.phone_android_rounded,
+                                  title: getTranslated(
+                                          'electronic_wallet_payment',
+                                          context) ??
+                                      '',
+                                  subtitle: getTranslated(
+                                          'transfer_form_after_selection',
+                                          context) ??
+                                      '',
+                                  selected:
+                                      checkoutController.isOfflineChecked &&
+                                          checkoutController
+                                                  .selectedTransferChannel ==
+                                              'wallet',
+                                  onTap: () => checkoutController
+                                      .selectOfflineTransferChannel(
+                                          'wallet', walletIndex),
+                                ),
+                              if (walletIndex >= 0 && instaPayIndex >= 0)
+                                const SizedBox(
+                                    height: Dimensions.paddingSizeSmall),
+                              if (instaPayIndex >= 0)
+                                _PaymentOptionTile(
+                                  icon: Icons.account_balance_rounded,
+                                  title: getTranslated(
+                                          'instapay_payment', context) ??
+                                      '',
+                                  subtitle: getTranslated(
+                                          'transfer_form_after_selection',
+                                          context) ??
+                                      '',
+                                  selected:
+                                      checkoutController.isOfflineChecked &&
+                                          checkoutController
+                                                  .selectedTransferChannel ==
+                                              'instapay',
+                                  onTap: () => checkoutController
+                                      .selectOfflineTransferChannel(
+                                          'instapay', instaPayIndex),
+                                ),
                             ]),
                       )
                     : const NoInternetOrDataScreenWidget(
@@ -83,53 +152,6 @@ class PaymentMethodBottomSheetWidget extends StatelessWidget {
     );
   }
 
-  Widget _transferMethods(
-      BuildContext context, CheckoutController checkoutController) {
-    final methods = checkoutController.offlinePaymentModel!.offlineMethods!;
-    final walletIndex = _channelIndex(methods, 'wallet');
-    final instaPayIndex = _channelIndex(methods, 'instapay');
-    return Container(
-      decoration: BoxDecoration(
-        color: checkoutController.isOfflineChecked
-            ? Theme.of(context).primaryColor.withValues(alpha: .15)
-            : Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(getTranslated('transfer_payment', context) ?? '',
-              style: textBold),
-          const SizedBox(height: Dimensions.paddingSizeSmall),
-          Row(children: [
-            Expanded(
-                child: _TransferTile(
-              icon: Icons.account_balance_wallet_outlined,
-              title: getTranslated('electronic_wallet_payment', context) ?? '',
-              selected: checkoutController.isOfflineChecked &&
-                  checkoutController.selectedTransferChannel == 'wallet',
-              onTap: () => checkoutController.selectOfflineTransferChannel(
-                  'wallet', walletIndex),
-            )),
-            const SizedBox(width: Dimensions.paddingSizeSmall),
-            Expanded(
-                child: _TransferTile(
-              icon: Icons.account_balance_rounded,
-              title: getTranslated('instapay_payment', context) ?? '',
-              selected: checkoutController.isOfflineChecked &&
-                  checkoutController.selectedTransferChannel == 'instapay',
-              onTap: () => checkoutController.selectOfflineTransferChannel(
-                  'instapay', instaPayIndex),
-            )),
-          ]),
-          const SizedBox(height: Dimensions.paddingSizeSmall),
-          Text(getTranslated('transfer_form_after_selection', context) ?? '',
-              style: textRegular.copyWith(color: Theme.of(context).hintColor)),
-        ]),
-      ),
-    );
-  }
-
   int _channelIndex(List<OfflineMethods> methods, String channel) {
     final needle = channel == 'instapay' ? 'insta' : 'wallet';
     final index = methods.indexWhere((method) {
@@ -138,19 +160,20 @@ class PaymentMethodBottomSheetWidget extends StatelessWidget {
           (channel == 'instapay' && name.contains('انستا')) ||
           (channel == 'wallet' && name.contains('محفظ'));
     });
-    if (index >= 0) return index;
-    return channel == 'instapay' && methods.length > 1 ? 1 : 0;
+    return index;
   }
 }
 
-class _TransferTile extends StatelessWidget {
+class _PaymentOptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String subtitle;
   final bool selected;
   final VoidCallback onTap;
-  const _TransferTile(
+  const _PaymentOptionTile(
       {required this.icon,
       required this.title,
+      required this.subtitle,
       required this.selected,
       required this.onTap});
 
@@ -171,16 +194,37 @@ class _TransferTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Column(children: [
-              Icon(icon, color: Theme.of(context).primaryColor),
-              const SizedBox(height: 8),
-              Text(title, textAlign: TextAlign.center, style: textBold),
-              const SizedBox(height: 6),
+            child: Row(children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: .1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: Theme.of(context).primaryColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: textBold),
+                  const SizedBox(height: 3),
+                  Text(subtitle,
+                      style: textRegular.copyWith(
+                        color: Theme.of(context).hintColor,
+                        fontSize: Dimensions.fontSizeSmall,
+                      )),
+                ],
+              )),
               Icon(
                   selected
                       ? Icons.radio_button_checked
                       : Icons.radio_button_off,
-                  size: 20),
+                  color: selected
+                      ? Theme.of(context).primaryColor
+                      : Theme.of(context).hintColor),
             ]),
           ),
         ),

@@ -325,16 +325,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
     return Scaffold(
       body: CustomScrollView(slivers: [
-        SliverAppBar(
-            floating: false,
-            elevation: 0,
-            expandedHeight: 218,
-            pinned: false,
-            centerTitle: false,
-            automaticallyImplyLeading: false,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            collapsedHeight: 218,
-            flexibleSpace: const ProfileInfoSectionWidget()),
+        const SliverToBoxAdapter(child: ProfileInfoSectionWidget()),
         SliverToBoxAdapter(
             child: Container(
           decoration:

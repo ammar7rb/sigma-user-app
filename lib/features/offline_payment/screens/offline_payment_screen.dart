@@ -171,12 +171,40 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                                   await picker.pickImage(
                                                       source:
                                                           ImageSource.gallery,
-                                                      imageQuality: 50);
+                                                      imageQuality: 75);
 
                                               if (image != null) {
+                                                final file = File(image.path);
+                                                final extension = image.path
+                                                    .split('.')
+                                                    .last
+                                                    .toLowerCase();
+                                                final validType = const [
+                                                  'jpg',
+                                                  'jpeg',
+                                                  'png',
+                                                  'webp'
+                                                ].contains(extension);
+                                                final validSize =
+                                                    await file.length() <=
+                                                        5 * 1024 * 1024;
+                                                if (!validType || !validSize) {
+                                                  if (!context.mounted) return;
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(SnackBar(
+                                                    content: Text(getTranslated(
+                                                            validType
+                                                                ? 'wallet_proof_too_large'
+                                                                : 'wallet_proof_invalid_type',
+                                                            context) ??
+                                                        (validType
+                                                            ? 'Maximum image size is 5 MB'
+                                                            : 'Use JPG, PNG or WEBP image')),
+                                                  ));
+                                                  return;
+                                                }
                                                 setState(() {
-                                                  _pickedImage =
-                                                      File(image.path);
+                                                  _pickedImage = file;
                                                 });
                                                 // نقوم بحفظ مسار الصورة داخل حقل الكنترولر التابع لهذا الـ index لتسهيل قراءته في الـ Controller
                                                 checkoutProvider

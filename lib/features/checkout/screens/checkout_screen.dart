@@ -191,7 +191,18 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                     : Container(
                         padding:
                             const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                        color: Theme.of(context).cardColor,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(24)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .06),
+                              blurRadius: 18,
+                              offset: const Offset(0, -5),
+                            )
+                          ],
+                        ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -317,7 +328,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(0),
                   children: [
-                    SizedBox(height: Dimensions.paddingSizeSmall),
+                    const _CheckoutProgressHeader(),
                     if (!orderProvider.insuranceQuoteLoading &&
                         orderProvider.orderInsuranceQuote == null)
                       TextButton.icon(
@@ -356,7 +367,16 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                         width: double.infinity,
                         padding:
                             const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                        color: Theme.of(context).cardColor,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Theme.of(context)
+                                  .dividerColor
+                                  .withValues(alpha: .35)),
+                        ),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: Dimensions.paddingSizeDefault),
                         child: Text(
                           getTranslated('checkout_shipping_hint', context) ??
                               '',
@@ -368,15 +388,15 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                     Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
-                        boxShadow: [
-                          BoxShadow(
-                              color: Theme.of(context)
-                                  .hintColor
-                                  .withValues(alpha: 0.2),
-                              spreadRadius: 3,
-                              blurRadius: 3)
-                        ],
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(20)),
+                        border: Border.all(
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: .35)),
                       ),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: Dimensions.paddingSizeDefault),
                       padding: const EdgeInsets.fromLTRB(
                         Dimensions.paddingSizeDefault,
                         Dimensions.paddingSizeDefault,
@@ -392,7 +412,17 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     Container(
-                      color: Theme.of(context).cardColor,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: Dimensions.paddingSizeDefault),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(20)),
+                        border: Border.all(
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: .35)),
+                      ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: Dimensions.paddingSizeDefault),
                       child: Consumer<CheckoutController>(
@@ -568,5 +598,70 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       showCustomSnackBarWidget(message, Get.context!,
           snackBarType: SnackBarType.error);
     }
+  }
+}
+
+class _CheckoutProgressHeader extends StatelessWidget {
+  const _CheckoutProgressHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = <({IconData icon, String label})>[
+      (
+        icon: Icons.shopping_cart_checkout_rounded,
+        label: getTranslated('my_cart', context) ?? 'Cart'
+      ),
+      (
+        icon: Icons.local_shipping_outlined,
+        label: getTranslated('delivery_to', context) ?? 'Delivery'
+      ),
+      (
+        icon: Icons.account_balance_wallet_outlined,
+        label: getTranslated('payment', context) ?? 'Payment'
+      ),
+    ];
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: .07),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+          children: List.generate(
+              steps.length,
+              (index) => Expanded(
+                    child: Row(children: [
+                      if (index > 0)
+                        Expanded(
+                            child: Divider(
+                                color: Theme.of(context)
+                                    .primaryColor
+                                    .withValues(alpha: .25))),
+                      Column(mainAxisSize: MainAxisSize.min, children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: index == 0
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).cardColor,
+                          child: Icon(steps[index].icon,
+                              size: 18,
+                              color: index == 0
+                                  ? Colors.white
+                                  : Theme.of(context).primaryColor),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(steps[index].label,
+                            style: textMedium.copyWith(fontSize: 11)),
+                      ]),
+                      if (index < steps.length - 1)
+                        Expanded(
+                            child: Divider(
+                                color: Theme.of(context)
+                                    .primaryColor
+                                    .withValues(alpha: .25))),
+                    ]),
+                  ))),
+    );
   }
 }

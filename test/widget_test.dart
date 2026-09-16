@@ -45,6 +45,51 @@ void main() {
     expect(mainSource, contains('if (!kIsWeb)'));
   });
 
+  test(
+      'customer polish keeps cart, activation, guest profile and onboarding consistent',
+      () {
+    final cartWidget =
+        File('lib/features/cart/widgets/cart_widget.dart').readAsStringSync();
+    final profile =
+        File('lib/features/more/widgets/profile_info_section_widget.dart')
+            .readAsStringSync();
+    final support =
+        File('lib/features/support/screens/support_conversation_screen.dart')
+            .readAsStringSync();
+    final images = File('lib/utill/images.dart').readAsStringSync();
+
+    expect(cartWidget, isNot(contains('CustomCheckbox')));
+    expect(profile, contains('if (isGuestMode) ...['));
+    expect(support, contains("rawSubject == 'customer_account_activation'"));
+    expect(support, contains('Icons.add_photo_alternate_outlined'));
+    expect(images, contains('onboarding_secure_payment.png'));
+    expect(images, contains('onboarding_medical_delivery.png'));
+    expect(File('assets/images/onboarding_secure_payment.png').existsSync(),
+        isTrue);
+    expect(File('assets/images/onboarding_medical_delivery.png').existsSync(),
+        isTrue);
+  });
+
+  test('checkout exposes only the three approved prepaid choices', () {
+    final paymentSheet = File(
+            'lib/features/checkout/widgets/payment_method_bottom_sheet_widget.dart')
+        .readAsStringSync();
+    final preview =
+        File('lib/features/dashboard/screens/customer_polish_preview.dart')
+            .readAsStringSync();
+
+    expect(paymentSheet, contains('selectPurchaseWallet'));
+    expect(paymentSheet, contains("_channelIndex(methods, 'wallet')"));
+    expect(paymentSheet, contains("_channelIndex(methods, 'instapay')"));
+    expect(paymentSheet, contains('return index;'));
+    expect(paymentSheet, isNot(contains('methods.length > 1 ? 1 : 0')));
+    expect(preview, contains('رصيد المشتريات'));
+    expect(preview, contains('محفظة إلكترونية'));
+    expect(preview, contains('إنستا باي'));
+    expect(preview,
+        isNot(contains('ستختار عنوان وطريقة الشحن في الخطوة التالية')));
+  });
+
   test('first payment preserves server total without adding second stage tax',
       () {
     final quote = OrderInsuranceQuoteModel.fromJson({

@@ -31,10 +31,25 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-          onPressed: () => RouterHelper.getAddNewAddressRoute(isBilling: false),
-          backgroundColor: Theme.of(context).textTheme.bodyMedium?.color,
-          child: Icon(Icons.add, color: Theme.of(context).highlightColor)),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 54,
+            child: FilledButton.icon(
+              onPressed: () =>
+                  RouterHelper.getAddNewAddressRoute(isBilling: false),
+              icon: const Icon(Icons.add_location_alt_outlined),
+              label: Text(
+                  getTranslated('add_new_address', context) ?? 'إضافة عنوان'),
+              style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(17))),
+            ),
+          ),
+        ),
+      ),
       appBar: CustomAppBar(
           title: widget.fromGuest
               ? getTranslated('ADDRESS_LIST', context)
@@ -317,11 +332,20 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                               top: Dimensions.paddingSizeSmall),
                                           decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(10),
-                                              color: Theme.of(context)
-                                                  .highlightColor,
+                                                  BorderRadius.circular(20),
+                                              color:
+                                                  Theme.of(context).cardColor,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withValues(alpha: .045),
+                                                  blurRadius: 14,
+                                                  offset: const Offset(0, 6),
+                                                )
+                                              ],
                                               border: index ==
-                                                      Provider.of<CheckoutController>(context)
+                                                      Provider.of<CheckoutController>(
+                                                              context)
                                                           .addressIndex
                                                   ? Border.all(
                                                       width: 2,

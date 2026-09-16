@@ -200,8 +200,8 @@ class Images {
 
 
   static const String onBoarding1 = 'assets/images/onboarding_medical_marketplace.png';
-  static const String onBoarding2 = 'assets/images/onboarding_image_two.png';
-  static const String onBoarding3 = 'assets/images/onboarding_image_three.png';
+  static const String onBoarding2 = 'assets/images/onboarding_secure_payment.png';
+  static const String onBoarding3 = 'assets/images/onboarding_medical_delivery.png';
 
   static const String clearanceShopTitle = 'assets/images/clearance_shop_title.png';
   static const String clearanceHomeTitle = 'assets/images/clearance_home_title.png';
