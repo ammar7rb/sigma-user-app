@@ -90,6 +90,36 @@ void main() {
         isNot(contains('ستختار عنوان وطريقة الشحن في الخطوة التالية')));
   });
 
+  test('production purchase journey uses real routed screens, not previews',
+      () {
+    final routes = File('lib/helper/route_healper.dart').readAsStringSync();
+    final mainSource = File('lib/main.dart').readAsStringSync();
+    final checkout = File('lib/features/checkout/screens/checkout_screen.dart')
+        .readAsStringSync();
+    final transfer =
+        File('lib/features/offline_payment/screens/offline_payment_screen.dart')
+            .readAsStringSync();
+    final insurance = File(
+            'lib/features/order_insurance/screens/customer_order_insurance_screen.dart')
+        .readAsStringSync();
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+
+    expect(mainSource,
+        contains("if (const bool.fromEnvironment('SCREENSHOT_MODE'))"));
+    expect(routes, contains('return CartScreen('));
+    expect(routes, contains('return CheckoutScreen('));
+    expect(routes, contains('return OfflinePaymentScreen('));
+    expect(routes, contains('CustomerOrderInsuranceScreen('));
+    expect(routes, contains('return AddNewAddressScreen('));
+    expect(routes, isNot(contains('CustomerPolishPreview')));
+    expect(checkout, isNot(contains('toggleTermsCheck(isUpdate: false)')));
+    expect(transfer, contains('senderNameController'));
+    expect(transfer, contains('senderIdentifierController'));
+    expect(transfer, contains('_pickedImage'));
+    expect(insurance, contains('إيداع رصيد التأمين'));
+    expect(pubspec, contains('family: Cairo'));
+  });
+
   test('delivery address and shipping prices use the live governorate API', () {
     final address =
         File('lib/features/address/screens/add_new_address_screen.dart')
