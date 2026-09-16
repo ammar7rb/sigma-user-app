@@ -293,20 +293,9 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
         .whereType<Map>()
         .toList();
     if (channel == null || methods.isEmpty) return null;
-    bool matches(Map item, String needle) =>
-        '${item['method_name']} ${item['method_fields']}'
-            .toLowerCase()
-            .contains(needle);
-    if (channel == 'instapay') {
-      return methods
-              .where((item) => matches(item, 'insta') || matches(item, 'انستا'))
-              .firstOrNull ??
-          (methods.length > 1 ? methods[1] : methods.first);
-    }
     return methods
-            .where((item) => matches(item, 'wallet') || matches(item, 'محفظ'))
-            .firstOrNull ??
-        methods.first;
+        .where((item) => item['payment_channel']?.toString() == channel)
+        .firstOrNull;
   }
 
   @override

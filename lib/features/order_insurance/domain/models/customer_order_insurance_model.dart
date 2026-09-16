@@ -15,7 +15,8 @@ class CustomerOrderInsuranceEnvelope {
         Map<String, dynamic>.from(json['claim'] as Map? ?? const {}),
       ),
       balance: CustomerInsuranceBalance.fromJson(
-        Map<String, dynamic>.from(json['insurance_balance'] as Map? ?? const {}),
+        Map<String, dynamic>.from(
+            json['insurance_balance'] as Map? ?? const {}),
       ),
       paymentOptions: CustomerInsurancePaymentOptions.fromJson(
         Map<String, dynamic>.from(json['payment_options'] as Map? ?? const {}),
@@ -65,9 +66,11 @@ class CustomerOrderInsuranceClaim {
   bool get refundCompleted => purchaseRefundStatus == 'completed';
 
   factory CustomerOrderInsuranceClaim.fromJson(Map<String, dynamic> json) {
-    final insurance = Map<String, dynamic>.from(json['insurance'] as Map? ?? const {});
+    final insurance =
+        Map<String, dynamic>.from(json['insurance'] as Map? ?? const {});
     final tax = Map<String, dynamic>.from(json['tax'] as Map? ?? const {});
-    final refund = Map<String, dynamic>.from(json['purchase_refund'] as Map? ?? const {});
+    final refund =
+        Map<String, dynamic>.from(json['purchase_refund'] as Map? ?? const {});
     return CustomerOrderInsuranceClaim(
       contractVersion: json['contract_version']?.toString() ?? '',
       flowStatus: json['flow_status']?.toString() ?? '',
@@ -79,7 +82,8 @@ class CustomerOrderInsuranceClaim {
       paymentStatus: insurance['payment_status']?.toString() ?? 'unpaid',
       status: insurance['status']?.toString() ?? 'pending_payment',
       paymentDueAt: insurance['payment_due_at']?.toString(),
-      balanceUsePolicy: insurance['balance_use_policy']?.toString() ?? 'insurance_only',
+      balanceUsePolicy:
+          insurance['balance_use_policy']?.toString() ?? 'insurance_only',
       suspended: json['order_is_suspended_until_insurance_payment'] == true,
       supportAvailable: json['support_available'] == true,
       purchaseRefundStatus: refund['status']?.toString() ?? 'not_requested',
@@ -110,7 +114,8 @@ class CustomerInsuranceBalance {
       nextMaturityAt: json['next_maturity_at']?.toString(),
       withdrawable: json['withdrawable'] == true,
       allowedUses: (json['allowed_uses'] as List? ?? const [])
-          .map((item) => item.toString()).toList(growable: false),
+          .map((item) => item.toString())
+          .toList(growable: false),
     );
   }
 }
@@ -131,15 +136,24 @@ class CustomerInsurancePaymentOptions {
   });
 
   factory CustomerInsurancePaymentOptions.fromJson(Map<String, dynamic> json) {
-    List<CustomerInsurancePaymentMethod> methods(dynamic value, String idKey, String titleKey) {
-      return (value as List? ?? const []).whereType<Map>().map((item) {
-        final data = Map<String, dynamic>.from(item);
-        return CustomerInsurancePaymentMethod(
-          id: data[idKey]?.toString() ?? '',
-          title: data[titleKey]?.toString() ?? '',
-          fields: (data['method_fields'] as List? ?? const []).whereType<Map>().map((field) => Map<String, dynamic>.from(field)).toList(),
-        );
-      }).where((item) => item.id.isNotEmpty).toList(growable: false);
+    List<CustomerInsurancePaymentMethod> methods(
+        dynamic value, String idKey, String titleKey) {
+      return (value as List? ?? const [])
+          .whereType<Map>()
+          .map((item) {
+            final data = Map<String, dynamic>.from(item);
+            return CustomerInsurancePaymentMethod(
+              id: data[idKey]?.toString() ?? '',
+              title: data[titleKey]?.toString() ?? '',
+              channel: data['payment_channel']?.toString() ?? '',
+              fields: (data['method_fields'] as List? ?? const [])
+                  .whereType<Map>()
+                  .map((field) => Map<String, dynamic>.from(field))
+                  .toList(),
+            );
+          })
+          .where((item) => item.id.isNotEmpty)
+          .toList(growable: false);
     }
 
     return CustomerInsurancePaymentOptions(
@@ -155,8 +169,13 @@ class CustomerInsurancePaymentOptions {
 class CustomerInsurancePaymentMethod {
   final String id;
   final String title;
+  final String channel;
   final List<Map<String, dynamic>> fields;
-  const CustomerInsurancePaymentMethod({required this.id, required this.title, this.fields = const []});
+  const CustomerInsurancePaymentMethod(
+      {required this.id,
+      required this.title,
+      required this.channel,
+      this.fields = const []});
 }
 
 double _money(dynamic value) => double.tryParse(value?.toString() ?? '') ?? 0;

@@ -81,13 +81,35 @@ void main() {
     expect(paymentSheet, contains('selectPurchaseWallet'));
     expect(paymentSheet, contains("_channelIndex(methods, 'wallet')"));
     expect(paymentSheet, contains("_channelIndex(methods, 'instapay')"));
-    expect(paymentSheet, contains('return index;'));
+    expect(paymentSheet,
+        contains('method.paymentChannel?.toLowerCase() == channel'));
+    expect(paymentSheet, isNot(contains("name.contains('insta')")));
+    expect(paymentSheet, isNot(contains("name.contains('wallet')")));
     expect(paymentSheet, isNot(contains('methods.length > 1 ? 1 : 0')));
     expect(preview, contains('رصيد المشتريات'));
     expect(preview, contains('محفظة إلكترونية'));
     expect(preview, contains('إنستا باي'));
     expect(preview,
         isNot(contains('ستختار عنوان وطريقة الشحن في الخطوة التالية')));
+  });
+
+  test('fashion theme renders its matching production home', () {
+    final dashboard =
+        File('lib/features/dashboard/screens/dashboard_screen.dart')
+            .readAsStringSync();
+    expect(dashboard, contains('FashionThemeHomePage.loadData(false)'));
+    expect(dashboard, contains('const FashionThemeHomePage()'));
+  });
+
+  test('active customer surfaces do not navigate to seller storefronts', () {
+    for (final path in [
+      'lib/features/banner/controllers/banner_controller.dart',
+      'lib/features/product_details/widgets/favourite_button_widget.dart',
+    ]) {
+      expect(
+          File(path).readAsStringSync(), isNot(contains('getTopSellerRoute')),
+          reason: '$path still exposes seller-store navigation');
+    }
   });
 
   test('production purchase journey uses real routed screens, not previews',
@@ -297,7 +319,7 @@ void main() {
           {'key': 'paymob', 'title': 'Paymob'}
         ],
         'offline_methods': [
-          {'id': 2, 'method_name': 'Bank'}
+          {'id': 2, 'method_name': 'Bank', 'payment_channel': 'instapay'}
         ],
       },
     });
@@ -323,6 +345,7 @@ void main() {
     expect(envelope.claim.canPay, isTrue);
     expect(envelope.claim.suspended, isTrue);
     expect(envelope.claim.balanceUsePolicy, 'insurance_only');
+    expect(envelope.paymentOptions.offlineMethods.single.channel, 'instapay');
     expect(envelope.balance.allowedUses, ['insurance_payment']);
     expect(wallet.totalWalletBalance, 300);
     expect(wallet.insuranceAvailableBalance, 50);

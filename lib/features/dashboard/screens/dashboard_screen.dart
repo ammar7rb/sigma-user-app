@@ -90,7 +90,7 @@ class DashBoardScreenState extends State<DashBoardScreen> {
             ? const HomePage()
             : (splashController.configModel?.activeTheme == "theme_aster")
                 ? const AsterThemeHomeScreen()
-                : const HomePage(),
+                : const FashionThemeHomePage(),
       ),
       NavigationModel(
         name: 'CATEGORY',

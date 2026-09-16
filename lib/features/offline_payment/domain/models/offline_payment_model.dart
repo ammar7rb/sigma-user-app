@@ -11,12 +11,12 @@ class OfflinePaymentModel {
       });
     }
   }
-
 }
 
 class OfflineMethods {
   int? id;
   String? methodName;
+  String? paymentChannel;
   List<MethodFields>? methodFields;
   List<MethodInformations>? methodInformations;
   int? status;
@@ -25,16 +25,18 @@ class OfflineMethods {
 
   OfflineMethods(
       {this.id,
-        this.methodName,
-        this.methodFields,
-        this.methodInformations,
-        this.status,
-        this.createdAt,
-        this.updatedAt});
+      this.methodName,
+      this.paymentChannel,
+      this.methodFields,
+      this.methodInformations,
+      this.status,
+      this.createdAt,
+      this.updatedAt});
 
   OfflineMethods.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     methodName = json['method_name'];
+    paymentChannel = json['payment_channel']?.toString();
     if (json['method_fields'] != null) {
       methodFields = <MethodFields>[];
       json['method_fields'].forEach((v) {
@@ -51,7 +53,6 @@ class OfflineMethods {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }
-
 }
 
 class MethodFields {
@@ -64,8 +65,6 @@ class MethodFields {
     inputName = json['input_name'];
     inputData = json['input_data'];
   }
-
-
 }
 
 class MethodInformations {
@@ -75,7 +74,10 @@ class MethodInformations {
   String? inputType;
 
   MethodInformations(
-      {this.customerInput, this.customerPlaceholder, this.isRequired, this.inputType});
+      {this.customerInput,
+      this.customerPlaceholder,
+      this.isRequired,
+      this.inputType});
 
   MethodInformations.fromJson(Map<String, dynamic> json) {
     customerInput = json['customer_input'];
@@ -83,5 +85,4 @@ class MethodInformations {
     isRequired = json['is_required'];
     inputType = json['input_type'];
   }
-
 }

@@ -246,7 +246,7 @@ class _ClaimContent extends StatelessWidget {
       CustomerOrderInsuranceController controller,
       String initialMethodId) async {
     final transferMethods = envelope.paymentOptions.offlineMethods
-        .where((method) => _isApprovedTransferMethod(method.title))
+        .where((method) => _isApprovedTransferMethod(method.channel))
         .toList(growable: false);
     if (transferMethods.isEmpty) {
       showCustomSnackBarWidget(
@@ -307,7 +307,7 @@ class _ClaimContent extends StatelessWidget {
                     decoration: InputDecoration(
                       labelText: _isInstaPayMethod(transferMethods
                               .firstWhere((method) => method.id == methodId)
-                              .title)
+                              .channel)
                           ? 'رقم الهاتف أو معرّف إنستا باي *'
                           : 'رقم المحفظة التي تم التحويل منها *',
                       prefixIcon: const Icon(Icons.numbers_rounded),
@@ -375,17 +375,10 @@ class _ClaimContent extends StatelessWidget {
     senderIdentifier.dispose();
   }
 
-  bool _isInstaPayMethod(String title) {
-    final value = title.toLowerCase();
-    return value.contains('insta') || value.contains('انستا');
-  }
+  bool _isInstaPayMethod(String channel) => channel == 'instapay';
 
-  bool _isApprovedTransferMethod(String title) {
-    final value = title.toLowerCase();
-    return _isInstaPayMethod(title) ||
-        value.contains('wallet') ||
-        value.contains('محفظ');
-  }
+  bool _isApprovedTransferMethod(String channel) =>
+      channel == 'wallet' || channel == 'instapay';
 
   Future<void> _declineDialog(
       BuildContext context, CustomerOrderInsuranceController controller) async {

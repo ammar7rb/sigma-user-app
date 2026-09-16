@@ -1122,5 +1122,11 @@
 "policy_version":"الإصدار",
 "policy_content_unavailable":"محتوى السياسة غير متاح حاليًا",
 "wallet_proof_too_large":"يجب ألا يتجاوز حجم إثبات التحويل 5 ميجابايت.",
-"wallet_proof_invalid_type":"ارفع إثبات التحويل كصورة بصيغة JPG أو PNG أو WEBP."
+"wallet_proof_invalid_type":"ارفع إثبات التحويل كصورة بصيغة JPG أو PNG أو WEBP.",
+"enter_valid_egyptian_mobile":"أدخل رقم هاتف مصريًا صحيحًا.",
+"no":"لا",
+"offer":"عرض",
+"or":"أو",
+"order_placed_successfully":"تم إنشاء طلبك بنجاح.",
+"please_accept_terms_and_conditions":"يرجى الموافقة على الشروط والأحكام للمتابعة."
 }

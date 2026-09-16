@@ -153,14 +153,9 @@ class PaymentMethodBottomSheetWidget extends StatelessWidget {
   }
 
   int _channelIndex(List<OfflineMethods> methods, String channel) {
-    final needle = channel == 'instapay' ? 'insta' : 'wallet';
-    final index = methods.indexWhere((method) {
-      final name = (method.methodName ?? '').toLowerCase();
-      return name.contains(needle) ||
-          (channel == 'instapay' && name.contains('انستا')) ||
-          (channel == 'wallet' && name.contains('محفظ'));
-    });
-    return index;
+    return methods.indexWhere(
+      (method) => method.paymentChannel?.toLowerCase() == channel,
+    );
   }
 }
 

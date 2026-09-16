@@ -1127,5 +1127,11 @@
 "policy_version":"Version",
 "policy_content_unavailable":"Policy content is currently unavailable",
 "wallet_proof_too_large":"The transfer proof must not exceed 5 MB.",
-"wallet_proof_invalid_type":"Upload the transfer proof as a JPG, PNG or WEBP image."
+"wallet_proof_invalid_type":"Upload the transfer proof as a JPG, PNG or WEBP image.",
+"enter_valid_egyptian_mobile":"Enter a valid Egyptian mobile number.",
+"no":"No",
+"offer":"Offer",
+"or":"or",
+"order_placed_successfully":"Your order was placed successfully.",
+"please_accept_terms_and_conditions":"Please accept the terms and conditions to continue."
 }
