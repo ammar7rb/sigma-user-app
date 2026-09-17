@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/widgets/circular_progress_with_logo.dart';
@@ -672,7 +673,8 @@ class CartScreenState extends State<CartScreen> {
             appBar: CustomAppBar(
                 title: getTranslated('my_cart', context),
                 isBackButtonExist: widget.showBackButton),
-            body: Column(children: [
+            body: SigmaResponsiveContent(
+                child: Column(children: [
               cart.cartLoading
                   ? const Expanded(child: CartPageShimmerWidget())
                   : sellerList.isNotEmpty
@@ -1521,7 +1523,7 @@ class CartScreenState extends State<CartScreen> {
                           isNoInternet: false,
                           message: 'no_product_in_cart',
                         )),
-            ]),
+            ])),
           );
         });
       });

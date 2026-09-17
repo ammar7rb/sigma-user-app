@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
@@ -324,7 +325,8 @@ class _MoreScreenState extends State<MoreScreen> {
     // var authController = Provider.of<AuthController>(context, listen: false);
 
     return Scaffold(
-      body: CustomScrollView(slivers: [
+      body: SigmaResponsiveContent(
+          child: CustomScrollView(slivers: [
         const SliverToBoxAdapter(child: ProfileInfoSectionWidget()),
         SliverToBoxAdapter(
             child: Container(
@@ -790,7 +792,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 ]);
           }),
         )),
-      ]),
+      ])),
     );
   }
 

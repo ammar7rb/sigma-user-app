@@ -351,4 +351,23 @@ void main() {
     expect(wallet.insuranceAvailableBalance, 50);
     expect(wallet.insuranceLedgerEntries?.single.orderId, 44);
   });
+
+  test('preview visual system is integrated into production customer pages',
+      () {
+    const productionPages = <String>[
+      'lib/features/home/screens/home_screens.dart',
+      'lib/features/more/screens/more_screen_view.dart',
+      'lib/features/cart/screens/cart_screen.dart',
+      'lib/features/checkout/screens/checkout_screen.dart',
+      'lib/features/category/screens/category_screen.dart',
+      'lib/features/offline_payment/screens/offline_payment_screen.dart',
+      'lib/features/product_details/screens/product_details_screen.dart',
+    ];
+
+    for (final path in productionPages) {
+      final source = File(path).readAsStringSync();
+      expect(source, contains('SigmaResponsiveContent'), reason: path);
+      expect(source, isNot(contains('SCREENSHOT_MODE')), reason: path);
+    }
+  });
 }

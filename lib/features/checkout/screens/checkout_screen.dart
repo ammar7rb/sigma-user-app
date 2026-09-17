@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
@@ -373,7 +374,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       body: Consumer<AuthController>(builder: (context, authProvider, _) {
         return Consumer<CheckoutController>(
             builder: (context, orderProvider, _) {
-          return Column(
+          return SigmaResponsiveContent(
+              child: Column(
             children: [
               Expanded(
                 child: ListView(
@@ -609,7 +611,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
             ],
-          );
+          ));
         });
       }),
     );

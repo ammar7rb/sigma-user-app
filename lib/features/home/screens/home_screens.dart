@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/controllers/banner_controller.dart';
@@ -131,7 +132,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: RefreshIndicator(
+        child: SigmaResponsiveContent(
+            child: RefreshIndicator(
           onRefresh: () async {
             await HomePage.loadData(true);
           },
@@ -367,7 +369,7 @@ class _HomePageState extends State<HomePage> {
               HomeProductListWidget(scrollController: _scrollController),
             ],
           ),
-        ),
+        )),
       ),
       // ),
     );

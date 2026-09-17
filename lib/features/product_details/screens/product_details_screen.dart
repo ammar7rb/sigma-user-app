@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart'
     show NoInternetOrDataScreenWidget;
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/features/deal/controllers/flash_deal_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers/product_details_controller.dart';
@@ -97,350 +98,362 @@ class _ProductDetailsState extends State<ProductDetails> {
             }
           },
         ),
-        body: RefreshIndicator(
-          onRefresh: () async => _loadData(context),
-          child: Consumer<ProductDetailsController>(
-            builder: (context, details, child) {
-              if (details.productDetailsModel?.publishingHouse != null &&
-                  details.productDetailsModel!.publishingHouse!.isNotEmpty) {
-                _publishingHouse = [];
-                for (String? houseName
-                    in details.productDetailsModel!.publishingHouse!) {
-                  _publishingHouse.add(TextSpan(
-                      text: '${houseName!} ',
-                      style: titilliumSemiBold.copyWith(
-                          fontSize: Dimensions.fontSizeDefault)));
+        body: SigmaResponsiveContent(
+          child: RefreshIndicator(
+            onRefresh: () async => _loadData(context),
+            child: Consumer<ProductDetailsController>(
+              builder: (context, details, child) {
+                if (details.productDetailsModel?.publishingHouse != null &&
+                    details.productDetailsModel!.publishingHouse!.isNotEmpty) {
+                  _publishingHouse = [];
+                  for (String? houseName
+                      in details.productDetailsModel!.publishingHouse!) {
+                    _publishingHouse.add(TextSpan(
+                        text: '${houseName!} ',
+                        style: titilliumSemiBold.copyWith(
+                            fontSize: Dimensions.fontSizeDefault)));
+                  }
                 }
-              }
 
-              if (details.productDetailsModel?.authors != null &&
-                  details.productDetailsModel!.authors!.isNotEmpty) {
-                _authors = [];
-                for (String? authorName
-                    in details.productDetailsModel!.authors!) {
-                  _authors.add(TextSpan(
-                      text: '${authorName!} ',
-                      style: titilliumSemiBold.copyWith(
-                          fontSize: Dimensions.fontSizeDefault)));
+                if (details.productDetailsModel?.authors != null &&
+                    details.productDetailsModel!.authors!.isNotEmpty) {
+                  _authors = [];
+                  for (String? authorName
+                      in details.productDetailsModel!.authors!) {
+                    _authors.add(TextSpan(
+                        text: '${authorName!} ',
+                        style: titilliumSemiBold.copyWith(
+                            fontSize: Dimensions.fontSizeDefault)));
+                  }
                 }
-              }
 
-              return SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: !details.isDetails
-                    ? (!details.isDetails &&
-                            details.productDetailsModel?.userId == null)
-                        ? SizedBox(
-                            height: MediaQuery.of(context).size.height - 200,
-                            child: NoInternetOrDataScreenWidget(
-                                isNoInternet: false,
-                                icon: Images.noProduct,
-                                message: 'no_product_found'))
-                        : Column(children: [
-                            if (widget.fromFlashDeals)
-                              Consumer<FlashDealController>(builder:
-                                  (context, flashDealController, child) {
-                                Duration? eventDuration =
-                                    flashDealController.duration;
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: !details.isDetails
+                      ? (!details.isDetails &&
+                              details.productDetailsModel?.userId == null)
+                          ? SizedBox(
+                              height: MediaQuery.of(context).size.height - 200,
+                              child: NoInternetOrDataScreenWidget(
+                                  isNoInternet: false,
+                                  icon: Images.noProduct,
+                                  message: 'no_product_found'))
+                          : Column(children: [
+                              if (widget.fromFlashDeals)
+                                Consumer<FlashDealController>(builder:
+                                    (context, flashDealController, child) {
+                                  Duration? eventDuration =
+                                      flashDealController.duration;
 
-                                int? days, hours, minutes, seconds;
-                                if (eventDuration != null) {
-                                  days = eventDuration.inDays;
-                                  hours = eventDuration.inHours - days * 24;
-                                  minutes = eventDuration.inMinutes -
-                                      (24 * days * 60) -
-                                      (hours * 60);
-                                  seconds = eventDuration.inSeconds -
-                                      (24 * days * 60 * 60) -
-                                      (hours * 60 * 60) -
-                                      (minutes * 60);
-                                }
+                                  int? days, hours, minutes, seconds;
+                                  if (eventDuration != null) {
+                                    days = eventDuration.inDays;
+                                    hours = eventDuration.inHours - days * 24;
+                                    minutes = eventDuration.inMinutes -
+                                        (24 * days * 60) -
+                                        (hours * 60);
+                                    seconds = eventDuration.inSeconds -
+                                        (24 * days * 60 * 60) -
+                                        (hours * 60 * 60) -
+                                        (minutes * 60);
+                                  }
 
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                      left: Dimensions.paddingSizeDefault,
-                                      right: Dimensions.paddingSizeDefault,
-                                      top: Dimensions.paddingSizeSmall),
-                                  child: Container(
-                                    padding: EdgeInsets.all(
-                                        Dimensions.paddingSizeSmall),
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .tertiary
-                                            .withValues(alpha: 0.25),
-                                        borderRadius: BorderRadius.circular(
-                                            Dimensions.radiusSmall)),
-                                    child: Row(
-                                      children: [
-                                        Flexible(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      Dimensions.radiusSmall),
-                                              color:
-                                                  Theme.of(context).cardColor,
-                                            ),
-                                            padding: EdgeInsets.all(
-                                                Dimensions.paddingSizeSmall),
-                                            child: Text(
-                                              getTranslated(
-                                                      'this_product_is_now_on_a_flash_deal',
-                                                      context) ??
-                                                  '',
-                                              style: textRegular.copyWith(
-                                                  fontSize:
-                                                      Dimensions.fontSizeSmall,
-                                                  color: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyLarge
-                                                      ?.color),
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                        left: Dimensions.paddingSizeDefault,
+                                        right: Dimensions.paddingSizeDefault,
+                                        top: Dimensions.paddingSizeSmall),
+                                    child: Container(
+                                      padding: EdgeInsets.all(
+                                          Dimensions.paddingSizeSmall),
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .tertiary
+                                              .withValues(alpha: 0.25),
+                                          borderRadius: BorderRadius.circular(
+                                              Dimensions.radiusSmall)),
+                                      child: Row(
+                                        children: [
+                                          Flexible(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        Dimensions.radiusSmall),
+                                                color:
+                                                    Theme.of(context).cardColor,
+                                              ),
+                                              padding: EdgeInsets.all(
+                                                  Dimensions.paddingSizeSmall),
+                                              child: Text(
+                                                getTranslated(
+                                                        'this_product_is_now_on_a_flash_deal',
+                                                        context) ??
+                                                    '',
+                                                style: textRegular.copyWith(
+                                                    fontSize: Dimensions
+                                                        .fontSizeSmall,
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.color),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              eventDuration == null
-                                                  ? const Expanded(
-                                                      child: SizedBox.shrink())
-                                                  : Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 0),
-                                                      child: Row(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            const SizedBox(
-                                                                width: 5),
-                                                            TimerBox(
-                                                                time: days,
-                                                                day: getTranslated(
-                                                                    'day',
-                                                                    context),
-                                                                isDetailsPage:
-                                                                    true),
-                                                            TimerBox(
-                                                                time: hours,
-                                                                day: getTranslated(
-                                                                    'hour',
-                                                                    context),
-                                                                isDetailsPage:
-                                                                    true),
-                                                            TimerBox(
-                                                                time: minutes,
-                                                                day: getTranslated(
-                                                                    'min',
-                                                                    context),
-                                                                isDetailsPage:
-                                                                    true),
-                                                            TimerBox(
-                                                                time: seconds,
-                                                                day: getTranslated(
-                                                                    'sec',
-                                                                    context),
-                                                                isDetailsPage:
-                                                                    true),
-                                                          ]),
-                                                    ),
-                                            ])
-                                      ],
+                                          Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                eventDuration == null
+                                                    ? const Expanded(
+                                                        child:
+                                                            SizedBox.shrink())
+                                                    : Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 0),
+                                                        child: Row(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              const SizedBox(
+                                                                  width: 5),
+                                                              TimerBox(
+                                                                  time: days,
+                                                                  day: getTranslated(
+                                                                      'day',
+                                                                      context),
+                                                                  isDetailsPage:
+                                                                      true),
+                                                              TimerBox(
+                                                                  time: hours,
+                                                                  day: getTranslated(
+                                                                      'hour',
+                                                                      context),
+                                                                  isDetailsPage:
+                                                                      true),
+                                                              TimerBox(
+                                                                  time: minutes,
+                                                                  day: getTranslated(
+                                                                      'min',
+                                                                      context),
+                                                                  isDetailsPage:
+                                                                      true),
+                                                              TimerBox(
+                                                                  time: seconds,
+                                                                  day: getTranslated(
+                                                                      'sec',
+                                                                      context),
+                                                                  isDetailsPage:
+                                                                      true),
+                                                            ]),
+                                                      ),
+                                              ])
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              }),
-                            ProductImageWidget(
-                                productModel: details.productDetailsModel,
-                                fromFlashDeals: widget.fromFlashDeals),
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ProductTitleWidget(
-                                      productModel:
-                                          details.productDetailsModel),
-                                  (details.productDetailsModel?.productType ==
-                                              'digital' &&
-                                          (_publishingHouse.isNotEmpty ||
-                                              _authors.isNotEmpty))
-                                      ? Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal:
-                                                  Dimensions.homePagePadding),
-                                          child: RichText(
-                                              text: TextSpan(
-                                            text: '',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium!
-                                                .copyWith(
-                                                  fontWeight: FontWeight.w400,
-                                                  fontSize: Dimensions
-                                                      .fontSizeDefault,
-                                                  color: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyLarge
-                                                      ?.color,
-                                                ),
-                                            children: [
-                                              if (details.productDetailsModel
-                                                          ?.publishingHouse !=
-                                                      null &&
-                                                  details
-                                                      .productDetailsModel!
-                                                      .publishingHouse!
-                                                      .isNotEmpty)
-                                                TextSpan(
-                                                    text:
-                                                        "${getTranslated('publishing_housec', context)}",
-                                                    style: titilliumRegular
-                                                        .copyWith(
-                                                      fontSize: Dimensions
-                                                          .fontSizeDefault,
-                                                      color: Theme.of(context)
-                                                          .hintColor,
-                                                    )),
-                                              ..._publishingHouse,
-                                              if (details.productDetailsModel
-                                                          ?.publishingHouse !=
-                                                      null &&
-                                                  details
-                                                      .productDetailsModel!
-                                                      .publishingHouse!
-                                                      .isNotEmpty)
-                                                WidgetSpan(
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8.0),
-                                                    height: 15.0,
-                                                    width: 1.0,
+                                  );
+                                }),
+                              ProductImageWidget(
+                                  productModel: details.productDetailsModel,
+                                  fromFlashDeals: widget.fromFlashDeals),
+                              Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ProductTitleWidget(
+                                        productModel:
+                                            details.productDetailsModel),
+                                    (details.productDetailsModel?.productType ==
+                                                'digital' &&
+                                            (_publishingHouse.isNotEmpty ||
+                                                _authors.isNotEmpty))
+                                        ? Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal:
+                                                    Dimensions.homePagePadding),
+                                            child: RichText(
+                                                text: TextSpan(
+                                              text: '',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium!
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: Dimensions
+                                                        .fontSizeDefault,
                                                     color: Theme.of(context)
-                                                        .primaryColor
-                                                        .withValues(
-                                                            alpha: 0.50),
+                                                        .textTheme
+                                                        .bodyLarge
+                                                        ?.color,
                                                   ),
-                                                ),
-                                              if (details.productDetailsModel
-                                                          ?.authors !=
+                                              children: [
+                                                if (details.productDetailsModel
+                                                            ?.publishingHouse !=
+                                                        null &&
+                                                    details
+                                                        .productDetailsModel!
+                                                        .publishingHouse!
+                                                        .isNotEmpty)
+                                                  TextSpan(
+                                                      text:
+                                                          "${getTranslated('publishing_housec', context)}",
+                                                      style: titilliumRegular
+                                                          .copyWith(
+                                                        fontSize: Dimensions
+                                                            .fontSizeDefault,
+                                                        color: Theme.of(context)
+                                                            .hintColor,
+                                                      )),
+                                                ..._publishingHouse,
+                                                if (details.productDetailsModel
+                                                            ?.publishingHouse !=
+                                                        null &&
+                                                    details
+                                                        .productDetailsModel!
+                                                        .publishingHouse!
+                                                        .isNotEmpty)
+                                                  WidgetSpan(
+                                                    child: Container(
+                                                      margin: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 8.0),
+                                                      height: 15.0,
+                                                      width: 1.0,
+                                                      color: Theme.of(context)
+                                                          .primaryColor
+                                                          .withValues(
+                                                              alpha: 0.50),
+                                                    ),
+                                                  ),
+                                                if (details.productDetailsModel
+                                                            ?.authors !=
+                                                        null &&
+                                                    details.productDetailsModel!
+                                                        .authors!.isNotEmpty)
+                                                  TextSpan(
+                                                      text:
+                                                          "${getTranslated('author', context)}",
+                                                      style: titilliumRegular
+                                                          .copyWith(
+                                                              fontSize: Dimensions
+                                                                  .fontSizeDefault,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .hintColor)),
+                                                ..._authors,
+                                              ],
+                                            )),
+                                          )
+                                        : const SizedBox(),
+                                    Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          if (details.productDetailsModel
+                                                      ?.productionDate !=
+                                                  null ||
+                                              details.productDetailsModel
+                                                      ?.expiryDate !=
+                                                  null)
+                                            Container(
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    Theme.of(context).cardColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                    color: Theme.of(context)
+                                                        .dividerColor
+                                                        .withValues(
+                                                            alpha: .35)),
+                                              ),
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: Dimensions
+                                                          .paddingSizeDefault,
+                                                      vertical: 6),
+                                              padding: const EdgeInsets.all(
+                                                  Dimensions
+                                                      .paddingSizeDefault),
+                                              child: Row(children: [
+                                                Expanded(
+                                                    child: Text(
+                                                        '${getTranslated('production_date', context)}: ${details.productDetailsModel?.productionDate ?? '-'}')),
+                                                Expanded(
+                                                    child: Text(
+                                                        '${getTranslated('expiry_date', context)}: ${details.productDetailsModel?.expiryDate ?? '-'}')),
+                                              ]),
+                                            ),
+                                          (details.productDetailsModel
+                                                          ?.details !=
                                                       null &&
                                                   details.productDetailsModel!
-                                                      .authors!.isNotEmpty)
-                                                TextSpan(
-                                                    text:
-                                                        "${getTranslated('author', context)}",
-                                                    style: titilliumRegular
-                                                        .copyWith(
-                                                            fontSize: Dimensions
-                                                                .fontSizeDefault,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .hintColor)),
-                                              ..._authors,
-                                            ],
-                                          )),
-                                        )
-                                      : const SizedBox(),
-                                  Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (details.productDetailsModel
-                                                    ?.productionDate !=
-                                                null ||
-                                            details.productDetailsModel
-                                                    ?.expiryDate !=
-                                                null)
-                                          Container(
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Theme.of(context).cardColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              border: Border.all(
-                                                  color: Theme.of(context)
-                                                      .dividerColor
-                                                      .withValues(alpha: .35)),
-                                            ),
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: Dimensions
-                                                    .paddingSizeDefault,
-                                                vertical: 6),
-                                            padding: const EdgeInsets.all(
-                                                Dimensions.paddingSizeDefault),
-                                            child: Row(children: [
-                                              Expanded(
-                                                  child: Text(
-                                                      '${getTranslated('production_date', context)}: ${details.productDetailsModel?.productionDate ?? '-'}')),
-                                              Expanded(
-                                                  child: Text(
-                                                      '${getTranslated('expiry_date', context)}: ${details.productDetailsModel?.expiryDate ?? '-'}')),
-                                            ]),
-                                          ),
-                                        (details.productDetailsModel?.details !=
-                                                    null &&
-                                                details.productDetailsModel!
-                                                    .details!.isNotEmpty)
-                                            ? Container(
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .cardColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  border: Border.all(
-                                                      color: Theme.of(context)
-                                                          .dividerColor
-                                                          .withValues(
-                                                              alpha: .35)),
-                                                ),
-                                                margin:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: Dimensions
-                                                            .paddingSizeDefault,
-                                                        vertical: 6),
-                                                padding: const EdgeInsets
-                                                    .symmetric(
-                                                    vertical: Dimensions
-                                                        .paddingSizeSmall,
-                                                    horizontal: Dimensions
-                                                        .paddingSizeDefault),
-                                                child:
-                                                    ProductSpecificationWidget(
-                                                  productSpecification:
-                                                      ProductHelper.removeIframe(
-                                                          details.productDetailsModel!
-                                                                  .details ??
-                                                              ''),
-                                                ),
-                                              )
-                                            : const SizedBox(),
-                                        (details.productDetailsModel
-                                                        ?.videoUrl !=
-                                                    null &&
-                                                details.isValidYouTubeUrl(
-                                                    details.productDetailsModel!
-                                                        .videoUrl!))
-                                            ? Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: Dimensions
-                                                        .paddingSizeDefault),
-                                                child: YoutubeVideoWidget(
-                                                    url: details
-                                                        .productDetailsModel!
-                                                        .videoUrl))
-                                            : const SizedBox(),
-                                        _ProductDetailsProductListWidget(
-                                            scrollController: scrollController),
-                                      ]),
-                                ]),
-                          ])
-                    : const ProductDetailsShimmer(),
-              );
-            },
+                                                      .details!.isNotEmpty)
+                                              ? Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context)
+                                                        .cardColor,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                    border: Border.all(
+                                                        color: Theme.of(context)
+                                                            .dividerColor
+                                                            .withValues(
+                                                                alpha: .35)),
+                                                  ),
+                                                  margin: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: Dimensions
+                                                          .paddingSizeDefault,
+                                                      vertical: 6),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      vertical: Dimensions
+                                                          .paddingSizeSmall,
+                                                      horizontal: Dimensions
+                                                          .paddingSizeDefault),
+                                                  child:
+                                                      ProductSpecificationWidget(
+                                                    productSpecification:
+                                                        ProductHelper
+                                                            .removeIframe(details
+                                                                    .productDetailsModel!
+                                                                    .details ??
+                                                                ''),
+                                                  ),
+                                                )
+                                              : const SizedBox(),
+                                          (details.productDetailsModel
+                                                          ?.videoUrl !=
+                                                      null &&
+                                                  details.isValidYouTubeUrl(
+                                                      details
+                                                          .productDetailsModel!
+                                                          .videoUrl!))
+                                              ? Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: Dimensions
+                                                          .paddingSizeDefault),
+                                                  child: YoutubeVideoWidget(
+                                                      url: details
+                                                          .productDetailsModel!
+                                                          .videoUrl))
+                                              : const SizedBox(),
+                                          _ProductDetailsProductListWidget(
+                                              scrollController:
+                                                  scrollController),
+                                        ]),
+                                  ]),
+                            ])
+                      : const ProductDetailsShimmer(),
+                );
+              },
+            ),
           ),
         ),
         bottomNavigationBar: Consumer<ProductDetailsController>(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/controllers/category_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/domain/models/category_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
@@ -42,96 +43,99 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ? null
           : CustomAppBar(title: getTranslated('CATEGORY', context)),
       body: SafeArea(
-        child: Consumer<CategoryController>(
-          builder: (context, categoryController, _) {
-            final categories = categoryController.categoryList;
-            if (categories.isEmpty) {
-              return Center(
-                child: CircularProgressIndicator(
-                    color: Theme.of(context).primaryColor),
-              );
-            }
+        child: SigmaResponsiveContent(
+          child: Consumer<CategoryController>(
+            builder: (context, categoryController, _) {
+              final categories = categoryController.categoryList;
+              if (categories.isEmpty) {
+                return Center(
+                  child: CircularProgressIndicator(
+                      color: Theme.of(context).primaryColor),
+                );
+              }
 
-            if (!_initialized) {
-              _initialized = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  _selectCategory(0, categoryController, update: false);
-                }
-              });
-            }
+              if (!_initialized) {
+                _initialized = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    _selectCategory(0, categoryController, update: false);
+                  }
+                });
+              }
 
-            final selectedIndex =
-                (categoryController.categorySelectedIndex ?? 0)
-                    .clamp(0, categories.length - 1);
-            final selectedCategory = categories[selectedIndex];
+              final selectedIndex =
+                  (categoryController.categorySelectedIndex ?? 0)
+                      .clamp(0, categories.length - 1);
+              final selectedCategory = categories[selectedIndex];
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (widget.fromDashboard)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
-                    child: Row(children: [
-                      Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.fromDashboard)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+                      child: Row(children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: .10),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Icon(Icons.grid_view_rounded,
+                              color: Theme.of(context).primaryColor),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(getTranslated('CATEGORY', context) ?? 'Categories',
+                            style: textBold.copyWith(fontSize: 24)),
+                      ]),
+                    ),
+                  SizedBox(
+                    height: 126,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Dimensions.paddingSizeDefault,
+                          vertical: 8),
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: categories.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      itemBuilder: (context, index) => CategoryItem(
+                        title: categories[index].name,
+                        icon: categories[index].imageFullUrl?.path,
+                        isSelected: selectedIndex == index,
+                        onTap: () => _selectCategory(index, categoryController),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
                           color: Theme.of(context)
-                              .primaryColor
-                              .withValues(alpha: .10),
-                          borderRadius: BorderRadius.circular(15),
+                              .dividerColor
+                              .withValues(alpha: .28),
                         ),
-                        child: Icon(Icons.grid_view_rounded,
-                            color: Theme.of(context).primaryColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: .045),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Text(getTranslated('CATEGORY', context) ?? 'Categories',
-                          style: textBold.copyWith(fontSize: 24)),
-                    ]),
-                  ),
-                SizedBox(
-                  height: 126,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: Dimensions.paddingSizeDefault, vertical: 8),
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (context, index) => CategoryItem(
-                      title: categories[index].name,
-                      icon: categories[index].imageFullUrl?.path,
-                      isSelected: selectedIndex == index,
-                      onTap: () => _selectCategory(index, categoryController),
+                      child: _CategoryDetails(category: selectedCategory),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .dividerColor
-                            .withValues(alpha: .28),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: .045),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: _CategoryDetails(category: selectedCategory),
-                  ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
