@@ -219,6 +219,26 @@ void main() {
     expect(constants, contains('/api/v1/mapapi/shipping-governorates'));
     expect(shipping, contains('quoteForAddress'));
     expect(shipping, contains('selectQuoteForAddress'));
+    expect(address, contains("_selectedShippingOption = 'normal'"));
+    expect(address, contains("'shipping_address_details'"));
+    expect(address, isNot(contains("getTranslated('usa', context)")));
+    expect(address, isNot(contains("getTranslated('zip', context)")));
+    expect(shipping, contains('hasSelectedQuoteForAddress'));
+  });
+
+  test('profile and cart expose only the requested customer actions', () {
+    final profile = File('lib/features/more/screens/more_screen_view.dart')
+        .readAsStringSync();
+    final profileHeader =
+        File('lib/features/more/widgets/profile_info_section_widget.dart')
+            .readAsStringSync();
+    final cart =
+        File('lib/features/cart/screens/cart_screen.dart').readAsStringSync();
+
+    expect(profile, isNot(contains("getTranslated('TRACK_ORDER', context)")));
+    expect(profileHeader, contains('LayoutBuilder'));
+    expect(profileHeader, contains('compact: compact'));
+    expect(cart, contains('_showCartShippingSelector => false'));
   });
 
   test('first payment preserves server total without adding second stage tax',

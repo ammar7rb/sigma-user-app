@@ -222,9 +222,12 @@ class RouterHelper {
   }
 
   static String getSavedAddressListRoute(
-      {RouteAction? action, bool? fromGuest}) {
+      {RouteAction? action, bool? fromGuest, bool? fromCheckout}) {
     final params = <String, String>{};
     if (fromGuest != null) params['fromGuest'] = fromGuest.toString();
+    if (fromCheckout != null) {
+      params['fromCheckout'] = fromCheckout.toString();
+    }
     final query = params.isNotEmpty
         ? '?${params.entries.map((e) => '${e.key}=${e.value}').join('&')}'
         : '';
@@ -1116,7 +1119,10 @@ class RouterHelper {
           path: savedAddressListScreen,
           builder: (context, state) {
             final fromGuest = state.uri.queryParameters['fromGuest'] == 'true';
-            return SavedAddressListScreen(fromGuest: fromGuest);
+            final fromCheckout =
+                state.uri.queryParameters['fromCheckout'] == 'true';
+            return SavedAddressListScreen(
+                fromGuest: fromGuest, fromCheckout: fromCheckout);
           },
         ),
         GoRoute(

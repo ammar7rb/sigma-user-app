@@ -387,14 +387,6 @@ class _MoreScreenState extends State<MoreScreen> {
                                   .withValues(alpha: .20)),
                         ),
                         child: Column(children: [
-                          MenuButtonWidget(
-                            image: Images.trackOrderIcon,
-                            title: getTranslated('TRACK_ORDER', context),
-                            onTap: () {
-                              RouterHelper.getGuestTrackOrderRoute(
-                                  action: RouteAction.push);
-                            },
-                          ),
                           if (authController.isLoggedIn())
                             MenuButtonWidget(
                               image: Images.shoppingImage,

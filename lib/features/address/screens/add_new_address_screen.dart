@@ -1,4 +1,3 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/domain/models/address_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
@@ -12,6 +11,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/shipping/controllers/shipping_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -55,6 +55,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
   final FocusNode _emailNode = FocusNode();
   final FocusNode _numberNode = FocusNode();
   String? _selectedGovernorate;
+  String _selectedShippingOption = 'normal';
   final FocusNode _zipNode = FocusNode();
   GoogleMapController? _controller;
   CameraPosition? _cameraPosition;
@@ -429,7 +430,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                             CustomTextFieldWidget(
                               labelText:
                                   getTranslated('delivery_address', context),
-                              hintText: getTranslated('usa', context),
+                              hintText: getTranslated(
+                                  'shipping_address_details', context),
                               inputType: TextInputType.streetAddress,
                               inputAction: TextInputAction.next,
                               focusNode: _addressNode,
@@ -552,7 +554,16 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                   borderSide: BorderSide(
                                       color: Theme.of(context).dividerColor),
                                 ),
-                                prefixIcon: Image.asset(Images.city),
+                                prefixIconConstraints:
+                                    const BoxConstraints.tightFor(
+                                        width: 52, height: 52),
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Image.asset(Images.city,
+                                      width: 22,
+                                      height: 22,
+                                      fit: BoxFit.contain),
+                                ),
                               ),
                               hint: Text(
                                   getTranslated('governorate', context) ??
@@ -599,82 +610,46 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                             const SizedBox(
                                 height: Dimensions.paddingSizeDefaultAddress),
 
-                            Provider.of<SplashController>(context,
-                                            listen: false)
-                                        .configModel!
-                                        .deliveryZipCodeAreaRestriction ==
-                                    0
-                                ? CustomTextFieldWidget(
-                                    labelText: getTranslated('zip', context),
-                                    hintText: getTranslated('zip', context),
-                                    inputAction: TextInputAction.done,
-                                    focusNode: _zipNode,
-                                    required: false,
-                                    prefixIcon: Images.city,
-                                    controller: _zipCodeController,
-                                  )
-                                : Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context).cardColor,
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(
-                                            width: .1,
-                                            color: Theme.of(context)
-                                                .hintColor
-                                                .withValues(alpha: 0.1))),
-                                    child: DropdownButtonFormField2<String>(
-                                      isExpanded: true,
-                                      isDense: true,
-                                      decoration: InputDecoration(
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                  vertical: 0),
-                                          border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(5))),
-                                      hint: Row(
-                                        children: [
-                                          Image.asset(Images.city),
-                                          const SizedBox(
-                                            width: Dimensions.paddingSizeSmall,
-                                          ),
-                                          Text(getTranslated('zip', context)!,
-                                              style: textRegular.copyWith(
-                                                  fontSize: Dimensions
-                                                      .fontSizeDefault,
-                                                  color: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyLarge!
-                                                      .color)),
-                                        ],
-                                      ),
-                                      items: addressController.restrictedZipList
-                                          .map((item) => DropdownItem<String>(
-                                              value: item.zipcode ?? '',
-                                              child: Text(item.zipcode ?? '',
-                                                  style: textRegular.copyWith(
-                                                      fontSize: Dimensions
-                                                          .fontSizeSmall))))
-                                          .toList(),
-                                      onChanged: (value) {
-                                        _zipCodeController.text = value!;
-                                      },
-                                      iconStyleData: IconStyleData(
-                                          icon: Icon(Icons.arrow_drop_down,
-                                              color:
-                                                  Theme.of(context).hintColor),
-                                          iconSize: 24),
-                                      dropdownStyleData: DropdownStyleData(
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(5))),
-                                      menuItemStyleData:
-                                          const MenuItemStyleData(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 16)),
-                                    ),
+                            if (widget.fromCheckout) ...[
+                              Text(
+                                getTranslated(
+                                        'select_shipping_method', context) ??
+                                    'Select shipping method',
+                                style: textBold.copyWith(
+                                    fontSize: Dimensions.fontSizeDefault),
+                              ),
+                              const SizedBox(height: 10),
+                              Row(children: [
+                                Expanded(
+                                  child: _ShippingOptionCard(
+                                    selected:
+                                        _selectedShippingOption == 'normal',
+                                    icon: Icons.local_shipping_outlined,
+                                    title: getTranslated(
+                                            'normal_shipping', context) ??
+                                        'Normal shipping',
+                                    onTap: () => setState(() =>
+                                        _selectedShippingOption = 'normal'),
                                   ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _ShippingOptionCard(
+                                    selected:
+                                        _selectedShippingOption == 'sigma',
+                                    icon: Icons.bolt_rounded,
+                                    title: getTranslated(
+                                            'sigma_shipping', context) ??
+                                        'Sigma shipping',
+                                    onTap: () => setState(() =>
+                                        _selectedShippingOption = 'sigma'),
+                                  ),
+                                ),
+                              ]),
+                              const SizedBox(
+                                  height: Dimensions.paddingSizeDefaultAddress),
+                            ],
+
                             const SizedBox(
                                 height: Dimensions.paddingSizeDefaultAddress),
 
@@ -689,7 +664,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                     : getTranslated('save_location', context),
                                 onTap: addressController.isLoading
                                     ? null
-                                    : () {
+                                    : () async {
                                         if (_addressFormKey.currentState
                                                 ?.validate() ??
                                             false) {
@@ -739,24 +714,61 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                                 addressModel: addressModel,
                                                 addressId: addressModel.id);
                                           } else {
-                                            addressController
-                                                .addAddress(addressModel)
-                                                .then((value) {
-                                              if (value.response?.statusCode ==
-                                                  200) {
-                                                if (context.mounted) {
-                                                  Navigator.pop(context);
-                                                }
-                                                if (widget.fromCheckout) {
-                                                  if (context.mounted) {
-                                                    Provider.of<CheckoutController>(
-                                                            context,
-                                                            listen: false)
-                                                        .setAddressIndex(0);
-                                                  }
+                                            final value =
+                                                await addressController
+                                                    .addAddress(addressModel);
+                                            if (value.response?.statusCode !=
+                                                    200 ||
+                                                !context.mounted) {
+                                              return;
+                                            }
+
+                                            if (widget.fromCheckout) {
+                                              final addressId = int.tryParse(
+                                                  '${value.response?.data['address_id'] ?? ''}');
+                                              if (addressId == null) return;
+                                              final shipping = Provider.of<
+                                                      ShippingController>(
+                                                  context,
+                                                  listen: false);
+                                              if (!await shipping
+                                                      .quoteForAddress(
+                                                          context, addressId) ||
+                                                  !context.mounted) {
+                                                return;
+                                              }
+                                              if (!await shipping
+                                                      .selectQuoteForAddress(
+                                                          context,
+                                                          addressId,
+                                                          _selectedShippingOption) ||
+                                                  !context.mounted) {
+                                                return;
+                                              }
+                                              final addresses =
+                                                  await addressController
+                                                      .getAddressList();
+                                              final index = addresses
+                                                      ?.indexWhere((item) =>
+                                                          item.id ==
+                                                          addressId) ??
+                                                  -1;
+                                              if (index >= 0 &&
+                                                  context.mounted) {
+                                                Provider.of<CheckoutController>(
+                                                        context,
+                                                        listen: false)
+                                                    .setAddressIndex(index);
+                                                final navigator =
+                                                    Navigator.of(context);
+                                                navigator.pop();
+                                                if (navigator.canPop()) {
+                                                  navigator.pop();
                                                 }
                                               }
-                                            });
+                                              return;
+                                            }
+                                            Navigator.pop(context);
                                           }
                                         }
                                       },
@@ -784,3 +796,60 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
 }
 
 enum Address { shipping, billing }
+
+class _ShippingOptionCard extends StatelessWidget {
+  const _ShippingOptionCard({
+    required this.selected,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: selected
+                ? Theme.of(context).primaryColor.withValues(alpha: .09)
+                : Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).dividerColor,
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Row(children: [
+            Icon(icon,
+                size: 22,
+                color: selected
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).hintColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: textMedium.copyWith(fontSize: 13)),
+            ),
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              size: 20,
+              color: selected
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).hintColor,
+            ),
+          ]),
+        ),
+      );
+}

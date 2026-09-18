@@ -15,7 +15,9 @@ import 'package:provider/provider.dart';
 
 class SavedAddressListScreen extends StatefulWidget {
   final bool fromGuest;
-  const SavedAddressListScreen({super.key, this.fromGuest = false});
+  final bool fromCheckout;
+  const SavedAddressListScreen(
+      {super.key, this.fromGuest = false, this.fromCheckout = false});
 
   @override
   State<SavedAddressListScreen> createState() => _SavedAddressListScreenState();
@@ -38,8 +40,8 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
           child: SizedBox(
             height: 54,
             child: FilledButton.icon(
-              onPressed: () =>
-                  RouterHelper.getAddNewAddressRoute(isBilling: false),
+              onPressed: () => RouterHelper.getAddNewAddressRoute(
+                  isBilling: false, fromCheckout: widget.fromCheckout),
               icon: const Icon(Icons.add_location_alt_outlined),
               label: Text(
                   getTranslated('add_new_address', context) ?? 'إضافة عنوان'),

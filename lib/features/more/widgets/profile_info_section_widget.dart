@@ -26,27 +26,34 @@ class ProfileInfoSectionWidget extends StatelessWidget {
           color: Theme.of(context).scaffoldBackgroundColor,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Column(children: [
-            Row(children: [
-              Text(getTranslated('profile', context) ?? 'Profile',
-                  style: textBold.copyWith(fontSize: 23)),
-              const Spacer(),
-              _HeaderAction(
-                label: locale.isLtr ? 'AR' : 'EN',
-                icon: Icons.language_rounded,
-                onTap: () => locale.setLanguage(
-                  locale.isLtr
-                      ? const Locale('ar', 'SA')
-                      : const Locale('en', 'US'),
+            LayoutBuilder(builder: (context, constraints) {
+              final compact = constraints.maxWidth < 360;
+              return Row(children: [
+                Expanded(
+                    child: Text(getTranslated('profile', context) ?? 'Profile',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textBold.copyWith(fontSize: compact ? 20 : 23))),
+                _HeaderAction(
+                  compact: compact,
+                  label: locale.isLtr ? 'AR' : 'EN',
+                  icon: Icons.language_rounded,
+                  onTap: () => locale.setLanguage(
+                    locale.isLtr
+                        ? const Locale('ar', 'SA')
+                        : const Locale('en', 'US'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              _HeaderAction(
-                icon: theme.darkTheme
-                    ? Icons.light_mode_rounded
-                    : Icons.dark_mode_rounded,
-                onTap: theme.toggleTheme,
-              ),
-            ]),
+                const SizedBox(width: 6),
+                _HeaderAction(
+                  compact: compact,
+                  icon: theme.darkTheme
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  onTap: theme.toggleTheme,
+                ),
+              ]);
+            }),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
@@ -167,7 +174,12 @@ class _HeaderAction extends StatelessWidget {
   final IconData icon;
   final String? label;
   final VoidCallback onTap;
-  const _HeaderAction({required this.icon, required this.onTap, this.label});
+  final bool compact;
+  const _HeaderAction(
+      {required this.icon,
+      required this.onTap,
+      this.label,
+      this.compact = false});
 
   @override
   Widget build(BuildContext context) => Material(
@@ -177,8 +189,8 @@ class _HeaderAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(13),
           onTap: onTap,
           child: SizedBox(
-            height: 42,
-            width: label == null ? 42 : 58,
+            height: compact ? 38 : 42,
+            width: label == null ? (compact ? 38 : 42) : (compact ? 50 : 58),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(icon, size: 20, color: Theme.of(context).primaryColor),
               if (label != null) ...[

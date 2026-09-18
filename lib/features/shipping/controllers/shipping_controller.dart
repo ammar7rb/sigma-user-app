@@ -18,7 +18,7 @@ class ShippingController extends ChangeNotifier {
   ShippingController({required this.shippingServiceInterface});
 
   List<ChosenShippingMethodModel> _chosenShippingList = [];
-  List<ChosenShippingMethodModel> get chosenShippingList =>_chosenShippingList;
+  List<ChosenShippingMethodModel> get chosenShippingList => _chosenShippingList;
   List<ShippingModel>? _shippingList;
   List<ShippingModel>? get shippingList => _shippingList;
   List<bool> isSelectedList = [];
@@ -31,23 +31,27 @@ class ShippingController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<Map<String, dynamic>> _quotedOptions = [];
   List<Map<String, dynamic>> get quotedOptions => _quotedOptions;
+  int? _selectedQuoteAddressId;
+  String? _selectedQuoteOption;
+  double _selectedQuoteCost = 0;
+  double get selectedQuoteCost => _selectedQuoteCost;
+  bool hasSelectedQuoteForAddress(int? addressId) =>
+      addressId != null &&
+      _selectedQuoteAddressId == addressId &&
+      _selectedQuoteOption != null;
 
+  final List<int> _chosenShippingMethodIndex = [];
+  List<int> get chosenShippingMethodIndex => _chosenShippingMethodIndex;
 
-  final List<int> _chosenShippingMethodIndex =[];
-  List<int> get chosenShippingMethodIndex=>_chosenShippingMethodIndex;
-
-
-
-
-
-  Future<void> getShippingMethod(BuildContext context, List<List<CartModel>> cartProdList) async {
+  Future<void> getShippingMethod(
+      BuildContext context, List<List<CartModel>> cartProdList) async {
     _isLoading = true;
     Provider.of<CartController>(context, listen: false).getCartDataLoaded();
     List<int?> sellerIdList = [];
     List<String?> sellerTypeList = [];
     List<String?> groupList = [];
     _shippingList = [];
-    for(List<CartModel> element in cartProdList) {
+    for (List<CartModel> element in cartProdList) {
       sellerIdList.add(element[0].sellerId);
       sellerTypeList.add(element[0].sellerIs);
       groupList.add(element[0].cartGroupId);
@@ -55,26 +59,31 @@ class ShippingController extends ChangeNotifier {
     }
 
     await getChosenShippingMethod(context);
-    for(int i=0; i<sellerIdList.length; i++) {
-      ApiResponseModel apiResponse = await shippingServiceInterface.getShippingMethod(sellerIdList[i],sellerTypeList[i]);
+    for (int i = 0; i < sellerIdList.length; i++) {
+      ApiResponseModel apiResponse = await shippingServiceInterface
+          .getShippingMethod(sellerIdList[i], sellerTypeList[i]);
 
-      if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-        List<ShippingMethodModel> shippingMethodList =[];
-        apiResponse.response!.data.forEach((shipping) => shippingMethodList.add(ShippingMethodModel.fromJson(shipping)));
+      if (apiResponse.response != null &&
+          apiResponse.response!.statusCode == 200) {
+        List<ShippingMethodModel> shippingMethodList = [];
+        apiResponse.response!.data.forEach((shipping) =>
+            shippingMethodList.add(ShippingMethodModel.fromJson(shipping)));
 
-        _shippingList![i].shippingMethodList =[];
+        _shippingList![i].shippingMethodList = [];
         _shippingList![i].shippingMethodList!.addAll(shippingMethodList);
         int index = -1;
         int? shipId = -1;
-        for(ChosenShippingMethodModel cs in _chosenShippingList) {
-          if(cs.cartGroupId == groupList[i]) {
+        for (ChosenShippingMethodModel cs in _chosenShippingList) {
+          if (cs.cartGroupId == groupList[i]) {
             shipId = cs.shippingMethodId;
             break;
           }
         }
-        if(shipId != -1) {
-          for(int j=0; j<_shippingList![i].shippingMethodList!.length; j++) {
-            if(_shippingList![i].shippingMethodList![j].id == shipId) {
+        if (shipId != -1) {
+          for (int j = 0;
+              j < _shippingList![i].shippingMethodList!.length;
+              j++) {
+            if (_shippingList![i].shippingMethodList![j].id == shipId) {
               index = j;
               break;
             }
@@ -82,37 +91,36 @@ class ShippingController extends ChangeNotifier {
         }
         _shippingList![i].shippingIndex = index;
       } else {
-        if(context.mounted){
-        }
-        ApiChecker.checkApi( apiResponse);
+        if (context.mounted) {}
+        ApiChecker.checkApi(apiResponse);
       }
       _isLoading = false;
       notifyListeners();
     }
   }
 
-
-
-
   Future<void> getAdminShippingMethodList(BuildContext context) async {
     _isLoading = true;
     Provider.of<CartController>(context, listen: false).getCartDataLoaded();
     _shippingList = [];
     await getChosenShippingMethod(context);
-    ApiResponseModel apiResponse = await shippingServiceInterface.getShippingMethod(1,'admin');
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+    ApiResponseModel apiResponse =
+        await shippingServiceInterface.getShippingMethod(1, 'admin');
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
       _shippingList!.add(ShippingModel(-1, '', []));
-      List<ShippingMethodModel> shippingMethodList =[];
-      apiResponse.response!.data.forEach((shipping) => shippingMethodList.add(ShippingMethodModel.fromJson(shipping)));
+      List<ShippingMethodModel> shippingMethodList = [];
+      apiResponse.response!.data.forEach((shipping) =>
+          shippingMethodList.add(ShippingMethodModel.fromJson(shipping)));
 
-      _shippingList![0].shippingMethodList =[];
+      _shippingList![0].shippingMethodList = [];
       _shippingList![0].shippingMethodList!.addAll(shippingMethodList);
       int index = -1;
 
-
-      if(_chosenShippingList.isNotEmpty){
-        for(int j=0; j<_shippingList![0].shippingMethodList!.length; j++) {
-          if(_shippingList![0].shippingMethodList![j].id == _chosenShippingList[0].shippingMethodId) {
+      if (_chosenShippingList.isNotEmpty) {
+        for (int j = 0; j < _shippingList![0].shippingMethodList!.length; j++) {
+          if (_shippingList![0].shippingMethodList![j].id ==
+              _chosenShippingList[0].shippingMethodId) {
             index = j;
             break;
           }
@@ -121,33 +129,42 @@ class ShippingController extends ChangeNotifier {
 
       _shippingList![0].shippingIndex = index;
     } else {
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
     }
     _isLoading = false;
     notifyListeners();
-
   }
 
-
   Future<void> getChosenShippingMethod(BuildContext context) async {
-    ApiResponseModel apiResponse = await shippingServiceInterface.getChosenShippingMethod();
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+    ApiResponseModel apiResponse =
+        await shippingServiceInterface.getChosenShippingMethod();
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
       _chosenShippingList = [];
-      apiResponse.response!.data.forEach((shipping) => _chosenShippingList.add(ChosenShippingMethodModel.fromJson(shipping)));
+      apiResponse.response!.data.forEach((shipping) => _chosenShippingList
+          .add(ChosenShippingMethodModel.fromJson(shipping)));
       notifyListeners();
     } else {
-      ApiChecker.checkApi( apiResponse);
+      ApiChecker.checkApi(apiResponse);
     }
     notifyListeners();
   }
 
   Future<bool> quoteForAddress(BuildContext context, int addressId) async {
+    if (_selectedQuoteAddressId != addressId) {
+      _selectedQuoteAddressId = null;
+      _selectedQuoteOption = null;
+      _selectedQuoteCost = 0;
+    }
     _isLoading = true;
     notifyListeners();
-    final apiResponse = await shippingServiceInterface.quoteForAddress(addressId);
+    final apiResponse =
+        await shippingServiceInterface.quoteForAddress(addressId);
     _isLoading = false;
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      _quotedOptions = List<Map<String, dynamic>>.from(apiResponse.response!.data['options'] ?? const []);
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      _quotedOptions = List<Map<String, dynamic>>.from(
+          apiResponse.response!.data['options'] ?? const []);
       notifyListeners();
       return _quotedOptions.isNotEmpty;
     }
@@ -156,13 +173,26 @@ class ShippingController extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> selectQuoteForAddress(BuildContext context, int addressId, String option) async {
+  Future<bool> selectQuoteForAddress(
+      BuildContext context, int addressId, String option) async {
     _isLoading = true;
     notifyListeners();
-    final apiResponse = await shippingServiceInterface.selectQuoteForAddress(addressId, option);
+    final apiResponse =
+        await shippingServiceInterface.selectQuoteForAddress(addressId, option);
     _isLoading = false;
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      await Provider.of<CartController>(context, listen: false).getCartData(context);
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      final selectedOption =
+          _quotedOptions.cast<Map<String, dynamic>?>().firstWhere(
+                (item) => '${item?['key']}' == option,
+                orElse: () => null,
+              );
+      _selectedQuoteAddressId = addressId;
+      _selectedQuoteOption = option;
+      _selectedQuoteCost =
+          double.tryParse('${selectedOption?['shipping_cost'] ?? 0}') ?? 0;
+      await Provider.of<CartController>(context, listen: false)
+          .getCartData(context);
       await getChosenShippingMethod(context);
       notifyListeners();
       return true;
@@ -172,41 +202,38 @@ class ShippingController extends ChangeNotifier {
     return false;
   }
 
-
-
-
-  void setSelectedShippingMethod(int? index , int sellerIndex) {
+  void setSelectedShippingMethod(int? index, int sellerIndex) {
     _shippingList![sellerIndex].shippingIndex = index;
     notifyListeners();
   }
 
-
   void initShippingMethodIndexList(int length) {
-    _shippingList =[];
-    for(int i =0; i< length; i++){
-      _shippingList!.add(ShippingModel(0,'', null));
+    _shippingList = [];
+    for (int i = 0; i < length; i++) {
+      _shippingList!.add(ShippingModel(0, '', null));
     }
-
   }
 
-
-
-
-
-  Future addShippingMethod(BuildContext context, int? id, String? cartGroupId) async {
+  Future addShippingMethod(
+      BuildContext context, int? id, String? cartGroupId) async {
     _isLoading = true;
     notifyListeners();
-    ApiResponseModel apiResponse = await shippingServiceInterface.addShippingMethod(id,cartGroupId);
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      await Provider.of<CartController>(Get.context!, listen: false).getCartData(Get.context!);
-      if(context.mounted){
+    ApiResponseModel apiResponse =
+        await shippingServiceInterface.addShippingMethod(id, cartGroupId);
+    if (apiResponse.response != null &&
+        apiResponse.response!.statusCode == 200) {
+      await Provider.of<CartController>(Get.context!, listen: false)
+          .getCartData(Get.context!);
+      if (context.mounted) {
         Navigator.pop(Get.context!);
       }
       getChosenShippingMethod(Get.context!);
-      showCustomSnackBarWidget(getTranslated('shipping_method_added_successfully', Get.context!), Get.context!, snackBarType: SnackBarType.success);
-
+      showCustomSnackBarWidget(
+          getTranslated('shipping_method_added_successfully', Get.context!),
+          Get.context!,
+          snackBarType: SnackBarType.success);
     } else {
-      if(context.mounted){
+      if (context.mounted) {
         Navigator.pop(Get.context!);
       }
       ApiChecker.checkApi(apiResponse);
@@ -215,14 +242,10 @@ class ShippingController extends ChangeNotifier {
     notifyListeners();
   }
 
-
-
   String? _selectedShippingType;
-  String? get selectedShippingType=>_selectedShippingType;
+  String? get selectedShippingType => _selectedShippingType;
 
   final List<SelectedShippingType> _selectedShippingTypeList = [];
-  List<SelectedShippingType> get selectedShippingTypeList => _selectedShippingTypeList;
-
-
-
+  List<SelectedShippingType> get selectedShippingTypeList =>
+      _selectedShippingTypeList;
 }

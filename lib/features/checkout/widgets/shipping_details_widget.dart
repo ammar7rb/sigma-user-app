@@ -99,7 +99,8 @@ class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
                                 InkWell(
                                   onTap: () {
                                     RouterHelper.getSavedAddressListRoute(
-                                        fromGuest: isGuestMode);
+                                        fromGuest: isGuestMode,
+                                        fromCheckout: true);
                                   },
                                   child: SizedBox(
                                       width: 20,

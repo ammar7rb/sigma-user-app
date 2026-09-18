@@ -124,16 +124,26 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         .map((cart) => cart.cartGroupId)
         .whereType<String>()
         .toSet();
-    final selectedShipping = Provider.of<ShippingController>(context)
-        .chosenShippingList
+    final shippingController = Provider.of<ShippingController>(context);
+    final selectedShipping = shippingController.chosenShippingList
         .where((shipping) =>
             shipping.isCheckItemExist == 1 &&
             physicalCartGroupIds.contains(shipping.cartGroupId))
         .toList();
-    final selectedShippingFee = selectedShipping.fold<double>(
+    final chosenShippingFee = selectedShipping.fold<double>(
         0, (total, shipping) => total + (shipping.shippingCost ?? 0));
     final coupon = context.watch<CouponController>();
     final checkout = context.watch<CheckoutController>();
+    final addresses = context.watch<AddressController>().addressList;
+    final selectedAddressId = checkout.addressIndex != null &&
+            addresses != null &&
+            checkout.addressIndex! >= 0 &&
+            checkout.addressIndex! < addresses.length
+        ? addresses[checkout.addressIndex!].id
+        : null;
+    final selectedShippingFee = chosenShippingFee > 0
+        ? chosenShippingFee
+        : shippingController.selectedQuoteCost;
     final quoteKey =
         '${coupon.couponCode}:${coupon.discount}:${checkout.addressIndex}:${selectedShipping.map((s) => '${s.cartGroupId}:${s.shippingCost}').join(',')}';
     if (_quoteKey != quoteKey) {
@@ -152,8 +162,10 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     final deliveryIsConfirmed = !widget.hasPhysical ||
         (Provider.of<CheckoutController>(context).addressIndex != null &&
             physicalCartGroupIds.isNotEmpty &&
-            physicalCartGroupIds.every((groupId) => selectedShipping
-                .any((shipping) => shipping.cartGroupId == groupId)));
+            (physicalCartGroupIds.every((groupId) => selectedShipping
+                    .any((shipping) => shipping.cartGroupId == groupId)) ||
+                shippingController
+                    .hasSelectedQuoteForAddress(selectedAddressId)));
     return Scaffold(
       resizeToAvoidBottomInset: true,
       key: _scaffoldKey,
@@ -254,7 +266,8 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                         RouterHelper.getSavedAddressListRoute(
                                             fromGuest: !context
                                                 .read<AuthController>()
-                                                .isLoggedIn());
+                                                .isLoggedIn(),
+                                            fromCheckout: true);
                                         showCustomSnackBarWidget(
                                             getTranslated(
                                                 'select_a_shipping_address',

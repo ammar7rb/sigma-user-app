@@ -48,6 +48,7 @@ class CartScreen extends StatefulWidget {
 }
 
 class CartScreenState extends State<CartScreen> {
+  bool get _showCartShippingSelector => false;
   final List<GlobalKey> sellerKeys = [];
   bool validated = false;
   bool singleVendor = false;
@@ -1251,7 +1252,8 @@ class CartScreenState extends State<CartScreen> {
                                         );
                                       },
                                     ),
-                                    (!onlyDigital &&
+                                    (_showCartShippingSelector &&
+                                            !onlyDigital &&
                                             configProvider.configModel!
                                                     .shippingMethod !=
                                                 'sellerwise_shipping' &&
