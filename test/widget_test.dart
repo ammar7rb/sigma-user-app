@@ -390,4 +390,18 @@ void main() {
       expect(source, isNot(contains('SCREENSHOT_MODE')), reason: path);
     }
   });
+
+  test('customer deposits support legacy methods and reviewed proof uploads',
+      () {
+    final source =
+        File('lib/features/wallet/screens/customer_wallet_screen.dart')
+            .readAsStringSync();
+
+    expect(source, contains("item['payment_channel']"));
+    expect(source, contains("methods.length == 1"));
+    expect(source, contains("'payment_note': note.text.trim()"));
+    expect(source, contains("['jpg', 'jpeg', 'png', 'webp']"));
+    expect(source, contains('5 * 1024 * 1024'));
+    expect(source, contains("tr('wallet_payment_method_unavailable')"));
+  });
 }

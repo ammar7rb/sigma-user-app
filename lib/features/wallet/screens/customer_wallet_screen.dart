@@ -273,6 +273,7 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
   final amount = TextEditingController();
   final senderName = TextEditingController();
   final senderPhone = TextEditingController();
+  final note = TextEditingController();
   final String requestKey = _uuid();
   String? channel;
   XFile? proof;
@@ -293,9 +294,42 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
         .whereType<Map>()
         .toList();
     if (channel == null || methods.isEmpty) return null;
-    return methods
-        .where((item) => item['payment_channel']?.toString() == channel)
-        .firstOrNull;
+    final explicit = methods.where((item) =>
+        item['payment_channel']?.toString().trim().toLowerCase() == channel);
+    if (explicit.isNotEmpty) return explicit.first;
+
+    // Keep deposits working with payment methods created before
+    // `payment_channel` was introduced in the administration panel.
+    final inferred = methods.where((item) {
+      final searchable = [
+        item['method_name'],
+        item['method_fields'],
+        item['method_informations'],
+      ].join(' ').toLowerCase();
+      if (channel == 'instapay') {
+        return searchable.contains('instapay') ||
+            searchable.contains('insta pay') ||
+            searchable.contains('انستا') ||
+            searchable.contains('إنستا');
+      }
+      return searchable.contains('wallet') ||
+          searchable.contains('محفظ') ||
+          searchable.contains('vodafone') ||
+          searchable.contains('orange cash') ||
+          searchable.contains('etisalat cash') ||
+          searchable.contains('we pay');
+    });
+    if (inferred.isNotEmpty) return inferred.first;
+
+    // Legacy installations commonly stored one combined wallet/InstaPay
+    // method. It remains usable for either choice until the administrator
+    // separates the two methods.
+    if (methods.length == 1 &&
+        (methods.first['payment_channel'] == null ||
+            methods.first['payment_channel'].toString().trim().isEmpty)) {
+      return methods.first;
+    }
+    return null;
   }
 
   @override
@@ -303,6 +337,7 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
     amount.dispose();
     senderName.dispose();
     senderPhone.dispose();
+    note.dispose();
     super.dispose();
   }
 
@@ -333,6 +368,7 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
               'method_information[sender_name]': senderName.text.trim(),
               'method_information[sender_wallet_or_phone]':
                   senderPhone.text.trim(),
+              if (note.text.trim().isNotEmpty) 'payment_note': note.text.trim(),
               'payment_proof':
                   MultipartFile.fromBytes(bytes, filename: proof!.name),
             }));
@@ -416,6 +452,12 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                   validator: (value) =>
                       (value?.trim().isEmpty ?? true) ? tr('required') : null),
               TextFormField(
+                  controller: note,
+                  maxLength: 1000,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                      counterText: '', labelText: tr('wallet_deposit_note'))),
+              TextFormField(
                   controller: senderPhone,
                   keyboardType: TextInputType.phone,
                   maxLength: 30,
@@ -432,13 +474,37 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                           final selected = await ImagePicker()
                               .pickImage(source: ImageSource.gallery);
                           if (mounted && selected != null) {
-                            setState(() => proof = selected);
+                            final extension =
+                                selected.name.split('.').last.toLowerCase();
+                            if (!const ['jpg', 'jpeg', 'png', 'webp']
+                                .contains(extension)) {
+                              setState(() =>
+                                  error = tr('wallet_proof_invalid_format'));
+                              return;
+                            }
+                            final length = await selected.length();
+                            if (!mounted) return;
+                            if (length > 5 * 1024 * 1024) {
+                              setState(
+                                  () => error = tr('wallet_proof_too_large'));
+                              return;
+                            }
+                            setState(() {
+                              proof = selected;
+                              error = null;
+                            });
                           }
                         },
                   icon: const Icon(Icons.upload_file_outlined),
                   label: Text(proof?.name ?? tr('wallet_upload_proof'))),
               Text(tr('wallet_deposit_review_notice')),
             ],
+            if (channel != null && transferMethod == null)
+              Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(tr('wallet_payment_method_unavailable'),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.error))),
             if (error != null)
               Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -447,7 +513,17 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                           color: Theme.of(context).colorScheme.error))),
             const SizedBox(height: 24),
             FilledButton(
-                onPressed: busy || transferMethod == null ? null : submit,
+                onPressed: busy
+                    ? null
+                    : () {
+                        if (transferMethod == null) {
+                          setState(() => error = channel == null
+                              ? tr('wallet_select_payment_method')
+                              : tr('wallet_payment_method_unavailable'));
+                          return;
+                        }
+                        submit();
+                      },
                 child: busy
                     ? const SizedBox(
                         height: 20,
@@ -483,21 +559,36 @@ class _CustomerTransferChoice extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(18),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(children: [
-              Icon(icon, color: Theme.of(context).primaryColor),
-              const SizedBox(height: 8),
-              Text(title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Icon(
-                  selected
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_off,
-                  size: 20),
-            ]),
+          child: SizedBox(
+            height: 154,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: .10),
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Icon(icon,
+                            size: 25, color: Theme.of(context).primaryColor)),
+                    const SizedBox(height: 8),
+                    Text(title,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Icon(
+                        selected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        size: 20),
+                  ]),
+            ),
           ),
         ),
       );
