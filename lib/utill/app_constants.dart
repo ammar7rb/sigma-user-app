@@ -18,7 +18,7 @@ class AppConstants {
   /// The default targets the host machine from the Android emulator.
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://192.168.1.8/ba/public',
+    defaultValue: 'http://192.168.1.4/ba/public',
   );
 
   static const String googleServerClientId = 'client_id here';
