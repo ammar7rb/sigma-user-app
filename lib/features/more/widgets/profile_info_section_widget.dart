@@ -22,37 +22,44 @@ class ProfileInfoSectionWidget extends StatelessWidget {
       bool isGuestMode = !auth.isLoggedIn();
       final theme = Provider.of<ThemeController>(context);
       final locale = Provider.of<LocalizationController>(context);
-      return Container(
+      return SafeArea(
+        bottom: false,
+        child: Container(
           color: Theme.of(context).scaffoldBackgroundColor,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: Column(children: [
             LayoutBuilder(builder: (context, constraints) {
               final compact = constraints.maxWidth < 360;
-              return Row(children: [
-                Expanded(
-                    child: Text(getTranslated('profile', context) ?? 'Profile',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textBold.copyWith(fontSize: compact ? 20 : 23))),
-                _HeaderAction(
-                  compact: compact,
-                  label: locale.isLtr ? 'AR' : 'EN',
-                  icon: Icons.language_rounded,
-                  onTap: () => locale.setLanguage(
-                    locale.isLtr
-                        ? const Locale('ar', 'SA')
-                        : const Locale('en', 'US'),
+              return SizedBox(
+                height: compact ? 48 : 52,
+                child: Row(children: [
+                  Expanded(
+                      child: Text(
+                          getTranslated('profile', context) ?? 'Profile',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              textBold.copyWith(fontSize: compact ? 20 : 23))),
+                  _HeaderAction(
+                    compact: compact,
+                    label: locale.isLtr ? 'AR' : 'EN',
+                    icon: Icons.language_rounded,
+                    onTap: () => locale.setLanguage(
+                      locale.isLtr
+                          ? const Locale('ar', 'SA')
+                          : const Locale('en', 'US'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                _HeaderAction(
-                  compact: compact,
-                  icon: theme.darkTheme
-                      ? Icons.light_mode_rounded
-                      : Icons.dark_mode_rounded,
-                  onTap: theme.toggleTheme,
-                ),
-              ]);
+                  const SizedBox(width: 8),
+                  _HeaderAction(
+                    compact: compact,
+                    icon: theme.darkTheme
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    onTap: theme.toggleTheme,
+                  ),
+                ]),
+              );
             }),
             const SizedBox(height: 12),
             Container(
@@ -165,7 +172,9 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                   ),
               ]),
             ),
-          ]));
+          ]),
+        ),
+      );
     });
   }
 }

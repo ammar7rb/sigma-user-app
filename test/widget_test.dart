@@ -422,4 +422,14 @@ void main() {
     expect(addressForm, contains('addressId: addressId'));
     expect(checkoutScreen, contains('hasSelectedQuoteForAddress'));
   });
+
+  test('profile header stays below the device status bar', () {
+    final source =
+        File('lib/features/more/widgets/profile_info_section_widget.dart')
+            .readAsStringSync();
+
+    expect(source, contains('SafeArea('));
+    expect(source, contains('bottom: false'));
+    expect(source, contains('height: compact ? 48 : 52'));
+  });
 }
