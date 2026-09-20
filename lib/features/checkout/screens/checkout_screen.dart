@@ -135,11 +135,22 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     final coupon = context.watch<CouponController>();
     final checkout = context.watch<CheckoutController>();
     final addresses = context.watch<AddressController>().addressList;
-    final selectedAddressId = checkout.addressIndex != null &&
+    final resolvedAddressIndex = checkout.selectedAddressId != null &&
+            addresses != null
+        ? addresses.indexWhere((item) => item.id == checkout.selectedAddressId)
+        : checkout.addressIndex;
+    if (resolvedAddressIndex != null &&
+        resolvedAddressIndex >= 0 &&
+        resolvedAddressIndex != checkout.addressIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) =>
+          checkout.setAddressIndex(resolvedAddressIndex,
+              addressId: addresses?[resolvedAddressIndex].id));
+    }
+    final selectedAddressId = resolvedAddressIndex != null &&
             addresses != null &&
-            checkout.addressIndex! >= 0 &&
-            checkout.addressIndex! < addresses.length
-        ? addresses[checkout.addressIndex!].id
+            resolvedAddressIndex >= 0 &&
+            resolvedAddressIndex < addresses.length
+        ? addresses[resolvedAddressIndex].id
         : null;
     final selectedShippingFee = chosenShippingFee > 0
         ? chosenShippingFee
@@ -160,9 +171,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       });
     }
     final deliveryIsConfirmed = !widget.hasPhysical ||
-        (Provider.of<CheckoutController>(context).addressIndex != null &&
-            physicalCartGroupIds.isNotEmpty &&
-            (physicalCartGroupIds.every((groupId) => selectedShipping
+        (selectedAddressId != null &&
+            (selectedShipping.isNotEmpty ||
+                physicalCartGroupIds.every((groupId) => selectedShipping
                     .any((shipping) => shipping.cartGroupId == groupId)) ||
                 shippingController
                     .hasSelectedQuoteForAddress(selectedAddressId)));

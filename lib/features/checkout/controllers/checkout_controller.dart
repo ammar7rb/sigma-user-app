@@ -19,6 +19,7 @@ class CheckoutController with ChangeNotifier {
   CheckoutController({required this.checkoutServiceInterface});
 
   int? _addressIndex;
+  int? _selectedAddressId;
   int? _billingAddressIndex;
   int? get billingAddressIndex => _billingAddressIndex;
   int? _shippingIndex;
@@ -30,6 +31,7 @@ class CheckoutController with ChangeNotifier {
   bool _onlyDigital = true;
   bool get onlyDigital => _onlyDigital;
   int? get addressIndex => _addressIndex;
+  int? get selectedAddressId => _selectedAddressId;
   int? get shippingIndex => _shippingIndex;
   bool get isLoading => _isLoading;
   int get paymentMethodIndex => _paymentMethodIndex;
@@ -164,6 +166,7 @@ class CheckoutController with ChangeNotifier {
       _isCheckCreateAccount = false;
       _isLoading = false;
       _addressIndex = null;
+      _selectedAddressId = null;
       _billingAddressIndex = null;
       sameAsBilling = false;
       if (!Provider.of<AuthController>(Get.context!, listen: false)
@@ -197,8 +200,9 @@ class CheckoutController with ChangeNotifier {
     return ids.isNotEmpty ? ids.first : null;
   }
 
-  void setAddressIndex(int index) {
+  void setAddressIndex(int index, {int? addressId}) {
     _addressIndex = index;
+    _selectedAddressId = addressId;
     notifyListeners();
   }
 
@@ -216,6 +220,7 @@ class CheckoutController with ChangeNotifier {
 
   void shippingAddressNull() {
     _addressIndex = null;
+    _selectedAddressId = null;
     notifyListeners();
   }
 
@@ -390,6 +395,7 @@ class CheckoutController with ChangeNotifier {
     if (apiResponse.response != null &&
         apiResponse.response?.statusCode == 200) {
       _addressIndex = null;
+      _selectedAddressId = null;
       _billingAddressIndex = null;
       sameAsBilling = false;
       _isLoading = false;

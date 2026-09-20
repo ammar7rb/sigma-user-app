@@ -27,6 +27,9 @@ class AddressController with ChangeNotifier {
   List<AddressModel>? get addressList => _addressList;
   List<String> _shippingGovernorates = [];
   List<String> get shippingGovernorates => _shippingGovernorates;
+  Map<String, Map<String, double>> _shippingGovernorateRates = {};
+  Map<String, double>? shippingRatesFor(String? governorate) =>
+      governorate == null ? null : _shippingGovernorateRates[governorate];
 
   Future<void> getRestrictedDeliveryCountryList() async {
     ApiResponseModel apiResponse =
@@ -48,6 +51,14 @@ class AddressController with ChangeNotifier {
         apiResponse.response!.statusCode == 200) {
       _shippingGovernorates = List<String>.from(
           apiResponse.response!.data['governorates'] ?? const []);
+      _shippingGovernorateRates = {
+        for (final item in (apiResponse.response!.data['rates'] ?? const []))
+          if (item is Map && item['governorate'] != null)
+            '${item['governorate']}': {
+              'normal': double.tryParse('${item['normal_cost'] ?? 0}') ?? 0,
+              'sigma': double.tryParse('${item['sigma_cost'] ?? 0}') ?? 0,
+            },
+      };
     } else {
       ApiChecker.checkApi(apiResponse);
     }
@@ -129,7 +140,8 @@ class AddressController with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<ApiResponseModel> addAddress(AddressModel addressModel) async {
+  Future<ApiResponseModel> addAddress(AddressModel addressModel,
+      {bool showSuccess = true, bool refreshList = true}) async {
     _isLoading = true;
     notifyListeners();
     ApiResponseModel apiResponse =
@@ -137,10 +149,12 @@ class AddressController with ChangeNotifier {
     _isLoading = false;
     if (apiResponse.response != null &&
         apiResponse.response!.statusCode == 200) {
-      showCustomSnackBarWidget(
-          apiResponse.response!.data["message"], Get.context!,
-          snackBarType: SnackBarType.success);
-      getAddressList();
+      if (showSuccess) {
+        showCustomSnackBarWidget(
+            apiResponse.response!.data["message"], Get.context!,
+            snackBarType: SnackBarType.success);
+      }
+      if (refreshList) getAddressList();
     } else {
       ApiChecker.checkApi(apiResponse);
     }

@@ -404,4 +404,22 @@ void main() {
     expect(source, contains('5 * 1024 * 1024'));
     expect(source, contains("tr('wallet_payment_method_unavailable')"));
   });
+
+  test('checkout keeps the selected address and shipping quote together', () {
+    final checkout =
+        File('lib/features/checkout/controllers/checkout_controller.dart')
+            .readAsStringSync();
+    final addressForm =
+        File('lib/features/address/screens/add_new_address_screen.dart')
+            .readAsStringSync();
+    final checkoutScreen =
+        File('lib/features/checkout/screens/checkout_screen.dart')
+            .readAsStringSync();
+
+    expect(checkout, contains('selectedAddressId'));
+    expect(addressForm, contains('shippingRatesFor('));
+    expect(addressForm, contains('_selectedGovernorate'));
+    expect(addressForm, contains('addressId: addressId'));
+    expect(checkoutScreen, contains('hasSelectedQuoteForAddress'));
+  });
 }

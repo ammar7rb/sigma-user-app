@@ -322,7 +322,8 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                         !context.mounted) return;
                                     Provider.of<CheckoutController>(context,
                                             listen: false)
-                                        .setAddressIndex(index);
+                                        .setAddressIndex(index,
+                                            addressId: addressId);
                                     Navigator.pop(context);
                                   },
                                   child: Padding(

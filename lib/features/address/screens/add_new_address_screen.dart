@@ -628,6 +628,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                     title: getTranslated(
                                             'normal_shipping', context) ??
                                         'Normal shipping',
+                                    price: addressController.shippingRatesFor(
+                                        _selectedGovernorate)?['normal'],
                                     onTap: () => setState(() =>
                                         _selectedShippingOption = 'normal'),
                                   ),
@@ -641,6 +643,9 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                     title: getTranslated(
                                             'sigma_shipping', context) ??
                                         'Sigma shipping',
+                                    price: addressController.shippingRatesFor(
+                                        _selectedGovernorate)?['sigma'],
+                                    highlighted: true,
                                     onTap: () => setState(() =>
                                         _selectedShippingOption = 'sigma'),
                                   ),
@@ -716,7 +721,11 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                           } else {
                                             final value =
                                                 await addressController
-                                                    .addAddress(addressModel);
+                                                    .addAddress(addressModel,
+                                                        showSuccess: !widget
+                                                            .fromCheckout,
+                                                        refreshList: !widget
+                                                            .fromCheckout);
                                             if (value.response?.statusCode !=
                                                     200 ||
                                                 !context.mounted) {
@@ -758,7 +767,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                                 Provider.of<CheckoutController>(
                                                         context,
                                                         listen: false)
-                                                    .setAddressIndex(index);
+                                                    .setAddressIndex(index,
+                                                        addressId: addressId);
                                                 final navigator =
                                                     Navigator.of(context);
                                                 navigator.pop();
@@ -803,12 +813,16 @@ class _ShippingOptionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
+    this.price,
+    this.highlighted = false,
   });
 
   final bool selected;
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final double? price;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -837,10 +851,50 @@ class _ShippingOptionCard extends StatelessWidget {
                     : Theme.of(context).hintColor),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: textMedium.copyWith(fontSize: 13)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Flexible(
+                      child: Text(title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: textMedium.copyWith(fontSize: 13)),
+                    ),
+                    if (highlighted) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          getTranslated('recommended', context) ??
+                              'Recommended',
+                          style:
+                              const TextStyle(color: Colors.white, fontSize: 9),
+                        ),
+                      ),
+                    ],
+                  ]),
+                  const SizedBox(height: 3),
+                  Text(
+                    price == null
+                        ? (getTranslated(
+                                'select_governorate_to_view_price', context) ??
+                            '')
+                        : '${getTranslated('starting_from', context) ?? 'From'} ${price!.toStringAsFixed(2)} ${getTranslated('egp', context) ?? 'EGP'}',
+                    style: textRegular.copyWith(
+                      fontSize: 11,
+                      color: selected
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).hintColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
             Icon(
               selected ? Icons.radio_button_checked : Icons.radio_button_off,
