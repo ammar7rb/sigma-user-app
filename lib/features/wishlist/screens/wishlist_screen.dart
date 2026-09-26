@@ -77,13 +77,13 @@ class _WishListScreenState extends State<WishListScreen> {
                   contentPadding: const EdgeInsets.only(left: Dimensions.paddingSizeLarge),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor)),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor)),
                   hintText: getTranslated('search_products', context),
                   hintStyle: textRegular.copyWith(color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.9)),
                   suffixIcon: SizedBox(width: searchTextEditingController.text.isNotEmpty ? 70 : 50,
@@ -150,5 +150,4 @@ class _WishListScreenState extends State<WishListScreen> {
     );
   }
 }
-
 

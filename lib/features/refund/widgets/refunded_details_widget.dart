@@ -243,7 +243,7 @@ class RefundDetailsShimmerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseColor = Theme.of(context).cardColor;
-    final highlightColor = Colors.grey[300]!;
+    final highlightColor = Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return Shimmer.fromColors(
       baseColor: baseColor,

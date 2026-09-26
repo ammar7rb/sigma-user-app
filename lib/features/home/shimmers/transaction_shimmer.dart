@@ -15,7 +15,7 @@ class TransactionShimmer extends StatelessWidget {
       itemBuilder: (context, index) {
 
         return Shimmer.fromColors(baseColor: Theme.of(context).cardColor,
-          highlightColor: Colors.grey[300]!,
+          highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           enabled: true,
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
              const InkWell(child: CircleAvatar(child: Icon(Icons.person))),

@@ -152,8 +152,8 @@ class ReviewShimmer extends StatelessWidget {
   const ReviewShimmer({super.key});
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!, enabled: true,
+    return Shimmer.fromColors(baseColor: Theme.of(context).cardColor,
+      highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest, enabled: true,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [CircleAvatar(maxRadius: 15,
             backgroundColor: Theme.of(context).colorScheme.onPrimary, child: const Icon(Icons.person)),

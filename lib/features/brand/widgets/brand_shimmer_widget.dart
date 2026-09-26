@@ -20,7 +20,7 @@ class BrandShimmerWidget extends StatelessWidget {
 
         return Shimmer.fromColors(
           baseColor: Theme.of(context).cardColor,
-          highlightColor: Colors.grey[100]!,
+          highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           enabled: true,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Expanded(child: Container(decoration: BoxDecoration(color:  Theme.of(context).colorScheme.secondaryContainer, shape: BoxShape.circle))),

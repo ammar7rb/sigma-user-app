@@ -160,7 +160,7 @@ class _ReviewReplyWidgetState extends State<ReviewReplyWidget> with TickerProvid
                           trimLines: 3,
                           textAlign: TextAlign.justify,
                           preDataTextStyle: const TextStyle(fontWeight: FontWeight.w500),
-                          style: const TextStyle(color: Colors.black),
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                           colorClickableText: Theme.of(context).primaryColor,
                           trimCollapsedText: getTranslated('view_moree', context)!,
                           trimExpandedText: getTranslated('view_less', context)!,

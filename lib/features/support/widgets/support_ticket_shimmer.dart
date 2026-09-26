@@ -22,7 +22,7 @@ class SupportTicketShimmer extends StatelessWidget {
           ),
           child: Shimmer.fromColors(
             baseColor: Theme.of(context).cardColor,
-            highlightColor: Colors.grey[100]!,
+            highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             enabled: true,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Container(height: 10, width: 100, color:  Theme.of(context).colorScheme.secondaryContainer),

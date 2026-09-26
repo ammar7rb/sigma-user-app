@@ -92,8 +92,8 @@ class _ShopOverviewScreenState extends State<ShopOverviewScreen> {
                   ),
                 ]) : const SizedBox.shrink() :
                 Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
+                  baseColor: Theme.of(context).cardColor,
+                  highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   enabled: couponController.couponItemModel?.coupons == null,
                   child: Container(margin: const EdgeInsets.symmetric(horizontal: 10), decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10), color:  Theme.of(context).colorScheme.secondaryContainer)

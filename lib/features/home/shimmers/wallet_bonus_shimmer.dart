@@ -34,7 +34,7 @@ class WalletBonusListShimmer extends StatelessWidget {
                   Theme.of(context).cardColor,
                   boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha:0.3), spreadRadius: 1, blurRadius: 5)]),
               child: Shimmer.fromColors(baseColor: Theme.of(context).cardColor,
-                highlightColor: Colors.grey[300]!,
+                highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 enabled: true,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
 

@@ -23,8 +23,8 @@ class SellerShimmer extends StatelessWidget {
 
             Expanded(flex: 7,
                 child: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: Theme.of(context).cardColor,
+                    highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     enabled: true,
                     child: Container(decoration: const BoxDecoration(
                         color: Colors.white,
@@ -36,8 +36,8 @@ class SellerShimmer extends StatelessWidget {
                     color: Theme.of(context).hintColor,
                     borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10))),
                 child: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: Theme.of(context).cardColor,
+                    highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     enabled: true,
                     child: Container(height: 10, color: Colors.white, margin: const EdgeInsets.only(left: 15, right: 15))))),
 

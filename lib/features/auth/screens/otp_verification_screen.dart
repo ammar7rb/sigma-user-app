@@ -145,7 +145,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             borderWidth: 1,
                             borderRadius: BorderRadius.circular(10),
                             selectedColor: ColorHelper.darken(Theme.of(context).colorScheme.secondary, 0.2),
-                            selectedFillColor: Colors.white,
+                            selectedFillColor: Theme.of(context).cardColor,
                             inactiveFillColor: Theme.of(context).cardColor,
                             inactiveColor: ColorHelper.darken(Theme.of(context).colorScheme.secondary, 0.2),
                             activeColor: ColorHelper.darken(Theme.of(context).colorScheme.secondary, 0.1),

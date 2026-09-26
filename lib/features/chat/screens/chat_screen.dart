@@ -489,7 +489,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
           if(widget.isShopOnVacation && !isClosed && !widget.isShopTemporaryClosed)
             Container(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
-              decoration: const BoxDecoration(color: Color(0xFFFEF7D1)),
+              decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF3B331A) : const Color(0xFFFEF7D1)),
               child: Row(children: [
                 Expanded(child: Text("${getTranslated("shop_close_message", context)}",
                   style: textRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color))),
@@ -501,7 +502,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
           if(!isClosed && widget.isShopTemporaryClosed)
             Container(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall),
-              decoration: const BoxDecoration(color: Color(0xFFFEF7D1)),
+              decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF3B331A) : const Color(0xFFFEF7D1)),
               child: Row(children: [
                 Expanded(child: Text("${getTranslated("shop_available_message", context)}",
                     style: textRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color))),

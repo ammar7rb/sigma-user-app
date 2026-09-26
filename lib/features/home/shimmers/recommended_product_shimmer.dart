@@ -17,7 +17,7 @@ class RecommendedProductShimmer extends StatelessWidget {
           Theme.of(context).primaryColor.withValues(alpha:.05) :
           Theme.of(context).cardColor),
           child: Shimmer.fromColors(baseColor: Theme.of(context).cardColor,
-            highlightColor: Colors.grey[300]!,
+            highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             enabled: true,
             child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
 

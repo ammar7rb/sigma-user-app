@@ -24,7 +24,7 @@ class OrderShimmerWidget extends StatelessWidget {
 
           child: Shimmer.fromColors(
             baseColor: Theme.of(context).cardColor,
-            highlightColor: Colors.grey[300]!,
+            highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             enabled: true,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Container(height: 10, width: 150, color:  Theme.of(context).colorScheme.secondaryContainer),

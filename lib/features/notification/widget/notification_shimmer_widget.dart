@@ -13,8 +13,8 @@ class NotificationShimmerWidget extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
           color: Theme.of(context).highlightColor,
           alignment: Alignment.center,
-          child: Shimmer.fromColors(baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!, enabled: true,
+          child: Shimmer.fromColors(baseColor: Theme.of(context).cardColor,
+            highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest, enabled: true,
             child: ListTile(leading: const CircleAvatar(child: Icon(Icons.notifications)),
               title: Container(height: 20, color:  Theme.of(context).colorScheme.secondaryContainer),
               subtitle: Container(height: 10, width: 50, color:  Theme.of(context).colorScheme.secondaryContainer))));},);

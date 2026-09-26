@@ -21,7 +21,7 @@ class FeaturedProductShimmer extends StatelessWidget {
                 Theme.of(context).cardColor),
             child: Shimmer.fromColors(
               baseColor: Theme.of(context).cardColor,
-              highlightColor: Colors.grey[300]!,
+              highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               enabled: true,
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
 
@@ -57,7 +57,7 @@ class FeaturedProductShimmer extends StatelessWidget {
                       color:  Theme.of(context).colorScheme.secondaryContainer,
                       boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha:0.3), spreadRadius: 1, blurRadius: 5)]),
                   child: Shimmer.fromColors(baseColor: Theme.of(context).cardColor,
-                    highlightColor: Colors.grey[100]!,
+                    highlightColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     enabled: true,
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
 

@@ -123,7 +123,9 @@ class _AccountOverviewSection extends StatelessWidget {
                   const SizedBox(height: 10),
                   Material(
                     color: pendingCount > 0
-                        ? const Color(0xFFFFF3D9)
+                        ? (Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF3A2B19)
+                            : const Color(0xFFFFF3D9))
                         : Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(18),
                     child: InkWell(

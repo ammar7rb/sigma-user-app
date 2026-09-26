@@ -421,8 +421,8 @@ class ShimmerOverlayWrapper extends StatelessWidget {
               opacity: opacity,
               child: Shimmer.fromColors(
                 baseColor: baseColor ?? Theme.of(context).primaryColor,
-                highlightColor: highlightColor ?? Colors.grey[100]!,
-                child: Container(color: Colors.white), // shimmer overlay
+                highlightColor: highlightColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Container(color: Theme.of(context).cardColor), // shimmer overlay
               ),
             ),
           ),
@@ -430,6 +430,5 @@ class ShimmerOverlayWrapper extends StatelessWidget {
     );
   }
 }
-
 
 
