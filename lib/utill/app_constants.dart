@@ -15,10 +15,10 @@ class AppConstants {
 
   /// Override at build/run time with:
   /// `--dart-define=BASE_URL=https://example.com`
-  /// The default targets the host machine from the Android emulator.
+  /// The default targets the production API host.
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://192.168.1.4/ba/public',
+    defaultValue: 'https://sigma-eg.net',
   );
 
   static const String googleServerClientId = 'client_id here';
