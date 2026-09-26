@@ -6,6 +6,7 @@ import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/shipping_d
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/offline_payment_section_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order/controllers/order_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/controllers/order_details_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order_details/helpers/order_payment_display.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/widgets/cal_chat_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/widgets/cancel_and_support_center_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_details/widgets/delivery_man_review_dialog_widget.dart';
@@ -210,15 +211,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                           style: textRegular.copyWith(color: Theme.of(context).textTheme.titleMedium?.color)
                                         ),
 
-                                        Text((orderProvider.orders?.paymentStatus != null && orderProvider.orders!.paymentStatus!.isNotEmpty) ?
-                                        getTranslated(orderProvider.orders!.paymentStatus, context) ?? orderProvider.orders!.paymentStatus!
-                                          : 'Digital Payment',
+                                        Flexible(child: Text(OrderPaymentDisplay.status(context,
+                                          orderProvider.orders?.paymentStatus,
+                                          orderProvider.orders?.paymentMethod,
+                                          orderProvider.orderDetails?[0].order?.offlinePayments),
+                                          textAlign: TextAlign.end,
                                           style: titilliumSemiBold.copyWith(
                                             fontSize: Dimensions.fontSizeDefault,
-                                            color: orderProvider.orders?.paymentStatus == 'paid' ?
+                                            color: orderProvider.orders?.paymentStatus == 'paid' ||
+                                              OrderPaymentDisplay.isSubmittedTransfer(orderProvider.orders?.paymentMethod,
+                                                orderProvider.orderDetails?[0].order?.offlinePayments) ?
                                             Theme.of(context).colorScheme.onTertiaryContainer : Theme.of(context).colorScheme.error
                                           )
-                                        )
+                                        ))
                                       ],
                                     ),
                                   ),
@@ -239,9 +244,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                           style: textRegular.copyWith(color: Theme.of(context).textTheme.titleMedium?.color)
                                         ),
 
-                                        Text(orderProvider.orders!.paymentMethod!.replaceAll('_', ' ').capitalize(),
+                                        Flexible(child: Text(OrderPaymentDisplay.method(context,
+                                          orderProvider.orders?.paymentMethod,
+                                          orderProvider.orderDetails?[0].order?.offlinePayments),
+                                          textAlign: TextAlign.end,
                                           style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor)
-                                        )
+                                        ))
                                       ],
                                     ),
                                   ),

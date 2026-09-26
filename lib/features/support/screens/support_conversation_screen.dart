@@ -66,8 +66,8 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
         true;
     if (active && mounted) {
       _activationHandled = true;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('تم تفعيل حسابك بنجاح'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(getTranslated('account_activated_successfully', context) ?? ''),
         backgroundColor: Color(0xFF11875D),
       ));
       RouterHelper.getDashboardRoute(

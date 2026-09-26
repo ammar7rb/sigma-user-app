@@ -7,7 +7,6 @@ import 'package:flutter_sixvalley_ecommerce/features/order_insurance/screens/pen
 import 'package:flutter_sixvalley_ecommerce/features/more/domain/models/account_overview_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/customer_wallet_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/business_pages_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/widgets/logout_confirm_bottom_sheet_widget.dart';
@@ -264,7 +263,6 @@ class _BalanceCard extends StatelessWidget {
 
 class _MoreScreenState extends State<MoreScreen> {
   String? version;
-  bool singleVendor = false;
   AccountOverviewModel? _walletOverview;
   String? _walletOverviewError;
   bool _walletOverviewLoading = false;
@@ -281,11 +279,6 @@ class _MoreScreenState extends State<MoreScreen> {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _loadWalletOverview());
     }
-    singleVendor = Provider.of<SplashController>(context, listen: false)
-            .configModel
-            ?.businessMode ==
-        "single";
-
     super.initState();
   }
 
@@ -348,17 +341,6 @@ class _MoreScreenState extends State<MoreScreen> {
                       onRetry: _loadWalletOverview,
                       onChanged: _loadWalletOverview,
                     ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        Dimensions.paddingSizeDefault,
-                        Dimensions.paddingSizeDefault,
-                        Dimensions.paddingSizeDefault,
-                        0),
-                    child: Text(getTranslated('general', context) ?? '',
-                        style: textRegular.copyWith(
-                            fontSize: Dimensions.fontSizeExtraLarge,
-                            color: Theme.of(context).colorScheme.onSurface)),
-                  ),
                   Consumer<SplashController>(
                       builder: (context, splashController, _) {
                     return Padding(
@@ -489,256 +471,35 @@ class _MoreScreenState extends State<MoreScreen> {
                     );
                   }),
                   Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          Dimensions.paddingSizeDefault,
-                          Dimensions.paddingSizeDefault,
-                          Dimensions.paddingSizeDefault,
-                          0),
-                      child: Text(
-                          getTranslated('help_and_support', context) ?? '',
-                          style: textRegular.copyWith(
-                              fontSize: Dimensions.fontSizeExtraLarge,
-                              color: Theme.of(context).colorScheme.onSurface))),
-                  Padding(
+                    padding:
+                        const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                    child: Container(
                       padding:
-                          const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                      child: Container(
-                          padding:
-                              const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Theme.of(context)
-                                        .hintColor
-                                        .withValues(alpha: .05),
-                                    blurRadius: 1,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, 1))
-                              ],
-                              color: Provider.of<ThemeController>(context)
-                                      .darkTheme
-                                  ? Colors.white.withValues(alpha: .05)
-                                  : Theme.of(context).cardColor),
-                          child: Consumer<SplashController>(
-                              builder: (context, splashController, _) {
-                            return Column(children: [
-                              singleVendor
-                                  ? const SizedBox()
-                                  : MenuButtonWidget(
-                                      image: Images.chats,
-                                      title: getTranslated('inbox', context),
-                                      onTap: () {
-                                        RouterHelper.getInboxScreenRoute(
-                                            action: RouteAction.push);
-                                      },
-                                    ),
-                              MenuButtonWidget(
-                                image: Images.callIcon,
-                                title: getTranslated('contact_us', context),
-                                onTap: () {
-                                  RouterHelper.getContactUsScreenRoute();
-                                },
-                              ),
-                              MenuButtonWidget(
-                                image: Images.preference,
-                                title: getTranslated('support_ticket', context),
-                                onTap: () {
-                                  RouterHelper.getSupportTicketRoute(
-                                      action: RouteAction.push);
-                                },
-                              ),
-                              if (splashController.defaultBusinessPages !=
-                                      null &&
-                                  splashController
-                                      .defaultBusinessPages!.isNotEmpty) ...[
-                                if (getPageBySlug(
-                                        'refund-policy',
-                                        splashController
-                                            .defaultBusinessPages) !=
-                                    null)
-                                  MenuButtonWidget(
-                                      image: Images.termCondition,
-                                      title: getTranslated(
-                                          'refund_policy', context),
-                                      onTap: () =>
-                                          RouterHelper.getHtmlViewRoute(
-                                              page: getPageBySlug(
-                                                  'refund-policy',
-                                                  splashController
-                                                      .defaultBusinessPages)!)),
-                                if (getPageBySlug(
-                                        'return-policy',
-                                        splashController
-                                            .defaultBusinessPages) !=
-                                    null)
-                                  MenuButtonWidget(
-                                      image: Images.termCondition,
-                                      title: getTranslated(
-                                          'return_policy', context),
-                                      onTap: () =>
-                                          RouterHelper.getHtmlViewRoute(
-                                              page: getPageBySlug(
-                                                  'return-policy',
-                                                  splashController
-                                                      .defaultBusinessPages)!)),
-                                if (getPageBySlug(
-                                        'cancellation-policy',
-                                        splashController
-                                            .defaultBusinessPages) !=
-                                    null)
-                                  MenuButtonWidget(
-                                      image: Images.termCondition,
-                                      title: getTranslated(
-                                          'cancellation_policy', context),
-                                      onTap: () =>
-                                          RouterHelper.getHtmlViewRoute(
-                                              page: getPageBySlug(
-                                                  'cancellation-policy',
-                                                  splashController
-                                                      .defaultBusinessPages)!)),
-                                if (getPageBySlug(
-                                        'shipping-policy',
-                                        splashController
-                                            .defaultBusinessPages) !=
-                                    null)
-                                  MenuButtonWidget(
-                                      image: Images.termCondition,
-                                      title: getTranslated(
-                                          'shipping_policy', context),
-                                      onTap: () =>
-                                          RouterHelper.getHtmlViewRoute(
-                                              page: getPageBySlug(
-                                                  'shipping-policy',
-                                                  splashController
-                                                      .defaultBusinessPages)!)),
-                              ],
-                              MenuButtonWidget(
-                                image: Images.faq,
-                                title: getTranslated('faq', context),
-                                onTap: () {
-                                  RouterHelper.getFaqRoute(
-                                      action: RouteAction.push);
-                                },
-                              ),
-                              if (splashController.businessPages != null &&
-                                  splashController.businessPages!.isNotEmpty)
-                                ListView.builder(
-                                    itemCount:
-                                        splashController.businessPages?.length,
-                                    shrinkWrap: true,
-                                    padding: EdgeInsets.zero,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    itemBuilder: (context, index) {
-                                      return MenuButtonWidget(
-                                        image: Images.termCondition,
-                                        title: splashController
-                                            .businessPages?[index].title,
-                                        onTap: () {
-                                          RouterHelper.getHtmlViewRoute(
-                                              page: splashController
-                                                  .businessPages![index]);
-                                        },
-                                      );
-                                    })
-                            ]);
-                          }))),
-                  if (getPageBySlug(
-                              'terms-and-conditions',
-                              Provider.of<SplashController>(context,
-                                      listen: false)
-                                  .defaultBusinessPages) !=
-                          null ||
-                      getPageBySlug(
-                              'privacy-policy',
-                              Provider.of<SplashController>(context,
-                                      listen: false)
-                                  .defaultBusinessPages) !=
-                          null) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          Dimensions.paddingSizeDefault,
-                          Dimensions.paddingSizeDefault,
-                          Dimensions.paddingSizeDefault,
-                          0),
-                      child: Text(
-                          getTranslated('legal_and_privacy', context) ??
-                              'Legal & Privacy',
-                          style: textRegular.copyWith(
-                              fontSize: Dimensions.fontSizeExtraLarge,
-                              color: Theme.of(context).colorScheme.onSurface)),
-                    ),
-                    Padding(
-                      padding:
-                          const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                      child: Container(
-                        padding:
-                            const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                              Dimensions.fontSizeExtraSmall),
-                          border: Border.all(
-                              color: Theme.of(context)
-                                  .dividerColor
-                                  .withValues(alpha: .25)),
-                          color: Provider.of<ThemeController>(context).darkTheme
-                              ? Colors.white.withValues(alpha: .05)
-                              : Theme.of(context).cardColor,
-                        ),
-                        child: Column(children: [
-                          if (getPageBySlug(
-                                  'terms-and-conditions',
-                                  Provider.of<SplashController>(context,
-                                          listen: false)
-                                      .defaultBusinessPages) !=
-                              null)
-                            MenuButtonWidget(
-                              image: Images.termCondition,
-                              title: getTranslated('terms_condition', context),
-                              onTap: () => RouterHelper.getHtmlViewRoute(
-                                  page: getPageBySlug(
-                                      'terms-and-conditions',
-                                      Provider.of<SplashController>(context,
-                                              listen: false)
-                                          .defaultBusinessPages)!),
-                            ),
-                          if (getPageBySlug(
-                                  'privacy-policy',
-                                  Provider.of<SplashController>(context,
-                                          listen: false)
-                                      .defaultBusinessPages) !=
-                              null)
-                            MenuButtonWidget(
-                              image: Images.privacyPolicy,
-                              title: getTranslated('privacy_policy', context),
-                              onTap: () => RouterHelper.getHtmlViewRoute(
-                                  page: getPageBySlug(
-                                      'privacy-policy',
-                                      Provider.of<SplashController>(context,
-                                              listen: false)
-                                          .defaultBusinessPages)!),
-                            ),
-                          if (getPageBySlug(
-                                  'about-us',
-                                  Provider.of<SplashController>(context,
-                                          listen: false)
-                                      .defaultBusinessPages) !=
-                              null)
-                            MenuButtonWidget(
-                              image: Images.aboutUs,
-                              title: getTranslated('about_us', context),
-                              onTap: () => RouterHelper.getHtmlViewRoute(
-                                  page: getPageBySlug(
-                                      'about-us',
-                                      Provider.of<SplashController>(context,
-                                              listen: false)
-                                          .defaultBusinessPages)!),
-                            ),
-                        ]),
+                          const EdgeInsets.all(Dimensions.paddingSizeSmall),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context)
+                                .hintColor
+                                .withValues(alpha: .05),
+                            blurRadius: 1,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                        color: Provider.of<ThemeController>(context).darkTheme
+                            ? Colors.white.withValues(alpha: .05)
+                            : Theme.of(context).cardColor,
+                      ),
+                      child: MenuButtonWidget(
+                        image: Images.chats,
+                        title: getTranslated('contact_admin_support', context),
+                        onTap: () => RouterHelper.getInboxScreenRoute(
+                            action: RouteAction.push),
                       ),
                     ),
-                  ],
+                  ),
                   ListTile(
                     leading: SizedBox(
                         width: 30,
@@ -786,18 +547,5 @@ class _MoreScreenState extends State<MoreScreen> {
         )),
       ])),
     );
-  }
-
-  BusinessPageModel? getPageBySlug(
-      String slug, List<BusinessPageModel>? pagesList) {
-    BusinessPageModel? pageModel;
-    if (pagesList != null && pagesList.isNotEmpty) {
-      for (var page in pagesList) {
-        if (page.slug == slug) {
-          pageModel = page;
-        }
-      }
-    }
-    return pageModel;
   }
 }

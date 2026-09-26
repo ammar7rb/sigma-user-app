@@ -176,7 +176,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                 Expanded(
                   child: Text(
                     getTranslated('address_form_hint', context) ??
-                        'أضف بيانات التوصيل بدقة لحساب الشحن وموعد الوصول.',
+                        'أضف بيانات التوصيل بدقة لإتمام طلبك.',
                     style: textMedium.copyWith(height: 1.45),
                   ),
                 ),
@@ -448,8 +448,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
 
                             CustomTextFieldWidget(
                               required: true,
-                              labelText: 'الحي أو المنطقة',
-                              hintText: 'مثال: الحي السابع',
+                              labelText: getTranslated('address_district', context),
+                              hintText: getTranslated('address_district_hint', context),
                               prefixIcon: Images.city,
                               controller: _districtController,
                               inputType: TextInputType.streetAddress,
@@ -462,8 +462,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                 height: Dimensions.paddingSizeDefaultAddress),
                             CustomTextFieldWidget(
                               required: true,
-                              labelText: 'الشارع',
-                              hintText: 'اسم الشارع ورقم المبنى',
+                              labelText: getTranslated('address_street', context),
+                              hintText: getTranslated('address_street_hint', context),
                               prefixIcon: Images.address,
                               controller: _streetController,
                               inputType: TextInputType.streetAddress,
@@ -475,8 +475,8 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                             const SizedBox(
                                 height: Dimensions.paddingSizeDefaultAddress),
                             CustomTextFieldWidget(
-                              labelText: 'علامة مميزة',
-                              hintText: 'مثال: بجوار مستشفى أو صيدلية',
+                              labelText: getTranslated('address_landmark', context),
+                              hintText: getTranslated('address_landmark_hint', context),
                               prefixIcon: Images.address,
                               controller: _landmarkController,
                               inputType: TextInputType.streetAddress,
@@ -619,38 +619,29 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                     fontSize: Dimensions.fontSizeDefault),
                               ),
                               const SizedBox(height: 10),
-                              Row(children: [
-                                Expanded(
-                                  child: _ShippingOptionCard(
-                                    selected:
-                                        _selectedShippingOption == 'normal',
-                                    icon: Icons.local_shipping_outlined,
-                                    title: getTranslated(
-                                            'normal_shipping', context) ??
+                              _ShippingOptionCard(
+                                selected: _selectedShippingOption == 'normal',
+                                icon: Icons.local_shipping_outlined,
+                                title:
+                                    getTranslated('normal_shipping', context) ??
                                         'Normal shipping',
-                                    price: addressController.shippingRatesFor(
-                                        _selectedGovernorate)?['normal'],
-                                    onTap: () => setState(() =>
-                                        _selectedShippingOption = 'normal'),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: _ShippingOptionCard(
-                                    selected:
-                                        _selectedShippingOption == 'sigma',
-                                    icon: Icons.bolt_rounded,
-                                    title: getTranslated(
-                                            'sigma_shipping', context) ??
+                                onTap: () => setState(
+                                    () => _selectedShippingOption = 'normal'),
+                              ),
+                              const SizedBox(height: 12),
+                              _ShippingOptionCard(
+                                selected: _selectedShippingOption == 'sigma',
+                                icon: Icons.bolt_rounded,
+                                title:
+                                    getTranslated('sigma_shipping', context) ??
                                         'Sigma shipping',
-                                    price: addressController.shippingRatesFor(
-                                        _selectedGovernorate)?['sigma'],
-                                    highlighted: true,
-                                    onTap: () => setState(() =>
-                                        _selectedShippingOption = 'sigma'),
-                                  ),
-                                ),
-                              ]),
+                                subtitle: getTranslated(
+                                        'sigma_shipping_recommended',
+                                        context) ??
+                                    'Recommended by Sigma',
+                                onTap: () => setState(
+                                    () => _selectedShippingOption = 'sigma'),
+                              ),
                               const SizedBox(
                                   height: Dimensions.paddingSizeDefaultAddress),
                             ],
@@ -769,12 +760,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                                         listen: false)
                                                     .setAddressIndex(index,
                                                         addressId: addressId);
-                                                final navigator =
-                                                    Navigator.of(context);
-                                                navigator.pop();
-                                                if (navigator.canPop()) {
-                                                  navigator.pop();
-                                                }
+                                                Navigator.of(context).pop();
                                               }
                                               return;
                                             }
@@ -813,16 +799,14 @@ class _ShippingOptionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
-    this.price,
-    this.highlighted = false,
+    this.subtitle,
   });
 
   final bool selected;
   final IconData icon;
   final String title;
   final VoidCallback onTap;
-  final double? price;
-  final bool highlighted;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -830,7 +814,7 @@ class _ShippingOptionCard extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: selected
                 ? Theme.of(context).primaryColor.withValues(alpha: .09)
@@ -844,55 +828,35 @@ class _ShippingOptionCard extends StatelessWidget {
             ),
           ),
           child: Row(children: [
-            Icon(icon,
-                size: 22,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
                 color: selected
                     ? Theme.of(context).primaryColor
-                    : Theme.of(context).hintColor),
-            const SizedBox(width: 8),
+                    : Theme.of(context).primaryColor.withValues(alpha: .10),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon,
+                  color:
+                      selected ? Colors.white : Theme.of(context).primaryColor),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Flexible(
-                      child: Text(title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: textMedium.copyWith(fontSize: 13)),
-                    ),
-                    if (highlighted) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          getTranslated('recommended', context) ??
-                              'Recommended',
-                          style:
-                              const TextStyle(color: Colors.white, fontSize: 9),
-                        ),
-                      ),
-                    ],
-                  ]),
-                  const SizedBox(height: 3),
-                  Text(
-                    price == null
-                        ? (getTranslated(
-                                'select_governorate_to_view_price', context) ??
-                            '')
-                        : '${getTranslated('starting_from', context) ?? 'From'} ${price!.toStringAsFixed(2)} ${getTranslated('egp', context) ?? 'EGP'}',
-                    style: textRegular.copyWith(
-                      fontSize: 11,
-                      color: selected
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).hintColor,
-                    ),
-                  ),
+                  Text(title,
+                      style: textMedium.copyWith(
+                          fontSize: Dimensions.fontSizeLarge,
+                          color: Theme.of(context).primaryColor)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(subtitle!,
+                        style: textRegular.copyWith(
+                            fontSize: Dimensions.fontSizeSmall,
+                            color: Theme.of(context).hintColor)),
+                  ],
                 ],
               ),
             ),

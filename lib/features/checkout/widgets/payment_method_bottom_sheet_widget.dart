@@ -4,6 +4,7 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/domain/models/offline_payment_model.dart';
+import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
@@ -136,6 +137,19 @@ class PaymentMethodBottomSheetWidget extends StatelessWidget {
                                       .selectOfflineTransferChannel(
                                           'instapay', instaPayIndex),
                                 ),
+                              if (checkoutController.hasValidSelectedTransferMethod) ...[
+                                const SizedBox(height: Dimensions.paddingSizeDefault),
+                                TransferRecipientCard(
+                                  channel: checkoutController.selectedTransferChannel,
+                                  details: [
+                                    for (final field in methods[checkoutController
+                                            .offlineMethodSelectedIndex]
+                                        .methodFields ?? const <MethodFields>[])
+                                      TransferRecipientDetail(
+                                          field.inputName ?? '', field.inputData ?? ''),
+                                  ],
+                                ),
+                              ],
                             ]),
                       )
                     : const NoInternetOrDataScreenWidget(
@@ -230,5 +244,8 @@ bool isPrepaidMethodAvailable(ConfigModel? configModel,
     List<OfflineMethods>? offlineMethods, bool onlyDigital) {
   return !onlyDigital &&
       configModel?.offlinePayment != null &&
-      (offlineMethods?.isNotEmpty ?? false);
+      (offlineMethods?.any((method) =>
+              method.paymentChannel == 'wallet' ||
+              method.paymentChannel == 'instapay') ??
+          false);
 }

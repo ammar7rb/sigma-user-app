@@ -4,7 +4,6 @@ import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_insurance/controllers/customer_order_insurance_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/checkout_condition_checkbox.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/payment_method_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shipping/controllers/shipping_controller.dart';
@@ -81,6 +80,10 @@ class CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    Provider.of<CheckoutController>(context, listen: false)
+        .clearShippingAddress();
+    Provider.of<ShippingController>(context, listen: false)
+        .clearSelectedQuote();
     Provider.of<AddressController>(context, listen: false).getAddressList();
     Provider.of<CheckoutController>(context, listen: false)
         .getReferralAmount('0');
@@ -130,8 +133,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             shipping.isCheckItemExist == 1 &&
             physicalCartGroupIds.contains(shipping.cartGroupId))
         .toList();
-    final chosenShippingFee = selectedShipping.fold<double>(
-        0, (total, shipping) => total + (shipping.shippingCost ?? 0));
     final coupon = context.watch<CouponController>();
     final checkout = context.watch<CheckoutController>();
     final addresses = context.watch<AddressController>().addressList;
@@ -152,9 +153,10 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             resolvedAddressIndex < addresses.length
         ? addresses[resolvedAddressIndex].id
         : null;
-    final selectedShippingFee = chosenShippingFee > 0
-        ? chosenShippingFee
-        : shippingController.selectedQuoteCost;
+    final selectedShippingFee =
+        shippingController.hasSelectedQuoteForAddress(selectedAddressId)
+            ? shippingController.selectedQuoteCost
+            : 0.0;
     final quoteKey =
         '${coupon.couponCode}:${coupon.discount}:${checkout.addressIndex}:${selectedShipping.map((s) => '${s.cartGroupId}:${s.shippingCost}').join(',')}';
     if (_quoteKey != quoteKey) {
@@ -171,12 +173,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       });
     }
     final deliveryIsConfirmed = !widget.hasPhysical ||
-        (selectedAddressId != null &&
-            (selectedShipping.isNotEmpty ||
-                physicalCartGroupIds.every((groupId) => selectedShipping
-                    .any((shipping) => shipping.cartGroupId == groupId)) ||
-                shippingController
-                    .hasSelectedQuoteForAddress(selectedAddressId)));
+        shippingController.hasSelectedQuoteForAddress(selectedAddressId);
     return Scaffold(
       resizeToAvoidBottomInset: true,
       key: _scaffoldKey,
@@ -262,23 +259,17 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                               ]),
                             ),
                             const SizedBox(height: Dimensions.paddingSizeSmall),
-                            const CheckoutConditionCheckBox(),
-                            const SizedBox(height: Dimensions.paddingSizeSmall),
                             CustomButton(
                               onTap: (orderProvider.isLoading ||
                                       _quoteReadyKey != _quoteKey ||
                                       orderProvider.insuranceQuoteLoading ||
-                                      orderProvider.orderInsuranceQuote ==
-                                          null ||
-                                      !orderProvider.isAcceptTerms)
+                                      orderProvider.orderInsuranceQuote == null)
                                   ? null
                                   : () async {
                                       if (!deliveryIsConfirmed) {
-                                        RouterHelper.getSavedAddressListRoute(
-                                            fromGuest: !context
-                                                .read<AuthController>()
-                                                .isLoggedIn(),
-                                            fromCheckout: true);
+                                        RouterHelper.getAddNewAddressRoute(
+                                            fromCheckout: true,
+                                            isBilling: false);
                                         showCustomSnackBarWidget(
                                             getTranslated(
                                                 'select_a_shipping_address',
@@ -361,6 +352,14 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                                     .selectedDigitalPaymentMethodName);
                                       } else if (orderProvider
                                           .isOfflineChecked) {
+                                        if (!orderProvider.hasValidSelectedTransferMethod) {
+                                          showCustomSnackBarWidget(
+                                            getTranslated('wallet_payment_method_unavailable', context),
+                                            context,
+                                            snackBarType: SnackBarType.error,
+                                          );
+                                          return;
+                                        }
                                         RouterHelper.getOfflinePaymentScreen(
                                             payableAmount: orderProvider
                                                     .orderInsuranceQuote!
@@ -689,34 +688,123 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     required double payableAmount,
     required double availableBalance,
   }) async {
+    String tr(String key, BuildContext context) =>
+        getTranslated(key, context) ?? key;
+    String money(double amount, BuildContext context) =>
+        '${PriceConverter.convertPriceWithoutSymbol(context, amount)} ${tr('egp_short', context)}';
+
     await showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: Icon(Icons.account_balance_wallet_outlined,
-            color: Theme.of(context).primaryColor, size: 38),
-        title: const Text('رصيد المشتريات غير كافٍ'),
-        content: Text(
-          'المبلغ المطلوب ${PriceConverter.convertPrice(context, payableAmount)}، '
-          'والرصيد المتاح ${PriceConverter.convertPrice(context, availableBalance)}. '
-          'يمكنك إيداع رصيد مشتريات الآن أو اختيار طريقة دفع أخرى.',
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('اختيار طريقة أخرى'),
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        Widget amountRow(String label, double amount,
+                {bool highlighted = false}) =>
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: Row(children: [
+                Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+                const SizedBox(width: 12),
+                Text(
+                  money(amount, dialogContext),
+                  textDirection: TextDirection.ltr,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: highlighted ? theme.primaryColor : null,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ]),
+            );
+
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor.withValues(alpha: .10),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(Icons.account_balance_wallet_outlined,
+                          color: theme.primaryColor),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        tr('purchase_balance_shortfall_title', dialogContext),
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor.withValues(alpha: .06),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(children: [
+                      amountRow(tr('amount_due', dialogContext), payableAmount),
+                      amountRow(tr('purchase_balance_available', dialogContext),
+                          availableBalance),
+                      Divider(color: theme.dividerColor),
+                      amountRow(
+                        tr('purchase_balance_shortfall_amount', dialogContext),
+                        payableAmount > availableBalance
+                            ? payableAmount - availableBalance
+                            : 0.0,
+                        highlighted: true,
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    tr('purchase_balance_shortfall_message', dialogContext),
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        RouterHelper.getWalletRoute(
+                            action: RouteAction.push, isBackButtonExist: true);
+                      },
+                      icon: const Icon(Icons.add_card_rounded),
+                      label: Text(
+                          tr('purchase_balance_deposit_now', dialogContext)),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: Text(
+                          tr('choose_another_payment_method', dialogContext)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              RouterHelper.getWalletRoute(
-                  action: RouteAction.push, isBackButtonExist: true);
-            },
-            icon: const Icon(Icons.add_card_rounded),
-            label: const Text('إيداع رصيد مشتريات الآن'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

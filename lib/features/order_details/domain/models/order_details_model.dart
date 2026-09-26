@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:flutter_sixvalley_ecommerce/data/model/image_full_url.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/domain/models/product_details_model.dart';
@@ -460,6 +462,7 @@ class OfflinePayments {
   int? id;
   List<dynamic>? infoKey;
   List<dynamic>? infoValue;
+  Map<String, dynamic> paymentInfo = {};
   String? createdAt;
 
   OfflinePayments(
@@ -472,8 +475,19 @@ class OfflinePayments {
 
   OfflinePayments.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    infoKey = (json['payment_info'].length>0)? json['payment_info'].entries.map((e)=> e.key).toList():[];
-    infoValue = (json['payment_info'].length>0)? json['payment_info'].entries.map((e)=> e.value).toList():[];
+    final rawInfo = json['payment_info'];
+    if (rawInfo is Map) {
+      paymentInfo = Map<String, dynamic>.from(rawInfo);
+    } else if (rawInfo is String) {
+      try {
+        final decoded = jsonDecode(rawInfo);
+        if (decoded is Map) paymentInfo = Map<String, dynamic>.from(decoded);
+      } catch (_) {
+        paymentInfo = {};
+      }
+    }
+    infoKey = paymentInfo.keys.toList();
+    infoValue = paymentInfo.values.toList();
     createdAt = json['created_at'];
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_insurance/screens/pending_post_purchase_invoices_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
@@ -289,48 +290,17 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
     return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
-  Map? get transferMethod {
+  Map? _methodFor(String selectedChannel) {
     final methods = (widget.config['offline_methods'] as List? ?? const [])
         .whereType<Map>()
         .toList();
-    if (channel == null || methods.isEmpty) return null;
     final explicit = methods.where((item) =>
-        item['payment_channel']?.toString().trim().toLowerCase() == channel);
+        item['payment_channel']?.toString().trim().toLowerCase() == selectedChannel);
     if (explicit.isNotEmpty) return explicit.first;
-
-    // Keep deposits working with payment methods created before
-    // `payment_channel` was introduced in the administration panel.
-    final inferred = methods.where((item) {
-      final searchable = [
-        item['method_name'],
-        item['method_fields'],
-        item['method_informations'],
-      ].join(' ').toLowerCase();
-      if (channel == 'instapay') {
-        return searchable.contains('instapay') ||
-            searchable.contains('insta pay') ||
-            searchable.contains('انستا') ||
-            searchable.contains('إنستا');
-      }
-      return searchable.contains('wallet') ||
-          searchable.contains('محفظ') ||
-          searchable.contains('vodafone') ||
-          searchable.contains('orange cash') ||
-          searchable.contains('etisalat cash') ||
-          searchable.contains('we pay');
-    });
-    if (inferred.isNotEmpty) return inferred.first;
-
-    // Legacy installations commonly stored one combined wallet/InstaPay
-    // method. It remains usable for either choice until the administrator
-    // separates the two methods.
-    if (methods.length == 1 &&
-        (methods.first['payment_channel'] == null ||
-            methods.first['payment_channel'].toString().trim().isEmpty)) {
-      return methods.first;
-    }
     return null;
   }
+
+  Map? get transferMethod => channel == null ? null : _methodFor(channel!);
 
   @override
   void dispose() {
@@ -416,39 +386,56 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                       : tr('wallet_invalid_amount');
                 }),
             const SizedBox(height: 20),
-            Row(children: [
-              Expanded(
+            if (_methodFor('wallet') != null || _methodFor('instapay') != null)
+              Row(children: [
+              if (_methodFor('wallet') != null) Expanded(
                   child: _CustomerTransferChoice(
                 icon: Icons.account_balance_wallet_outlined,
                 title: tr('electronic_wallet_payment'),
                 selected: channel == 'wallet',
-                onTap: busy ? null : () => setState(() => channel = 'wallet'),
+                onTap: busy ? null : () => setState(() {
+                  channel = 'wallet';
+                  senderPhone.clear();
+                  proof = null;
+                }),
               )),
-              const SizedBox(width: 10),
-              Expanded(
+              if (_methodFor('wallet') != null && _methodFor('instapay') != null)
+                const SizedBox(width: 10),
+              if (_methodFor('instapay') != null) Expanded(
                   child: _CustomerTransferChoice(
                 icon: Icons.account_balance_rounded,
                 title: tr('instapay_payment'),
                 selected: channel == 'instapay',
-                onTap: busy ? null : () => setState(() => channel = 'instapay'),
+                onTap: busy ? null : () => setState(() {
+                  channel = 'instapay';
+                  senderPhone.clear();
+                  proof = null;
+                }),
               )),
             ]),
+            if (_methodFor('wallet') == null && _methodFor('instapay') == null)
+              Text(tr('wallet_payment_method_unavailable')),
             if (transferMethod != null) ...[
               const SizedBox(height: 16),
-              Text(tr('transfer_using_admin_details'),
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              for (final field
-                  in transferMethod!['method_fields'] as List? ?? [])
-                Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: SelectableText(
-                        '${field['input_name'] ?? ''}: ${field['input_data'] ?? ''}')),
+              TransferRecipientCard(
+                channel: channel!,
+                details: [
+                  for (final field in
+                      (transferMethod!['method_fields'] as List? ?? const [])
+                          .whereType<Map>())
+                    TransferRecipientDetail(
+                        '${field['input_name'] ?? ''}',
+                        '${field['input_data'] ?? ''}'),
+                ],
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                   controller: senderName,
                   maxLength: 100,
                   decoration: InputDecoration(
-                      counterText: '', labelText: tr('sender_name')),
+                      counterText: '',
+                      labelText: tr('transfer_sender_full_name'),
+                      hintText: tr('transfer_sender_full_name_hint')),
                   validator: (value) =>
                       (value?.trim().isEmpty ?? true) ? tr('required') : null),
               TextFormField(
@@ -463,7 +450,12 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                   maxLength: 30,
                   decoration: InputDecoration(
                       counterText: '',
-                      labelText: tr('sender_phone_or_account')),
+                      labelText: tr(channel == 'instapay'
+                          ? 'transfer_sender_instapay'
+                          : 'transfer_sender_wallet'),
+                      hintText: tr(channel == 'instapay'
+                          ? 'transfer_sender_instapay_hint'
+                          : 'transfer_sender_wallet_hint')),
                   validator: (value) =>
                       (value?.trim().isEmpty ?? true) ? tr('required') : null),
               const SizedBox(height: 12),

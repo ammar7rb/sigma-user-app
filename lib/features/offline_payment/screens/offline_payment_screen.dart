@@ -6,6 +6,7 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_c
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/domain/models/offline_payment_model.dart';
+import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
@@ -40,6 +41,51 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
   final GlobalKey<FormState> offlineFormKey = GlobalKey<FormState>();
   File? _pickedImage;
 
+  int _senderIdentifierIndex(CheckoutController checkout) =>
+      checkout.keyList.indexWhere((key) =>
+          key == 'sender_wallet_or_phone' || key == 'sender_identifier');
+
+  String _senderName(CheckoutController checkout) {
+    final index = checkout.keyList.indexOf('sender_name');
+    return (index >= 0
+            ? checkout.inputFieldControllerList[index].text
+            : senderNameController.text)
+        .trim();
+  }
+
+  String _senderIdentifier(CheckoutController checkout) {
+    final index = _senderIdentifierIndex(checkout);
+    return (index >= 0
+            ? checkout.inputFieldControllerList[index].text
+            : senderIdentifierController.text)
+        .trim();
+  }
+
+  Future<void> _pickPaymentProof(
+      BuildContext context, CheckoutController checkout, int? fieldIndex) async {
+    final image = await ImagePicker().pickImage(
+        source: ImageSource.gallery, imageQuality: 75);
+    if (image == null) return;
+    final file = File(image.path);
+    final extension = image.path.split('.').last.toLowerCase();
+    final validType = const ['jpg', 'jpeg', 'png', 'webp'].contains(extension);
+    final validSize = await file.length() <= 5 * 1024 * 1024;
+    if (!mounted || !context.mounted) return;
+    if (!validType || !validSize) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(getTranslated(
+                validType ? 'wallet_proof_too_large' : 'wallet_proof_invalid_type',
+                context) ??
+            ''),
+      ));
+      return;
+    }
+    setState(() => _pickedImage = file);
+    if (fieldIndex != null && fieldIndex < checkout.inputFieldControllerList.length) {
+      checkout.inputFieldControllerList[fieldIndex].text = image.path;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,6 +93,12 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
       body: SigmaResponsiveContent(
         child: Consumer<CheckoutController>(
             builder: (context, checkoutProvider, _) {
+          final selectedMethod = checkoutProvider.offlinePaymentModel!
+              .offlineMethods![checkoutProvider.offlineMethodSelectedIndex];
+          final configuredInputs =
+              selectedMethod.methodInformations ?? const <MethodInformations>[];
+          final hasProofField =
+              configuredInputs.any((field) => field.inputType == 'image');
           return CustomScrollView(slivers: [
             SliverToBoxAdapter(
                 child: Padding(
@@ -56,69 +108,18 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(
-                                Dimensions.paddingSizeDefault),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .primaryColor
-                                  .withValues(alpha: .08),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                  color: Theme.of(context)
-                                      .primaryColor
-                                      .withValues(alpha: .2)),
-                            ),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(children: [
-                                    Icon(
-                                      checkoutProvider
-                                                  .selectedTransferChannel ==
-                                              'instapay'
-                                          ? Icons.account_balance_rounded
-                                          : Icons
-                                              .account_balance_wallet_outlined,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      getTranslated(
-                                            checkoutProvider
-                                                        .selectedTransferChannel ==
-                                                    'instapay'
-                                                ? 'instapay_payment'
-                                                : 'electronic_wallet_payment',
-                                            context,
-                                          ) ??
-                                          '',
-                                      style: textBold.copyWith(
-                                          fontSize: Dimensions.fontSizeLarge),
-                                    ),
-                                  ]),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                      getTranslated(
-                                              'transfer_using_admin_details',
-                                              context) ??
-                                          '',
-                                      style: textRegular),
-                                  const SizedBox(height: 10),
-                                  for (final field in checkoutProvider
-                                          .offlinePaymentModel!
-                                          .offlineMethods![checkoutProvider
-                                              .offlineMethodSelectedIndex]
-                                          .methodFields ??
-                                      const <MethodFields>[])
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 4),
-                                      child: SelectableText(
-                                          '${field.inputName ?? ''}: ${field.inputData ?? ''}',
-                                          style: textMedium),
-                                    ),
-                                ]),
+                          TransferRecipientCard(
+                            channel: checkoutProvider.selectedTransferChannel,
+                            details: [
+                              for (final field in checkoutProvider
+                                      .offlinePaymentModel!
+                                      .offlineMethods![checkoutProvider
+                                          .offlineMethodSelectedIndex]
+                                      .methodFields ??
+                                  const <MethodFields>[])
+                                TransferRecipientDetail(
+                                    field.inputName ?? '', field.inputData ?? ''),
+                            ],
                           ),
                           Center(
                               child: Padding(
@@ -140,23 +141,52 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                               child: ListView.builder(
                                   physics: const NeverScrollableScrollPhysics(),
                                   shrinkWrap: true,
-                                  itemCount: checkoutProvider
-                                          .offlinePaymentModel!
-                                          .offlineMethods![checkoutProvider
-                                              .offlineMethodSelectedIndex]
-                                          .methodInformations
-                                          ?.length ??
-                                      0,
+                                  itemCount: configuredInputs.length +
+                                      (hasProofField ? 0 : 1),
                                   itemBuilder: (context, index) {
-                                    MethodInformations? methodInformation =
-                                        checkoutProvider
-                                            .offlinePaymentModel!
-                                            .offlineMethods![checkoutProvider
-                                                .offlineMethodSelectedIndex]
-                                            .methodInformations?[index];
+                                    if (index == configuredInputs.length) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 16),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(getTranslated('payment_screenshot', context) ?? '',
+                                                style: textBold),
+                                            const SizedBox(height: 8),
+                                            OutlinedButton.icon(
+                                              onPressed: () => _pickPaymentProof(
+                                                  context, checkoutProvider, null),
+                                              icon: const Icon(Icons.add_photo_alternate_outlined),
+                                              label: Text(getTranslated('wallet_upload_proof', context) ?? ''),
+                                            ),
+                                            if (_pickedImage != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 8),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Image.file(_pickedImage!,
+                                                      height: 140,
+                                                      width: double.infinity,
+                                                      fit: BoxFit.cover),
+                                                ),
+                                              ),
+                                            FormField<String>(
+                                              validator: (_) => _pickedImage == null
+                                                  ? getTranslated('wallet_proof_required', context)
+                                                  : null,
+                                              builder: (state) => state.hasError
+                                                  ? Text(state.errorText!,
+                                                      style: TextStyle(color: Theme.of(context).colorScheme.error))
+                                                  : const SizedBox.shrink(),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    final methodInformation = configuredInputs[index];
 
                                     // إذا كان نوع الحقل القادم من الأدمن image يتم رسم زر اختيار صورة بدلاً من الـ TextField
-                                    if (methodInformation?.inputType ==
+                                    if (methodInformation.inputType ==
                                         'image') {
                                       return Padding(
                                         padding: const EdgeInsets.only(
@@ -166,65 +196,15 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              '${getTranslated(methodInformation?.customerInput ?? '', context) ?? methodInformation?.customerPlaceholder ?? ''}${methodInformation?.isRequired == 1 ? ' *' : ''}',
+                                               '${getTranslated(methodInformation.customerInput ?? '', context) ?? methodInformation.customerPlaceholder ?? ''}${methodInformation.isRequired == 1 ? ' *' : ''}',
                                               style: textBold.copyWith(
                                                   fontSize: Dimensions
                                                       .fontSizeDefault),
                                             ),
                                             const SizedBox(height: 10),
                                             InkWell(
-                                              onTap: () async {
-                                                final ImagePicker picker =
-                                                    ImagePicker();
-                                                final XFile? image =
-                                                    await picker.pickImage(
-                                                        source:
-                                                            ImageSource.gallery,
-                                                        imageQuality: 75);
-
-                                                if (image != null) {
-                                                  final file = File(image.path);
-                                                  final extension = image.path
-                                                      .split('.')
-                                                      .last
-                                                      .toLowerCase();
-                                                  final validType = const [
-                                                    'jpg',
-                                                    'jpeg',
-                                                    'png',
-                                                    'webp'
-                                                  ].contains(extension);
-                                                  final validSize =
-                                                      await file.length() <=
-                                                          5 * 1024 * 1024;
-                                                  if (!validType ||
-                                                      !validSize) {
-                                                    if (!context.mounted)
-                                                      return;
-                                                    ScaffoldMessenger.of(
-                                                            context)
-                                                        .showSnackBar(SnackBar(
-                                                      content: Text(getTranslated(
-                                                              validType
-                                                                  ? 'wallet_proof_too_large'
-                                                                  : 'wallet_proof_invalid_type',
-                                                              context) ??
-                                                          (validType
-                                                              ? 'Maximum image size is 5 MB'
-                                                              : 'Use JPG, PNG or WEBP image')),
-                                                    ));
-                                                    return;
-                                                  }
-                                                  setState(() {
-                                                    _pickedImage = file;
-                                                  });
-                                                  // نقوم بحفظ مسار الصورة داخل حقل الكنترولر التابع لهذا الـ index لتسهيل قراءته في الـ Controller
-                                                  checkoutProvider
-                                                      .inputFieldControllerList[
-                                                          index]
-                                                      .text = image.path;
-                                                }
-                                              },
+                                              onTap: () => _pickPaymentProof(
+                                                  context, checkoutProvider, index),
                                               child: Container(
                                                 height: 140,
                                                 width: double.infinity,
@@ -237,7 +217,7 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                                   border: Border.all(
                                                       color: Theme.of(context)
                                                           .hintColor
-                                                          .withOpacity(0.5)),
+                                                          .withValues(alpha: 0.5)),
                                                 ),
                                                 child: _pickedImage != null
                                                     ? ClipRRect(
@@ -277,10 +257,7 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                             // حقل خفي للتحقق من أن المستخدم قام برفع الصورة إذا كانت مطلوبة (is_required = 1)
                                             FormField<String>(
                                               validator: (value) {
-                                                if (methodInformation
-                                                            ?.isRequired ==
-                                                        1 &&
-                                                    _pickedImage == null) {
+                                                if (_pickedImage == null) {
                                                   return getTranslated(
                                                       'wallet_proof_required',
                                                       context);
@@ -315,32 +292,75 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                     }
 
                                     // الحقول النصية العادية ترسم TextField كما كانت سابقاً
+                                    final fieldKey =
+                                        methodInformation.customerInput ?? '';
+                                    final isSenderName =
+                                        fieldKey == 'sender_name';
+                                    final isSenderIdentifier =
+                                        fieldKey == 'sender_wallet_or_phone' ||
+                                            fieldKey == 'sender_identifier';
+                                    final isInstaPay = checkoutProvider
+                                            .selectedTransferChannel ==
+                                        'instapay';
+                                    final translatedLabel =
+                                        getTranslated(fieldKey, context);
+                                    final fallbackLabel = (methodInformation
+                                                .customerPlaceholder ??
+                                            fieldKey)
+                                        .replaceAll('_', ' ')
+                                        .capitalize();
+                                    final label = isSenderName
+                                        ? getTranslated(
+                                                'transfer_sender_full_name',
+                                                context) ??
+                                            fallbackLabel
+                                        : isSenderIdentifier
+                                            ? getTranslated(
+                                                    isInstaPay
+                                                        ? 'transfer_sender_instapay'
+                                                        : 'transfer_sender_wallet',
+                                                    context) ??
+                                                fallbackLabel
+                                            : translatedLabel != null &&
+                                                    translatedLabel != fieldKey
+                                                ? translatedLabel
+                                                : fallbackLabel;
+                                    final hint = isSenderName
+                                        ? getTranslated(
+                                                'transfer_sender_full_name_hint',
+                                                context) ??
+                                            label
+                                        : isSenderIdentifier
+                                            ? getTranslated(
+                                                    isInstaPay
+                                                        ? 'transfer_sender_instapay_hint'
+                                                        : 'transfer_sender_wallet_hint',
+                                                    context) ??
+                                                label
+                                            : (methodInformation
+                                                        .customerPlaceholder ??
+                                                    label)
+                                                .replaceAll('_', ' ')
+                                                .capitalize();
                                     return Padding(
                                       padding: const EdgeInsets.only(
                                           top: Dimensions.paddingSizeDefault),
                                       child: CustomTextFieldWidget(
                                         controller: checkoutProvider
                                             .inputFieldControllerList[index],
-                                        required:
-                                            methodInformation?.isRequired == 1,
-                                        labelText: getTranslated(
-                                                methodInformation
-                                                        ?.customerInput ??
-                                                    '',
-                                                context) ??
-                                            '${methodInformation?.customerPlaceholder}',
-                                        hintText:
-                                            '${methodInformation?.customerPlaceholder}'
-                                                .replaceAll('_', ' ')
-                                                .capitalize(),
+                                        required: isSenderName ||
+                                            isSenderIdentifier ||
+                                            methodInformation.isRequired == 1,
+                                        labelText: label,
+                                        hintText: hint,
                                         validator: (value) {
-                                          if (methodInformation?.isRequired ==
-                                              1) {
-                                            return ValidateCheck.validateEmptyText(
-                                                value,
-                                                '${methodInformation?.customerInput}'
-                                                    .replaceAll('_', ' ')
-                                                    .capitalize());
+                                          if (isSenderName ||
+                                              isSenderIdentifier ||
+                                              methodInformation.isRequired ==
+                                                  1) {
+                                            return ValidateCheck
+                                                .validateEmptyText(value,
+                                                    'transfer_field_required');
                                           } else {
                                             return null;
                                           }
@@ -350,38 +370,47 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                   }),
                             ),
                           ),
-                          const SizedBox(height: 14),
-                          CustomTextFieldWidget(
-                            controller: senderNameController,
-                            required: true,
-                            labelText: 'الاسم الثلاثي للمحوّل',
-                            hintText: 'اكتب الاسم كما ظهر في عملية التحويل',
-                            inputAction: TextInputAction.next,
-                            inputType: TextInputType.name,
-                            validator: (value) =>
-                                ValidateCheck.validateEmptyText(
-                                    value, 'sender_name_is_required'),
-                          ),
-                          const SizedBox(height: 14),
-                          CustomTextFieldWidget(
-                            controller: senderIdentifierController,
-                            required: true,
-                            labelText:
-                                checkoutProvider.selectedTransferChannel ==
-                                        'instapay'
-                                    ? 'رقم الهاتف أو معرّف إنستا باي'
-                                    : 'رقم المحفظة التي تم التحويل منها',
-                            hintText:
-                                checkoutProvider.selectedTransferChannel ==
-                                        'instapay'
-                                    ? 'مثال: name@instapay أو رقم الهاتف'
-                                    : 'رقم المحفظة الإلكترونية',
-                            inputAction: TextInputAction.next,
-                            inputType: TextInputType.text,
-                            validator: (value) =>
-                                ValidateCheck.validateEmptyText(
-                                    value, 'sender_identifier_is_required'),
-                          ),
+                          if (!checkoutProvider.keyList
+                              .contains('sender_name')) ...[
+                            const SizedBox(height: 14),
+                            CustomTextFieldWidget(
+                              controller: senderNameController,
+                              required: true,
+                              labelText: getTranslated(
+                                  'transfer_sender_full_name', context),
+                              hintText: getTranslated(
+                                  'transfer_sender_full_name_hint', context),
+                              inputAction: TextInputAction.next,
+                              inputType: TextInputType.name,
+                              validator: (value) =>
+                                  ValidateCheck.validateEmptyText(
+                                      value, 'transfer_field_required'),
+                            ),
+                          ],
+                          if (_senderIdentifierIndex(checkoutProvider) < 0) ...[
+                            const SizedBox(height: 14),
+                            CustomTextFieldWidget(
+                              controller: senderIdentifierController,
+                              required: true,
+                              labelText: getTranslated(
+                                  checkoutProvider.selectedTransferChannel ==
+                                          'instapay'
+                                      ? 'transfer_sender_instapay'
+                                      : 'transfer_sender_wallet',
+                                  context),
+                              hintText: getTranslated(
+                                  checkoutProvider.selectedTransferChannel ==
+                                          'instapay'
+                                      ? 'transfer_sender_instapay_hint'
+                                      : 'transfer_sender_wallet_hint',
+                                  context),
+                              inputAction: TextInputAction.next,
+                              inputType: TextInputType.text,
+                              validator: (value) =>
+                                  ValidateCheck.validateEmptyText(
+                                      value, 'transfer_field_required'),
+                            ),
+                          ],
                           const SizedBox(
                             height: 20,
                           ),
@@ -410,12 +439,16 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                 child: CustomButton(
                   isLoading: checkoutProvider.isLoading,
                   onTap: () {
-                    if (senderNameController.text.trim().isEmpty ||
-                        senderIdentifierController.text.trim().isEmpty) {
+                    final senderName = _senderName(checkoutProvider);
+                    final senderIdentifier =
+                        _senderIdentifier(checkoutProvider);
+                    if (senderName.isEmpty || senderIdentifier.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'يرجى إدخال اسم المحوّل والرقم أو المعرّف المستخدم في التحويل.'),
+                        SnackBar(
+                          content: Text(getTranslated(
+                                  'transfer_sender_details_required',
+                                  context) ??
+                              ''),
                         ),
                       );
                       return;
@@ -449,9 +482,9 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                         orderNote: orderNote,
                         couponCode: couponCode,
                         couponAmount: couponCodeAmount,
-                        senderName: senderNameController.text.trim(),
-                        senderIdentifier:
-                            senderIdentifierController.text.trim(),
+                        senderName: senderName,
+                        senderIdentifier: senderIdentifier,
+                        paymentProofPath: _pickedImage?.path,
                         isfOffline: true,
                       );
                     }

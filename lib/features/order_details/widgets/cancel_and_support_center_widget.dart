@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order/domain/models/order_model.dart';
-import 'package:flutter_sixvalley_ecommerce/features/order_details/controllers/order_details_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/order_details/widgets/cancel_order_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/reorder/controllers/re_order_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
@@ -22,8 +20,6 @@ class CancelAndSupportWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderDetailsController = Provider.of<OrderDetailsController>(context, listen: true);
-
     return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
 
       if(showSupport)
@@ -77,18 +73,6 @@ class CancelAndSupportWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeSmall),
           child: Column(
             children: [
-              (orderModel != null && (orderModel!.customerId! == int.parse(Provider.of<ProfileController>(context, listen: false).userID)) &&
-                  (orderModel!.orderStatus == 'pending') && (orderModel!.orderType != "POS")) ?
-              CustomButton(textColor: Theme.of(context).colorScheme.error,
-                backgroundColor: Theme.of(context).colorScheme.error.withValues(alpha:0.15),
-                buttonText: getTranslated('cancel_order', context),
-                onTap: () {
-                  showDialog(context: context, builder: (context) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    child: CancelOrderDialogWidget(orderId: orderModel!.id),
-                  ));
-                },
-              ) :
               (orderModel != null && Provider.of<AuthController>(context, listen: false).isLoggedIn() &&
                   orderModel!.customerId! == int.parse(Provider.of<ProfileController>(context, listen: false).userID) &&
                   orderModel!.orderStatus == 'delivered' && orderModel!.orderType != "POS") ?

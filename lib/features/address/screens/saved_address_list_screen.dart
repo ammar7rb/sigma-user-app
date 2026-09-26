@@ -123,7 +123,7 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                                             .paddingSizeSmall),
                                                     Expanded(
                                                         child: Text(
-                                                            'اختر طريقة الشحن',
+                                                            getTranslated('choose_shipping_method', context) ?? '',
                                                             style: Theme.of(
                                                                     context)
                                                                 .textTheme
@@ -137,7 +137,7 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                                       height: Dimensions
                                                           .paddingSizeSmall),
                                                   Text(
-                                                      'تم حساب السعر تلقائيًا حسب المحافظة والعنوان.',
+                                                      getTranslated('shipping_price_calculated', context) ?? '',
                                                       style: TextStyle(
                                                           color:
                                                               Theme.of(context)
@@ -261,8 +261,8 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                                                   Flexible(
                                                                       child: Text(
                                                                           isSigma
-                                                                              ? 'شحن سيجما'
-                                                                              : 'شحن عادي',
+                                                                              ? (getTranslated('sigma_shipping', context) ?? '')
+                                                                              : (getTranslated('normal_shipping', context) ?? ''),
                                                                           style:
                                                                               const TextStyle(fontWeight: FontWeight.bold))),
                                                                   if (isSigma) ...[
@@ -281,8 +281,8 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                                                                 .primaryColor,
                                                                             borderRadius: BorderRadius.circular(
                                                                                 20)),
-                                                                        child: const Text(
-                                                                            'الأفضل',
+                                                                        child: Text(
+                                                                            getTranslated('recommended', context) ?? '',
                                                                             style: TextStyle(
                                                                                 color: Colors.white,
                                                                                 fontSize: 10,
@@ -292,7 +292,9 @@ class _SavedAddressListScreenState extends State<SavedAddressListScreen> {
                                                                 const SizedBox(
                                                                     height: 4),
                                                                 Text(
-                                                                    'يصل خلال $minDays - $maxDays يوم عمل',
+                                                                    (getTranslated('shipping_delivery_days', context) ?? '')
+                                                                        .replaceAll('{min}', '$minDays')
+                                                                        .replaceAll('{max}', '$maxDays'),
                                                                     style: TextStyle(
                                                                         color: Theme.of(context)
                                                                             .hintColor)),

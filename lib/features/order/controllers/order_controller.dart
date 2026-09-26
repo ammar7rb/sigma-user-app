@@ -90,9 +90,6 @@ class OrderController with ChangeNotifier {
     }else if(_orderTypeIndex == 1){
       selectedType = 'delivered';
       getOrderList(1, 'delivered');
-    }else if(_orderTypeIndex == 2){
-      selectedType = 'canceled';
-      getOrderList(1, 'canceled');
     }
     if(notify) {
       notifyListeners();

@@ -443,7 +443,15 @@ class OrderDetailsController with ChangeNotifier {
       isCODChecked = false;
       isWalletChecked = false;
       _paymentMethodIndex = -1;
-      setOfflinePaymentMethodSelectedIndex(0, Provider.of<CheckoutController>(Get.context!, listen: false).offlinePaymentModel, notify: false);
+      final offlineModel = Provider.of<CheckoutController>(Get.context!, listen: false).offlinePaymentModel;
+      final firstTransfer = offlineModel?.offlineMethods?.indexWhere((method) =>
+          method.paymentChannel == 'wallet' || method.paymentChannel == 'instapay') ?? -1;
+      if (isOfflineChecked && firstTransfer >= 0) {
+        setOfflinePaymentMethodSelectedIndex(firstTransfer, offlineModel, notify: false);
+      } else {
+        offlineMethodSelectedIndex = -1;
+        offlineMethodSelectedId = 0;
+      }
     }else if(type == 'cod') {
       isCODChecked = !isCODChecked;
       isOfflineChecked = false;
@@ -482,18 +490,20 @@ class OrderDetailsController with ChangeNotifier {
   String offlineMethodSelectedName = '';
 
   void setOfflinePaymentMethodSelectedIndex(int index, OfflinePaymentModel? offlinePaymentModel, {bool notify = true}) {
+    final methods = offlinePaymentModel?.offlineMethods;
+    if (methods == null || index < 0 || index >= methods.length ||
+        (methods[index].paymentChannel != 'wallet' &&
+         methods[index].paymentChannel != 'instapay')) return;
     keyList = [];
     inputFieldControllerList = [];
     offlineMethodSelectedIndex = index;
-    if(offlinePaymentModel != null && offlinePaymentModel.offlineMethods!= null && offlinePaymentModel.offlineMethods!.isNotEmpty){
-      offlineMethodSelectedId = offlinePaymentModel.offlineMethods![offlineMethodSelectedIndex].id!;
-      offlineMethodSelectedName = offlinePaymentModel.offlineMethods![offlineMethodSelectedIndex].methodName!;
-    }
+    offlineMethodSelectedId = methods[index].id ?? 0;
+    offlineMethodSelectedName = methods[index].methodName ?? '';
 
-    if(offlinePaymentModel!.offlineMethods != null && offlinePaymentModel.offlineMethods!.isNotEmpty && offlinePaymentModel.offlineMethods![index].methodInformations!.isNotEmpty){
-      for (int i= 0; i< offlinePaymentModel.offlineMethods![index].methodInformations!.length; i++) {
+    if (methods[index].methodInformations?.isNotEmpty ?? false) {
+      for (int i= 0; i< methods[index].methodInformations!.length; i++) {
         inputFieldControllerList.add(TextEditingController());
-        keyList.add(offlinePaymentModel.offlineMethods![index].methodInformations![i].customerInput);
+        keyList.add(methods[index].methodInformations![i].customerInput);
       }
     }
     if(notify) {

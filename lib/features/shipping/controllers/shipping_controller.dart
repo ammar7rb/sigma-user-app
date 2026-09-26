@@ -40,6 +40,14 @@ class ShippingController extends ChangeNotifier {
       _selectedQuoteAddressId == addressId &&
       _selectedQuoteOption != null;
 
+  void clearSelectedQuote() {
+    _selectedQuoteAddressId = null;
+    _selectedQuoteOption = null;
+    _selectedQuoteCost = 0;
+    _quotedOptions = [];
+    notifyListeners();
+  }
+
   final List<int> _chosenShippingMethodIndex = [];
   List<int> get chosenShippingMethodIndex => _chosenShippingMethodIndex;
 

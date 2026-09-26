@@ -32,7 +32,6 @@ class _OrderScreenState extends State<OrderScreen> {
   void initState() {
     if(!isGuestMode){
       Provider.of<OrderController>(context, listen: false).setIndex(0, notify: false);
-      Provider.of<OrderController>(context, listen: false).getOrderList(1,'ongoing');
     }
     super.initState();
   }
@@ -74,9 +73,7 @@ class _OrderScreenState extends State<OrderScreen> {
                   child: Row(children: [
                     OrderTypeButton(text: getTranslated('RUNNING', context), index: 0),
                     const SizedBox(width: Dimensions.paddingSizeSmall),
-                    OrderTypeButton(text: getTranslated('DELIVERED', context), index: 1),
-                    const SizedBox(width: Dimensions.paddingSizeSmall),
-                    OrderTypeButton(text: getTranslated('CANCELED', context), index: 2)])),
+                    OrderTypeButton(text: getTranslated('DELIVERED', context), index: 1)])),
 
 
 

@@ -67,9 +67,6 @@ class CheckoutController with ChangeNotifier {
     notifyListeners();
   }
 
-  bool _isAcceptTerms = false;
-  bool get isAcceptTerms => _isAcceptTerms;
-
   final TextEditingController orderNoteController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
@@ -89,9 +86,10 @@ class CheckoutController with ChangeNotifier {
     String? name,
     String? senderName,
     String? senderIdentifier,
+    String? paymentProofPath,
     bool isfOffline = false,
   }) async {
-    String imagePath = '';
+    String imagePath = paymentProofPath ?? '';
     if (isfOffline) {
       Map<String, String> methodInformations = {};
 
@@ -206,6 +204,12 @@ class CheckoutController with ChangeNotifier {
     notifyListeners();
   }
 
+  void clearShippingAddress() {
+    _addressIndex = null;
+    _selectedAddressId = null;
+    notifyListeners();
+  }
+
   void setBillingAddressIndex(int index) {
     _billingAddressIndex = index;
     notifyListeners();
@@ -250,7 +254,7 @@ class CheckoutController with ChangeNotifier {
 
   Future<void> payWithPurchaseWallet(String addressId, String couponCode,
       String couponDiscount, String orderNote, Function callback) async {
-    if (_isLoading || !_isAcceptTerms) return;
+    if (_isLoading) return;
     _isLoading = true;
     notifyListeners();
     try {
@@ -276,7 +280,18 @@ class CheckoutController with ChangeNotifier {
     if (type == 'offline') {
       isOfflineChecked = !isOfflineChecked;
       _paymentMethodIndex = -1;
-      setOfflinePaymentMethodSelectedIndex(0);
+      final methods = offlinePaymentModel?.offlineMethods ?? [];
+      final firstTransfer = methods.indexWhere((method) =>
+          method.paymentChannel == 'wallet' ||
+          method.paymentChannel == 'instapay');
+      if (isOfflineChecked && firstTransfer >= 0) {
+        selectedTransferChannel = methods[firstTransfer].paymentChannel!;
+        setOfflinePaymentMethodSelectedIndex(firstTransfer, notify: false);
+      } else {
+        selectedTransferChannel = '';
+        offlineMethodSelectedIndex = -1;
+        offlineMethodSelectedId = 0;
+      }
     }
 
     if (notify) {
@@ -307,7 +322,7 @@ class CheckoutController with ChangeNotifier {
         await checkoutServiceInterface.offlinePaymentList();
     if (apiResponse.response != null &&
         apiResponse.response!.statusCode == 200) {
-      offlineMethodSelectedIndex = 0;
+      offlineMethodSelectedIndex = -1;
       offlinePaymentModel =
           OfflinePaymentModel.fromJson(apiResponse.response?.data);
     } else {
@@ -324,10 +339,25 @@ class CheckoutController with ChangeNotifier {
   String offlineMethodSelectedName = '';
   String selectedTransferChannel = '';
 
+  bool get hasValidSelectedTransferMethod {
+    final methods = offlinePaymentModel?.offlineMethods;
+    return isOfflineChecked &&
+        (selectedTransferChannel == 'wallet' ||
+            selectedTransferChannel == 'instapay') &&
+        methods != null &&
+        offlineMethodSelectedIndex >= 0 &&
+        offlineMethodSelectedIndex < methods.length &&
+        methods[offlineMethodSelectedIndex].paymentChannel?.toLowerCase() ==
+            selectedTransferChannel &&
+        methods[offlineMethodSelectedIndex].id == offlineMethodSelectedId;
+  }
+
   void selectOfflineTransferChannel(String channel, int methodIndex) {
     if (methodIndex < 0 ||
         offlinePaymentModel?.offlineMethods == null ||
-        methodIndex >= offlinePaymentModel!.offlineMethods!.length) {
+        methodIndex >= offlinePaymentModel!.offlineMethods!.length ||
+        offlinePaymentModel!.offlineMethods![methodIndex]
+                .paymentChannel?.toLowerCase() != channel) {
       return;
     }
     if (!isOfflineChecked) {
@@ -460,13 +490,6 @@ class CheckoutController with ChangeNotifier {
     }
     notifyListeners();
     return apiResponse;
-  }
-
-  void toggleTermsCheck({bool isUpdate = true}) {
-    _isAcceptTerms = !_isAcceptTerms;
-    if (isUpdate) {
-      notifyListeners();
-    }
   }
 
   void updatePaymentSelection() {

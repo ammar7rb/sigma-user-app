@@ -202,7 +202,12 @@ class _OrderWidgetState extends State<OrderWidget> {
                         child: Text(
                           _hasInsuranceAction(widget.orderModel?.commerceFlowStatus)
                               ? (getTranslated('insurance_action_required', context) ?? '')
-                              : (getTranslated(widget.orderModel!.orderStatus, context) ?? ''),
+                              : (getTranslated(
+                                      widget.orderModel!.orderStatus == 'pending'
+                                          ? 'RUNNING'
+                                          : widget.orderModel!.orderStatus,
+                                      context) ??
+                                  ''),
                           style: textBold.copyWith(
                             fontSize: Dimensions.fontSizeSmall,
                             color: _getStatusTextColor(context, widget.orderModel!.orderStatus),

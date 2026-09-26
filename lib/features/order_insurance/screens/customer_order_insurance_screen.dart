@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_insurance/controllers/customer_order_insurance_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order_insurance/domain/models/customer_order_insurance_model.dart';
@@ -176,7 +177,7 @@ class _ClaimContent extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               child: Column(children: [
                 Text(
-                  'رصيد التأمين لا يكفي لسداد المبلغ المطلوب. يمكنك إيداع رصيد تأمين أو الدفع بطريقة أخرى.',
+                  getTranslated('insurance_balance_shortfall', context) ?? '',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: Theme.of(context).colorScheme.onErrorContainer),
@@ -186,22 +187,22 @@ class _ClaimContent extends StatelessWidget {
                   onPressed: () => RouterHelper.getWalletRoute(
                       action: RouteAction.push, isBackButtonExist: true),
                   icon: const Icon(Icons.add_card_rounded),
-                  label: const Text('إيداع رصيد التأمين'),
+                  label: Text(getTranslated('deposit_insurance_balance', context) ?? ''),
                 ),
               ]),
             ),
           ),
         if (envelope.paymentOptions.offlinePayment)
           ...envelope.paymentOptions.offlineMethods
-              .where((method) => _isApprovedTransferMethod(method.title))
+              .where((method) => _isApprovedTransferMethod(method.channel))
               .map((method) => _actionButton(
                     context,
-                    icon: _isInstaPayMethod(method.title)
+                    icon: _isInstaPayMethod(method.channel)
                         ? Icons.account_balance_rounded
                         : Icons.account_balance_wallet_outlined,
-                    label: _isInstaPayMethod(method.title)
-                        ? 'الدفع عبر إنستا باي'
-                        : 'الدفع بمحفظة إلكترونية',
+                    label: _isInstaPayMethod(method.channel)
+                        ? (getTranslated('instapay_payment', context) ?? '')
+                        : (getTranslated('electronic_wallet_payment', context) ?? ''),
                     onPressed: () =>
                         _offlineDialog(context, controller, method.id),
                   )),
@@ -283,21 +284,28 @@ class _ClaimContent extends StatelessWidget {
                         : (value) =>
                             setState(() => methodId = value ?? methodId),
                   ),
-                  for (final field in transferMethods
-                      .firstWhere((method) => method.id == methodId)
-                      .fields)
-                    Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: SelectableText(
-                            '${field['input_name'] ?? ''}: ${field['input_data'] ?? ''}')),
+                  const SizedBox(height: 12),
+                  TransferRecipientCard(
+                    channel: transferMethods
+                        .firstWhere((method) => method.id == methodId)
+                        .channel,
+                    details: [
+                      for (final field in transferMethods
+                          .firstWhere((method) => method.id == methodId)
+                          .fields)
+                        TransferRecipientDetail(
+                            '${field['input_name'] ?? ''}',
+                            '${field['input_data'] ?? ''}'),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: senderName,
                     onChanged: (_) => setState(() {}),
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'الاسم الثلاثي للمحوّل *',
-                      prefixIcon: Icon(Icons.person_outline_rounded),
+                    decoration: InputDecoration(
+                      labelText: '${getTranslated('transfer_sender_full_name', context)} *',
+                      prefixIcon: const Icon(Icons.person_outline_rounded),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -308,8 +316,8 @@ class _ClaimContent extends StatelessWidget {
                       labelText: _isInstaPayMethod(transferMethods
                               .firstWhere((method) => method.id == methodId)
                               .channel)
-                          ? 'رقم الهاتف أو معرّف إنستا باي *'
-                          : 'رقم المحفظة التي تم التحويل منها *',
+                          ? '${getTranslated('transfer_sender_instapay', context)} *'
+                          : '${getTranslated('transfer_sender_wallet_number', context)} *',
                       prefixIcon: const Icon(Icons.numbers_rounded),
                     ),
                   ),
@@ -324,9 +332,24 @@ class _ClaimContent extends StatelessWidget {
                   const SizedBox(height: 10),
                   OutlinedButton(
                     onPressed: () async {
-                      proof = await ImagePicker().pickImage(
+                      final selected = await ImagePicker().pickImage(
                           source: ImageSource.gallery, imageQuality: 80);
-                      if (dialogContext.mounted) setState(() {});
+                      if (selected == null || !dialogContext.mounted) return;
+                      final extension = selected.name.split('.').last.toLowerCase();
+                      if (!const ['jpg', 'jpeg', 'png', 'webp'].contains(extension)) {
+                        setState(() => error = getTranslated('wallet_proof_invalid_type', context));
+                        return;
+                      }
+                      if (await selected.length() > 5 * 1024 * 1024) {
+                        setState(() => error = getTranslated('wallet_proof_too_large', context));
+                        return;
+                      }
+                      if (dialogContext.mounted) {
+                        setState(() {
+                          proof = selected;
+                          error = null;
+                        });
+                      }
                     },
                     child: Text(proof?.name ??
                         getTranslated('select_payment_proof', context)!),

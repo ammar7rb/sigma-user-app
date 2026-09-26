@@ -20,6 +20,14 @@ void main() {
         english.keys.where((key) =>
             !arabic.containsKey(key) || '${arabic[key]}'.trim().isEmpty),
         isEmpty);
+    final placeholder = RegExp(r'\{[A-Za-z_]+\}');
+    for (final key in english.keys) {
+      expect(
+        placeholder.allMatches('${arabic[key]}').map((match) => match.group(0)).toList()..sort(),
+        placeholder.allMatches('${english[key]}').map((match) => match.group(0)).toList()..sort(),
+        reason: 'Translation placeholders differ for $key',
+      );
+    }
   });
 
   test('production dashboard uses the live redesigned customer surfaces', () {
@@ -138,7 +146,7 @@ void main() {
     expect(transfer, contains('senderNameController'));
     expect(transfer, contains('senderIdentifierController'));
     expect(transfer, contains('_pickedImage'));
-    expect(insurance, contains('إيداع رصيد التأمين'));
+    expect(insurance, contains("getTranslated('deposit_insurance_balance', context)"));
     expect(pubspec, contains('family: Cairo'));
   });
 
@@ -391,14 +399,14 @@ void main() {
     }
   });
 
-  test('customer deposits support legacy methods and reviewed proof uploads',
+  test('customer deposits require separate channels and reviewed proof uploads',
       () {
     final source =
         File('lib/features/wallet/screens/customer_wallet_screen.dart')
             .readAsStringSync();
 
     expect(source, contains("item['payment_channel']"));
-    expect(source, contains("methods.length == 1"));
+    expect(source, isNot(contains('methods.length == 1')));
     expect(source, contains("'payment_note': note.text.trim()"));
     expect(source, contains("['jpg', 'jpeg', 'png', 'webp']"));
     expect(source, contains('5 * 1024 * 1024'));
@@ -417,10 +425,16 @@ void main() {
             .readAsStringSync();
 
     expect(checkout, contains('selectedAddressId'));
-    expect(addressForm, contains('shippingRatesFor('));
     expect(addressForm, contains('_selectedGovernorate'));
+    expect(addressForm, contains("_selectedShippingOption = 'sigma'"));
+    expect(addressForm, contains('quoteForAddress('));
+    expect(addressForm, contains('selectQuoteForAddress('));
+    expect(addressForm, isNot(contains('shippingRatesFor(')));
+    expect(addressForm, isNot(contains('select_governorate_to_view_price')));
     expect(addressForm, contains('addressId: addressId'));
     expect(checkoutScreen, contains('hasSelectedQuoteForAddress'));
+    expect(checkoutScreen, contains('getAddNewAddressRoute('));
+    expect(checkoutScreen, isNot(contains('getSavedAddressListRoute(')));
   });
 
   test('profile header stays below the device status bar', () {
