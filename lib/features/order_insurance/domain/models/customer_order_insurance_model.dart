@@ -32,6 +32,7 @@ class CustomerOrderInsuranceClaim {
   final double purchaseAmount;
   final double taxAmount;
   final double insuranceAmount;
+  final double totalAmount;
   final double externalAmountDue;
   final String paymentStatus;
   final String status;
@@ -49,6 +50,7 @@ class CustomerOrderInsuranceClaim {
     required this.purchaseAmount,
     required this.taxAmount,
     required this.insuranceAmount,
+    required this.totalAmount,
     required this.externalAmountDue,
     required this.paymentStatus,
     required this.status,
@@ -78,6 +80,7 @@ class CustomerOrderInsuranceClaim {
       purchaseAmount: _money(json['purchase_amount']),
       taxAmount: _money(tax['amount']),
       insuranceAmount: _money(insurance['amount']),
+      totalAmount: _money(json['total_amount']),
       externalAmountDue: _money(json['external_amount_due']),
       paymentStatus: insurance['payment_status']?.toString() ?? 'unpaid',
       status: insurance['status']?.toString() ?? 'pending_payment',

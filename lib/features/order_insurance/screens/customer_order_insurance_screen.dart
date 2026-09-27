@@ -34,7 +34,7 @@ class _CustomerOrderInsuranceScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-          title: getTranslated('customer_order_insurance', context)),
+          title: getTranslated('second_invoice_title', context)),
       body: Consumer<CustomerOrderInsuranceController>(
           builder: (context, controller, _) {
         if (controller.loading && controller.envelope == null) {
@@ -93,7 +93,7 @@ class _ClaimContent extends StatelessWidget {
           Text(
               claim.canPay
                   ? getTranslated(
-                      'purchase_paid_insurance_pending_description', context)!
+                      'second_invoice_pending_description', context)!
                   : getTranslated(
                       'insurance_claim_status_description', context)!,
               style: TextStyle(
@@ -111,27 +111,30 @@ class _ClaimContent extends StatelessWidget {
                     claim.orderReference),
                 _row(context, getTranslated('purchases_amount_paid', context)!,
                     PriceConverter.convertPrice(context, claim.purchaseAmount)),
-                _row(context, getTranslated('tax_amount_due', context)!,
-                    PriceConverter.convertPrice(context, claim.taxAmount)),
-                _row(
-                    context,
-                    getTranslated('insurance_amount_due', context)!,
-                    PriceConverter.convertPrice(
-                        context, claim.insuranceAmount)),
+                if (claim.taxAmount > 0)
+                  _row(context, getTranslated('tax_amount_due', context)!,
+                      PriceConverter.convertPrice(context, claim.taxAmount)),
+                if (claim.insuranceAmount > 0)
+                  _row(context, getTranslated('insurance_amount_due', context)!,
+                      PriceConverter.convertPrice(context, claim.insuranceAmount)),
                 _row(
                     context,
                     getTranslated('total_amount_due', context)!,
+                    PriceConverter.convertPrice(context, claim.totalAmount)),
+                _row(
+                    context,
+                    getTranslated('amount_due', context)!,
                     PriceConverter.convertPrice(
                         context, claim.externalAmountDue)),
                 _row(context, getTranslated('payment_deadline', context)!,
                     claim.paymentDueAt ?? '-'),
                 _row(
                     context,
-                    getTranslated('insurance_payment_status', context)!,
+                    getTranslated('second_invoice_status', context)!,
                     _statusLabel(context, claim)),
               ]))),
       const SizedBox(height: 12),
-      Card(
+      if (claim.insuranceAmount > 0) Card(
           child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -156,7 +159,8 @@ class _ClaimContent extends StatelessWidget {
                   ]))),
       if (claim.canPay) ...[
         const SizedBox(height: 12),
-        Text(getTranslated('choose_insurance_payment_method', context)!,
+        Text(getTranslated('choose_payment_method', context) ??
+                getTranslated('choose_insurance_payment_method', context)!,
             style: Theme.of(context).textTheme.titleMedium),
         if (envelope.paymentOptions.insuranceBalance &&
             envelope.balance.availableBalance >= claim.insuranceAmount)
@@ -226,7 +230,7 @@ class _ClaimContent extends StatelessWidget {
           label: Text(getTranslated('contact_admin_support', context)!),
           onPressed: () async {
             final ok = await controller.openSupport(orderId,
-                getTranslated('insurance_support_default_message', context)!);
+                getTranslated('second_invoice_support_message', context)!);
             if (ok)
               RouterHelper.getSupportTicketRoute(action: RouteAction.push);
             else if (context.mounted) _showResult(context, controller);
@@ -236,7 +240,7 @@ class _ClaimContent extends StatelessWidget {
         TextButton(
           onPressed: () => _declineDialog(context, controller),
           child: Text(getTranslated(
-              'decline_insurance_and_request_purchase_refund', context)!),
+              'second_invoice_refund_request', context)!),
         ),
       const SizedBox(height: 24),
     ]);
@@ -270,7 +274,7 @@ class _ClaimContent extends StatelessWidget {
         builder: (dialogContext) => StatefulBuilder(
               builder: (context, setState) => AlertDialog(
                 title: Text(getTranslated(
-                    'submit_offline_insurance_payment', context)!),
+                    'second_invoice_transfer_title', context)!),
                 content: SingleChildScrollView(
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                   DropdownButtonFormField<String>(
@@ -409,10 +413,10 @@ class _ClaimContent extends StatelessWidget {
     await showDialog(
         context: context,
         builder: (dialogContext) => AlertDialog(
-              title: Text(getTranslated('decline_insurance_payment', context)!),
+              title: Text(getTranslated('second_invoice_refund_request', context)!),
               content: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(
-                    getTranslated('decline_insurance_refund_notice', context)!),
+                    getTranslated('second_invoice_refund_notice', context)!),
                 TextField(
                     controller: reason,
                     maxLines: 3,

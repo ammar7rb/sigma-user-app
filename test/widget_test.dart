@@ -323,6 +323,9 @@ void main() {
         'flow_status': 'customer_insurance_pending',
         'order_reference': 'ORD-44',
         'purchase_amount': '1000',
+        'total_amount': '89',
+        'external_amount_due': '89',
+        'tax': {'amount': '14'},
         'insurance': {
           'amount': '75',
           'payment_status': 'unpaid',
@@ -373,6 +376,9 @@ void main() {
     expect(envelope.claim.canPay, isTrue);
     expect(envelope.claim.suspended, isTrue);
     expect(envelope.claim.balanceUsePolicy, 'insurance_only');
+    expect(envelope.claim.taxAmount, 14);
+    expect(envelope.claim.insuranceAmount, 75);
+    expect(envelope.claim.totalAmount, 89);
     expect(envelope.paymentOptions.offlineMethods.single.channel, 'instapay');
     expect(envelope.balance.allowedUses, ['insurance_payment']);
     expect(wallet.totalWalletBalance, 300);

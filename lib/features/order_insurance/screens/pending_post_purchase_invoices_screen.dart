@@ -120,7 +120,7 @@ class _PendingPostPurchaseInvoicesScreenState
                                   const SizedBox(height: 14),
                                   Text('${_tr('amount_due')}: ${PriceConverter.convertPrice(context, due)}'),
                                   if ((double.tryParse('${invoice['insurance_amount']}') ?? 0) > 0)
-                                    Text('${_tr('insurance_wallet')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['insurance_amount']}') ?? 0)}'),
+                                    Text('${_tr('insurance_amount_due')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['insurance_amount']}') ?? 0)}'),
                                   if ((double.tryParse('${invoice['tax_amount']}') ?? 0) > 0)
                                     Text('${_tr('tax')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['tax_amount']}') ?? 0)}'),
                                   const SizedBox(height: 10),
