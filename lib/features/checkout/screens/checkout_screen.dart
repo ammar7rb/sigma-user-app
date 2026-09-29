@@ -650,17 +650,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       );
       final firstOrderId = int.tryParse(orderID.split(',').first.trim());
       if (firstOrderId != null) {
-        final firstPaymentIsAwaitingAdmin =
-            Provider.of<CheckoutController>(Get.context!, listen: false)
-                .isOfflineChecked;
-        if (firstPaymentIsAwaitingAdmin) {
-          RouterHelper.getOrderScreenRoute(
-            isBackButtonExist: true,
-            action: RouteAction.pushReplacement,
-            fromPlaceOrder: true,
-          );
-          return;
-        }
         final requiresInsurance =
             await Provider.of<CustomerOrderInsuranceController>(Get.context!,
                     listen: false)

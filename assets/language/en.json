@@ -1137,6 +1137,7 @@
 "decline_insurance_and_request_purchase_refund":"Do not pay insurance and request a purchase refund",
 "decline_insurance_payment":"Decline insurance payment",
 "decline_insurance_refund_notice":"The order will be cancelled and the purchases amount will be returned to your purchases wallet after the administration-defined delay.",
+"insurance_status_awaiting_first_payment":"Second invoice ready; awaiting first payment approval",
 "insurance_status_pending_payment":"Insurance payment required",
 "insurance_status_pending_review":"Offline payment under review",
 "insurance_status_paid":"Insurance paid",
