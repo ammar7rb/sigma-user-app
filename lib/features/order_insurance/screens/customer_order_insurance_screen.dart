@@ -94,8 +94,13 @@ class _ClaimContent extends StatelessWidget {
               claim.canPay
                   ? getTranslated(
                       'second_invoice_pending_description', context)!
-                  : getTranslated(
-                      'insurance_claim_status_description', context)!,
+                  : claim.status == 'awaiting_first_payment'
+                      ? getTranslated(
+                              'second_invoice_waiting_first_payment_description',
+                              context) ??
+                          ''
+                      : getTranslated(
+                          'insurance_claim_status_description', context)!,
               style: TextStyle(
                   color: claim.canPay
                       ? Theme.of(context).colorScheme.onErrorContainer

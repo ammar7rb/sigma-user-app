@@ -577,6 +577,18 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                           _tax),
                                 ),
                               ),
+                              if (checkoutController.orderInsuranceQuote
+                                      ?.postPurchaseEnabled == true)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Text(
+                                    getTranslated(
+                                            'post_purchase_insurance_checkout_notice',
+                                            context) ??
+                                        '',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ),
                               SizedBox(height: Dimensions.paddingSizeSmall),
                             ],
                           );

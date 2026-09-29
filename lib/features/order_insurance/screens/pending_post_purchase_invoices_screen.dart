@@ -90,6 +90,8 @@ class _PendingPostPurchaseInvoicesScreenState
                         final due = double.tryParse(
                                 '${invoice['external_amount_due'] ?? invoice['amount_due'] ?? invoice['total_amount']}') ??
                             0;
+                        final awaitingFirstPayment =
+                            invoice['first_payment_status'] != 'paid';
                         return Card(
                           child: InkWell(
                             borderRadius: BorderRadius.circular(14),
@@ -115,7 +117,9 @@ class _PendingPostPurchaseInvoicesScreenState
                                               .titleMedium
                                               ?.copyWith(fontWeight: FontWeight.w700)),
                                     ),
-                                    _StatusChip(status: '${invoice['status']}'),
+                                    _StatusChip(status: awaitingFirstPayment
+                                        ? 'awaiting_first_payment'
+                                        : '${invoice['status']}'),
                                   ]),
                                   const SizedBox(height: 14),
                                   Text('${_tr('amount_due')}: ${PriceConverter.convertPrice(context, due)}'),
@@ -125,7 +129,9 @@ class _PendingPostPurchaseInvoicesScreenState
                                     Text('${_tr('tax')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['tax_amount']}') ?? 0)}'),
                                   const SizedBox(height: 10),
                                   Row(children: [
-                                    Expanded(child: Text(_tr('complete_payment'),
+                                    Expanded(child: Text(_tr(awaitingFirstPayment
+                                            ? 'second_invoice_awaiting_first_payment'
+                                            : 'complete_payment'),
                                         style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700))),
                                     Text(_tr('view_invoice'), style: TextStyle(color: Theme.of(context).primaryColor)),
                                     Icon(Icons.chevron_right_rounded, color: Theme.of(context).primaryColor),
