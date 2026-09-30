@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
@@ -16,25 +17,52 @@ class PendingPostPurchaseInvoicesScreen extends StatefulWidget {
 }
 
 class _PendingPostPurchaseInvoicesScreenState
-    extends State<PendingPostPurchaseInvoicesScreen> {
+    extends State<PendingPostPurchaseInvoicesScreen>
+    with WidgetsBindingObserver {
   final DioClient _api = di.sl<DioClient>();
   List<Map<String, dynamic>>? _invoices;
   String? _error;
+  Timer? _refreshTimer;
+  bool _loading = false;
+  bool _foreground = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshTimer =
+        Timer.periodic(const Duration(seconds: 30), (_) => _refresh());
     _load();
+  }
+
+  void _refresh() {
+    if (mounted && _foreground && ModalRoute.of(context)?.isCurrent == true)
+      _load();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) _refresh();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   String _tr(String key) => getTranslated(key, context) ?? key;
 
   Future<void> _load() async {
+    if (_loading) return;
+    _loading = true;
     setState(() => _error = null);
     try {
       final response = await _api.get(
         '/api/v1/customer/post-purchase-invoices',
-        queryParameters: {'limit': 50},
+        queryParameters: {'limit': 50, 'pending_only': true},
       );
       final raw = response.data is Map ? response.data['invoices'] : null;
       final items = raw is List
@@ -49,12 +77,21 @@ class _PendingPostPurchaseInvoicesScreenState
       if (mounted) setState(() => _invoices = items);
     } on DioException catch (exception) {
       if (mounted) {
-        setState(() => _error = exception.response?.statusCode == 401
-            ? _tr('sign_in')
-            : _tr('pending_orders_load_failed'));
+        setState(() {
+          _invoices = null;
+          _error = exception.response?.statusCode == 401
+              ? _tr('sign_in')
+              : _tr('pending_orders_load_failed');
+        });
       }
     } catch (_) {
-      if (mounted) setState(() => _error = _tr('pending_orders_load_failed'));
+      if (mounted)
+        setState(() {
+          _invoices = null;
+          _error = _tr('pending_orders_load_failed');
+        });
+    } finally {
+      _loading = false;
     }
   }
 
@@ -95,7 +132,8 @@ class _PendingPostPurchaseInvoicesScreenState
                             borderRadius: BorderRadius.circular(14),
                             onTap: orderId == null
                                 ? null
-                                : () => RouterHelper.getCustomerOrderInsuranceRoute(
+                                : () =>
+                                    RouterHelper.getCustomerOrderInsuranceRoute(
                                       orderId: orderId,
                                       action: RouteAction.push,
                                     ),
@@ -106,29 +144,49 @@ class _PendingPostPurchaseInvoicesScreenState
                                 children: [
                                   Row(children: [
                                     Icon(Icons.pending_actions_rounded,
-                                        color: Theme.of(context).colorScheme.tertiary),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .tertiary),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text('#${orderId ?? '-'}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleMedium
-                                              ?.copyWith(fontWeight: FontWeight.w700)),
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight.w700)),
                                     ),
                                     _StatusChip(status: '${invoice['status']}'),
                                   ]),
                                   const SizedBox(height: 14),
-                                  Text('${_tr('amount_due')}: ${PriceConverter.convertPrice(context, due)}'),
-                                  if ((double.tryParse('${invoice['insurance_amount']}') ?? 0) > 0)
-                                    Text('${_tr('insurance_amount_due')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['insurance_amount']}') ?? 0)}'),
-                                  if ((double.tryParse('${invoice['tax_amount']}') ?? 0) > 0)
-                                    Text('${_tr('tax')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['tax_amount']}') ?? 0)}'),
+                                  Text(
+                                      '${_tr('amount_due')}: ${PriceConverter.convertPrice(context, due)}'),
+                                  if ((double.tryParse(
+                                              '${invoice['insurance_amount']}') ??
+                                          0) >
+                                      0)
+                                    Text(
+                                        '${_tr('insurance_amount_due')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['insurance_amount']}') ?? 0)}'),
+                                  if ((double.tryParse(
+                                              '${invoice['tax_amount']}') ??
+                                          0) >
+                                      0)
+                                    Text(
+                                        '${_tr('tax')}: ${PriceConverter.convertPrice(context, double.tryParse('${invoice['tax_amount']}') ?? 0)}'),
                                   const SizedBox(height: 10),
                                   Row(children: [
-                                    Expanded(child: Text(_tr('complete_payment'),
-                                        style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700))),
-                                    Text(_tr('view_invoice'), style: TextStyle(color: Theme.of(context).primaryColor)),
-                                    Icon(Icons.chevron_right_rounded, color: Theme.of(context).primaryColor),
+                                    Expanded(
+                                        child: Text(_tr('complete_payment'),
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .primaryColor,
+                                                fontWeight: FontWeight.w700))),
+                                    Text(_tr('view_invoice'),
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .primaryColor)),
+                                    Icon(Icons.chevron_right_rounded,
+                                        color: Theme.of(context).primaryColor),
                                   ]),
                                 ],
                               ),
@@ -156,7 +214,9 @@ class _StatusChip extends StatelessWidget {
         child: Text(getTranslated('invoice_status_$status', context) ?? status,
             style: TextStyle(
               fontSize: 11,
-              color: status == 'awaiting_review' ? Colors.blue : Colors.orange.shade800,
+              color: status == 'awaiting_review'
+                  ? Colors.blue
+                  : Colors.orange.shade800,
               fontWeight: FontWeight.w700,
             )),
       );
@@ -170,6 +230,9 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) => Column(children: [
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        TextButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: Text(getTranslated('retry', context) ?? 'Retry')),
+        TextButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: Text(getTranslated('retry', context) ?? 'Retry')),
       ]);
 }

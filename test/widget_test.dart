@@ -320,6 +320,7 @@ void main() {
     final envelope = CustomerOrderInsuranceEnvelope.fromJson({
       'claim': {
         'contract_version': '2.0',
+        'can_pay': true,
         'flow_status': 'customer_insurance_pending',
         'order_reference': 'ORD-44',
         'purchase_amount': '1000',

@@ -32,6 +32,7 @@ class CustomerOrderInsuranceClaim {
   final double purchaseAmount;
   final double taxAmount;
   final double insuranceAmount;
+  final double insuranceBalancePaid;
   final double totalAmount;
   final double externalAmountDue;
   final String paymentStatus;
@@ -39,6 +40,7 @@ class CustomerOrderInsuranceClaim {
   final String? paymentDueAt;
   final String balanceUsePolicy;
   final bool suspended;
+  final bool payable;
   final bool supportAvailable;
   final String purchaseRefundStatus;
   final String? purchaseRefundDueAt;
@@ -50,6 +52,7 @@ class CustomerOrderInsuranceClaim {
     required this.purchaseAmount,
     required this.taxAmount,
     required this.insuranceAmount,
+    required this.insuranceBalancePaid,
     required this.totalAmount,
     required this.externalAmountDue,
     required this.paymentStatus,
@@ -57,12 +60,17 @@ class CustomerOrderInsuranceClaim {
     this.paymentDueAt,
     required this.balanceUsePolicy,
     required this.suspended,
+    required this.payable,
     required this.supportAvailable,
     required this.purchaseRefundStatus,
     this.purchaseRefundDueAt,
   });
 
-  bool get canPay => paymentStatus != 'paid' && status == 'pending_payment';
+  bool get canPay =>
+      payable && paymentStatus != 'paid' && status == 'pending_payment';
+  double get insuranceAmountDue => (insuranceAmount - insuranceBalancePaid)
+      .clamp(0, double.infinity)
+      .toDouble();
   bool get isUnderReview => status == 'pending_review';
   bool get refundScheduled => purchaseRefundStatus == 'scheduled';
   bool get refundCompleted => purchaseRefundStatus == 'completed';
@@ -80,6 +88,7 @@ class CustomerOrderInsuranceClaim {
       purchaseAmount: _money(json['purchase_amount']),
       taxAmount: _money(tax['amount']),
       insuranceAmount: _money(insurance['amount']),
+      insuranceBalancePaid: _money(json['insurance_balance_paid']),
       totalAmount: _money(json['total_amount']),
       externalAmountDue: _money(json['external_amount_due']),
       paymentStatus: insurance['payment_status']?.toString() ?? 'unpaid',
@@ -88,6 +97,7 @@ class CustomerOrderInsuranceClaim {
       balanceUsePolicy:
           insurance['balance_use_policy']?.toString() ?? 'insurance_only',
       suspended: json['order_is_suspended_until_insurance_payment'] == true,
+      payable: json['can_pay'] == true,
       supportAvailable: json['support_available'] == true,
       purchaseRefundStatus: refund['status']?.toString() ?? 'not_requested',
       purchaseRefundDueAt: refund['due_at']?.toString(),

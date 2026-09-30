@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class CustomerOrderInsuranceScreen extends StatefulWidget {
@@ -20,10 +22,23 @@ class CustomerOrderInsuranceScreen extends StatefulWidget {
 }
 
 class _CustomerOrderInsuranceScreenState
-    extends State<CustomerOrderInsuranceScreen> {
+    extends State<CustomerOrderInsuranceScreen> with WidgetsBindingObserver {
+  Timer? _refreshTimer;
+  bool _foreground = true;
+
+  void _refresh() {
+    if (!mounted || !_foreground || ModalRoute.of(context)?.isCurrent != true)
+      return;
+    final controller = context.read<CustomerOrderInsuranceController>();
+    if (!controller.loading) controller.load(widget.orderId, silent: true);
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshTimer =
+        Timer.periodic(const Duration(seconds: 30), (_) => _refresh());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted)
         context.read<CustomerOrderInsuranceController>().load(widget.orderId);
@@ -31,10 +46,23 @@ class _CustomerOrderInsuranceScreenState
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) _refresh();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-          title: getTranslated('second_invoice_title', context)),
+      appBar:
+          CustomAppBar(title: getTranslated('second_invoice_title', context)),
       body: Consumer<CustomerOrderInsuranceController>(
           builder: (context, controller, _) {
         if (controller.loading && controller.envelope == null) {
@@ -68,188 +96,265 @@ class _ClaimContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final claim = envelope.claim;
     final controller = context.read<CustomerOrderInsuranceController>();
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      Container(
+    final colors = Theme.of(context).colorScheme;
+    return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: claim.canPay
-              ? Theme.of(context).colorScheme.errorContainer
-              : Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-            claim.canPay
-                ? getTranslated(
-                    'purchase_paid_insurance_pending_title', context)!
-                : _statusLabel(context, claim),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: claim.canPay
-                    ? Theme.of(context).colorScheme.onErrorContainer
-                    : Theme.of(context).colorScheme.onPrimaryContainer),
-          ),
-          const SizedBox(height: 8),
-          Text(
-              claim.canPay
-                  ? getTranslated(
-                      'second_invoice_pending_description', context)!
-                  : getTranslated(
-                      'insurance_claim_status_description', context)!,
-              style: TextStyle(
-                  color: claim.canPay
-                      ? Theme.of(context).colorScheme.onErrorContainer
-                      : Theme.of(context).colorScheme.onPrimaryContainer)),
-        ]),
-      ),
-      const SizedBox(height: 12),
-      Card(
-          child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(children: [
-                _row(context, getTranslated('order_reference', context)!,
-                    claim.orderReference),
-                _row(context, getTranslated('purchases_amount_paid', context)!,
-                    PriceConverter.convertPrice(context, claim.purchaseAmount)),
-                if (claim.taxAmount > 0)
-                  _row(context, getTranslated('tax_amount_due', context)!,
-                      PriceConverter.convertPrice(context, claim.taxAmount)),
-                if (claim.insuranceAmount > 0)
-                  _row(context, getTranslated('insurance_amount_due', context)!,
-                      PriceConverter.convertPrice(context, claim.insuranceAmount)),
-                _row(
-                    context,
-                    getTranslated('total_amount_due', context)!,
-                    PriceConverter.convertPrice(context, claim.totalAmount)),
-                _row(
-                    context,
-                    getTranslated('amount_due', context)!,
-                    PriceConverter.convertPrice(
-                        context, claim.externalAmountDue)),
-                _row(context, getTranslated('payment_deadline', context)!,
-                    claim.paymentDueAt ?? '-'),
-                _row(
-                    context,
-                    getTranslated('second_invoice_status', context)!,
-                    _statusLabel(context, claim)),
-              ]))),
-      const SizedBox(height: 12),
-      if (claim.insuranceAmount > 0) Card(
-          child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(getTranslated('insurance_wallet', context)!,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 10),
-                    _row(
-                        context,
-                        getTranslated('insurance_available_balance', context)!,
-                        PriceConverter.convertPrice(
-                            context, envelope.balance.availableBalance)),
-                    _row(
-                        context,
-                        getTranslated('insurance_held_balance', context)!,
-                        PriceConverter.convertPrice(
-                            context, envelope.balance.heldBalance)),
-                    Text(
-                        getTranslated('insurance_wallet_only_notice', context)!,
-                        style: Theme.of(context).textTheme.bodySmall),
-                  ]))),
-      if (claim.canPay) ...[
-        const SizedBox(height: 12),
-        Text(getTranslated('choose_payment_method', context) ??
-                getTranslated('choose_insurance_payment_method', context)!,
-            style: Theme.of(context).textTheme.titleMedium),
-        if (envelope.paymentOptions.insuranceBalance &&
-            envelope.balance.availableBalance >= claim.insuranceAmount)
-          _actionButton(
-            context,
-            icon: Icons.account_balance_wallet_outlined,
-            label: getTranslated('pay_from_insurance_wallet', context)!,
-            onPressed: () async {
-              await controller.pay(orderId, 'customer_insurance_balance');
-              if (context.mounted) _showResult(context, controller);
-            },
-          ),
-        if (envelope.paymentOptions.insuranceBalance &&
-            envelope.balance.availableBalance < claim.insuranceAmount)
-          Card(
-            color: Theme.of(context).colorScheme.errorContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(children: [
-                Text(
-                  getTranslated('insurance_balance_shortfall', context) ?? '',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onErrorContainer),
-                ),
-                const SizedBox(height: 10),
-                FilledButton.icon(
-                  onPressed: () => RouterHelper.getWalletRoute(
-                      action: RouteAction.push, isBackButtonExist: true),
-                  icon: const Icon(Icons.add_card_rounded),
-                  label: Text(getTranslated('deposit_insurance_balance', context) ?? ''),
-                ),
-              ]),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: BorderRadius.circular(18),
             ),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                claim.canPay
+                    ? getTranslated('second_invoice_heading', context)!
+                    : _statusLabel(context, claim),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.onPrimaryContainer),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                  claim.canPay
+                      ? getTranslated(
+                          'second_invoice_pending_description', context)!
+                      : getTranslated(
+                          'insurance_claim_status_description', context)!,
+                  style: TextStyle(color: colors.onPrimaryContainer)),
+              const SizedBox(height: 18),
+              Text(getTranslated('second_invoice_amount_now', context)!,
+                  style: TextStyle(color: colors.onPrimaryContainer)),
+              Text(
+                  PriceConverter.convertPrice(context, claim.externalAmountDue),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colors.onPrimaryContainer)),
+            ]),
           ),
-        if (envelope.paymentOptions.offlinePayment)
-          ...envelope.paymentOptions.offlineMethods
-              .where((method) => _isApprovedTransferMethod(method.channel))
-              .map((method) => _actionButton(
-                    context,
-                    icon: _isInstaPayMethod(method.channel)
-                        ? Icons.account_balance_rounded
-                        : Icons.account_balance_wallet_outlined,
-                    label: _isInstaPayMethod(method.channel)
-                        ? (getTranslated('instapay_payment', context) ?? '')
-                        : (getTranslated('electronic_wallet_payment', context) ?? ''),
-                    onPressed: () =>
-                        _offlineDialog(context, controller, method.id),
-                  )),
-      ],
-      if (claim.refundScheduled || claim.refundCompleted) ...[
-        const SizedBox(height: 12),
-        Card(
-            child: ListTile(
-          leading: const Icon(Icons.assignment_return_outlined),
-          title: Text(claim.refundCompleted
-              ? getTranslated('purchase_refund_completed', context)!
-              : getTranslated('purchase_refund_scheduled', context)!),
-          subtitle: Text(
-              '${getTranslated('purchase_refund_due_at', context)}: ${claim.purchaseRefundDueAt ?? '-'}'),
-        )),
-      ],
-      const SizedBox(height: 12),
-      if (claim.supportAvailable)
-        OutlinedButton.icon(
-          icon: const Icon(Icons.support_agent),
-          label: Text(getTranslated('contact_admin_support', context)!),
-          onPressed: () async {
-            final ok = await controller.openSupport(orderId,
-                getTranslated('second_invoice_support_message', context)!);
-            if (ok)
-              RouterHelper.getSupportTicketRoute(action: RouteAction.push);
-            else if (context.mounted) _showResult(context, controller);
-          },
-        ),
-      if (claim.canPay)
-        TextButton(
-          onPressed: () => _declineDialog(context, controller),
-          child: Text(getTranslated(
-              'second_invoice_refund_request', context)!),
-        ),
-      const SizedBox(height: 24),
-    ]);
+          const SizedBox(height: 12),
+          Card(
+              child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(children: [
+                    Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                            getTranslated('second_invoice_details', context)!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700))),
+                    const SizedBox(height: 12),
+                    _row(context, getTranslated('order_reference', context)!,
+                        claim.orderReference),
+                    _row(
+                        context,
+                        getTranslated(
+                            'second_invoice_purchases_shipping', context)!,
+                        PriceConverter.convertPrice(
+                            context, claim.purchaseAmount)),
+                    if (claim.taxAmount > 0)
+                      _row(
+                          context,
+                          getTranslated('tax_amount_due', context)!,
+                          PriceConverter.convertPrice(
+                              context, claim.taxAmount)),
+                    if (claim.insuranceAmount > 0)
+                      _row(
+                          context,
+                          getTranslated('insurance_amount_due', context)!,
+                          PriceConverter.convertPrice(
+                              context, claim.insuranceAmount)),
+                    _row(
+                        context,
+                        getTranslated('total_amount_due', context)!,
+                        PriceConverter.convertPrice(
+                            context, claim.totalAmount)),
+                    if (claim.insuranceBalancePaid > 0)
+                      _row(
+                          context,
+                          getTranslated(
+                              'second_invoice_balance_paid', context)!,
+                          PriceConverter.convertPrice(
+                              context, claim.insuranceBalancePaid)),
+                    _row(
+                        context,
+                        getTranslated('amount_due', context)!,
+                        PriceConverter.convertPrice(
+                            context, claim.externalAmountDue)),
+                    _row(context, getTranslated('payment_deadline', context)!,
+                        _deadline(claim.paymentDueAt)),
+                    _row(
+                        context,
+                        getTranslated('second_invoice_status', context)!,
+                        _statusLabel(context, claim)),
+                  ]))),
+          const SizedBox(height: 12),
+          if (claim.insuranceAmount > 0)
+            Card(
+                child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(getTranslated('insurance_wallet', context)!,
+                              style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 10),
+                          _row(
+                              context,
+                              getTranslated(
+                                  'insurance_available_balance', context)!,
+                              PriceConverter.convertPrice(
+                                  context, envelope.balance.availableBalance)),
+                          _row(
+                              context,
+                              getTranslated('insurance_held_balance', context)!,
+                              PriceConverter.convertPrice(
+                                  context, envelope.balance.heldBalance)),
+                          Text(
+                              getTranslated(
+                                  'insurance_wallet_only_notice', context)!,
+                              style: Theme.of(context).textTheme.bodySmall),
+                        ]))),
+          if (claim.canPay) ...[
+            const SizedBox(height: 12),
+            Text(
+                getTranslated('choose_payment_method', context) ??
+                    getTranslated('choose_insurance_payment_method', context)!,
+                style: Theme.of(context).textTheme.titleMedium),
+            if (envelope.paymentOptions.insuranceBalance &&
+                claim.insuranceAmountDue > 0 &&
+                envelope.balance.availableBalance >= claim.insuranceAmountDue)
+              _actionButton(
+                context,
+                icon: Icons.account_balance_wallet_outlined,
+                label: getTranslated('pay_from_insurance_wallet', context)!,
+                subtitle:
+                    getTranslated('insurance_wallet_only_notice', context),
+                onPressed: () async {
+                  await controller.pay(orderId, 'customer_insurance_balance');
+                  if (context.mounted) _showResult(context, controller);
+                },
+              ),
+            if (envelope.paymentOptions.insuranceBalance &&
+                claim.insuranceAmountDue > 0 &&
+                envelope.balance.availableBalance < claim.insuranceAmountDue)
+              Card(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(children: [
+                    Text(
+                      getTranslated('insurance_balance_shortfall', context) ??
+                          '',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onErrorContainer),
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton.icon(
+                      onPressed: () => RouterHelper.getWalletRoute(
+                          action: RouteAction.push, isBackButtonExist: true),
+                      icon: const Icon(Icons.add_card_rounded),
+                      label: Text(
+                          getTranslated('deposit_insurance_balance', context) ??
+                              ''),
+                    ),
+                  ]),
+                ),
+              ),
+            if (envelope.paymentOptions.offlinePayment)
+              ...envelope.paymentOptions.offlineMethods
+                  .where((method) => _isApprovedTransferMethod(method.channel))
+                  .map((method) => _actionButton(
+                        context,
+                        icon: _isInstaPayMethod(method.channel)
+                            ? Icons.account_balance_rounded
+                            : Icons.account_balance_wallet_outlined,
+                        label: _isInstaPayMethod(method.channel)
+                            ? (getTranslated('instapay_payment', context) ?? '')
+                            : (getTranslated(
+                                    'electronic_wallet_payment', context) ??
+                                ''),
+                        subtitle: getTranslated(
+                            'second_invoice_transfer_hint', context),
+                        onPressed: () =>
+                            _offlineDialog(context, controller, method.id),
+                      )),
+            if (envelope.paymentOptions.digitalPayment)
+              ...envelope.paymentOptions.digitalGateways
+                  .map((method) => _actionButton(
+                        context,
+                        icon: Icons.credit_card_outlined,
+                        label: method.title,
+                        subtitle: getTranslated(
+                            'second_invoice_digital_hint', context),
+                        onPressed: () async {
+                          final redirect =
+                              await controller.pay(orderId, method.id);
+                          if (!context.mounted) return;
+                          if (redirect != null && redirect.isNotEmpty) {
+                            RouterHelper.getDigitalPaymentScreenRoute(
+                                url: redirect,
+                                orderId: orderId.toString(),
+                                isInsurancePayment: true,
+                                action: RouteAction.push);
+                          } else {
+                            _showResult(context, controller);
+                          }
+                        },
+                      )),
+          ],
+          if (claim.refundScheduled || claim.refundCompleted) ...[
+            const SizedBox(height: 12),
+            Card(
+                child: ListTile(
+              leading: const Icon(Icons.assignment_return_outlined),
+              title: Text(claim.refundCompleted
+                  ? getTranslated('purchase_refund_completed', context)!
+                  : getTranslated('purchase_refund_scheduled', context)!),
+              subtitle: Text(
+                  '${getTranslated('purchase_refund_due_at', context)}: ${claim.purchaseRefundDueAt ?? '-'}'),
+            )),
+          ],
+          const SizedBox(height: 12),
+          if (claim.supportAvailable)
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: colors.onSurface,
+                  side: BorderSide(color: colors.outline),
+                  padding: const EdgeInsets.all(14)),
+              icon: const Icon(Icons.support_agent),
+              label: Text(getTranslated('contact_admin_support', context)!),
+              onPressed: () async {
+                final ok = await controller.openSupport(orderId,
+                    getTranslated('second_invoice_support_message', context)!);
+                if (ok)
+                  RouterHelper.getSupportTicketRoute(action: RouteAction.push);
+                else if (context.mounted) _showResult(context, controller);
+              },
+            ),
+          if (claim.canPay)
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: colors.onSurface),
+              onPressed: () => _declineDialog(context, controller),
+              child: Text(
+                  getTranslated('second_invoice_refund_request', context)!),
+            ),
+          const SizedBox(height: 24),
+        ]);
   }
 
   Future<void> _offlineDialog(
       BuildContext context,
       CustomerOrderInsuranceController controller,
       String initialMethodId) async {
+    final invoiceContext = context;
     final transferMethods = envelope.paymentOptions.offlineMethods
         .where((method) => _isApprovedTransferMethod(method.channel))
         .toList(growable: false);
@@ -273,12 +378,12 @@ class _ClaimContent extends StatelessWidget {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
               builder: (context, setState) => AlertDialog(
-                title: Text(getTranslated(
-                    'second_invoice_transfer_title', context)!),
+                title: Text(
+                    getTranslated('second_invoice_transfer_title', context)!),
                 content: SingleChildScrollView(
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                   DropdownButtonFormField<String>(
-                    value: methodId,
+                    initialValue: methodId,
                     items: transferMethods
                         .map((item) => DropdownMenuItem(
                             value: item.id, child: Text(item.title)))
@@ -289,6 +394,13 @@ class _ClaimContent extends StatelessWidget {
                             setState(() => methodId = value ?? methodId),
                   ),
                   const SizedBox(height: 12),
+                  Text(
+                      '${getTranslated('second_invoice_amount_now', context)}: ${PriceConverter.convertPrice(context, envelope.claim.externalAmountDue)}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 12),
                   TransferRecipientCard(
                     channel: transferMethods
                         .firstWhere((method) => method.id == methodId)
@@ -297,8 +409,7 @@ class _ClaimContent extends StatelessWidget {
                       for (final field in transferMethods
                           .firstWhere((method) => method.id == methodId)
                           .fields)
-                        TransferRecipientDetail(
-                            '${field['input_name'] ?? ''}',
+                        TransferRecipientDetail('${field['input_name'] ?? ''}',
                             '${field['input_data'] ?? ''}'),
                     ],
                   ),
@@ -308,7 +419,8 @@ class _ClaimContent extends StatelessWidget {
                     onChanged: (_) => setState(() {}),
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                      labelText: '${getTranslated('transfer_sender_full_name', context)} *',
+                      labelText:
+                          '${getTranslated('transfer_sender_full_name', context)} *',
                       prefixIcon: const Icon(Icons.person_outline_rounded),
                     ),
                   ),
@@ -339,13 +451,17 @@ class _ClaimContent extends StatelessWidget {
                       final selected = await ImagePicker().pickImage(
                           source: ImageSource.gallery, imageQuality: 80);
                       if (selected == null || !dialogContext.mounted) return;
-                      final extension = selected.name.split('.').last.toLowerCase();
-                      if (!const ['jpg', 'jpeg', 'png', 'webp'].contains(extension)) {
-                        setState(() => error = getTranslated('wallet_proof_invalid_type', context));
+                      final extension =
+                          selected.name.split('.').last.toLowerCase();
+                      if (!const ['jpg', 'jpeg', 'png', 'webp']
+                          .contains(extension)) {
+                        setState(() => error = getTranslated(
+                            'wallet_proof_invalid_type', context));
                         return;
                       }
                       if (await selected.length() > 5 * 1024 * 1024) {
-                        setState(() => error = getTranslated('wallet_proof_too_large', context));
+                        setState(() => error =
+                            getTranslated('wallet_proof_too_large', context));
                         return;
                       }
                       if (dialogContext.mounted) {
@@ -374,6 +490,34 @@ class _ClaimContent extends StatelessWidget {
                               sending = true;
                               error = null;
                             });
+                            final loaded =
+                                await controller.load(orderId, silent: true);
+                            if (!dialogContext.mounted) return;
+                            final latest = controller.envelope;
+                            if (!loaded || latest == null) {
+                              setState(() {
+                                sending = false;
+                                error = controller.error;
+                              });
+                              return;
+                            }
+                            if (!latest.claim.canPay ||
+                                latest.claim.externalAmountDue !=
+                                    envelope.claim.externalAmountDue ||
+                                !latest.paymentOptions.offlinePayment ||
+                                !latest.paymentOptions.offlineMethods
+                                    .any((item) => item.id == methodId)) {
+                              Navigator.pop(dialogContext);
+                              if (invoiceContext.mounted) {
+                                showCustomSnackBarWidget(
+                                    getTranslated(
+                                        'second_invoice_updated_review',
+                                        invoiceContext),
+                                    invoiceContext,
+                                    snackBarType: SnackBarType.warning);
+                              }
+                              return;
+                            }
                             final ok = await controller.submitOffline(
                               orderId,
                               methodId,
@@ -404,6 +548,13 @@ class _ClaimContent extends StatelessWidget {
 
   bool _isInstaPayMethod(String channel) => channel == 'instapay';
 
+  String _deadline(String? raw) {
+    final date = DateTime.tryParse(raw ?? '');
+    return date == null
+        ? '-'
+        : DateFormat('dd/MM/yyyy HH:mm').format(date.toLocal());
+  }
+
   bool _isApprovedTransferMethod(String channel) =>
       channel == 'wallet' || channel == 'instapay';
 
@@ -413,10 +564,10 @@ class _ClaimContent extends StatelessWidget {
     await showDialog(
         context: context,
         builder: (dialogContext) => AlertDialog(
-              title: Text(getTranslated('second_invoice_refund_request', context)!),
+              title: Text(
+                  getTranslated('second_invoice_refund_request', context)!),
               content: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                    getTranslated('second_invoice_refund_notice', context)!),
+                Text(getTranslated('second_invoice_refund_notice', context)!),
                 TextField(
                     controller: reason,
                     maxLines: 3,
@@ -446,17 +597,37 @@ class _ClaimContent extends StatelessWidget {
   Widget _actionButton(BuildContext context,
       {required IconData icon,
       required String label,
+      String? subtitle,
       required VoidCallback onPressed,
       bool enabled = true}) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: enabled ? onPressed : null,
-            icon: Icon(icon),
-            label: Text(label),
-          )),
+    final colors = Theme.of(context).colorScheme;
+    final loading = context.watch<CustomerOrderInsuranceController>().loading;
+    return Card(
+      margin: const EdgeInsets.only(top: 12),
+      elevation: 0,
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: colors.outlineVariant)),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        enabled: enabled && !loading,
+        onTap: enabled && !loading ? onPressed : null,
+        leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+                color: colors.primaryContainer,
+                borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: colors.onPrimaryContainer)),
+        title: Text(label,
+            style: TextStyle(
+                color: colors.onSurface, fontWeight: FontWeight.w700)),
+        subtitle: subtitle == null
+            ? null
+            : Text(subtitle, style: TextStyle(color: colors.onSurfaceVariant)),
+        trailing: Icon(Icons.chevron_right_rounded, color: colors.primary),
+      ),
     );
   }
 

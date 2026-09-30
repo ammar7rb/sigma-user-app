@@ -13,17 +13,23 @@ class CustomerOrderInsuranceController extends ChangeNotifier {
   bool get loading => _loading;
   String? _error;
   String? get error => _error;
+  int _loadSequence = 0;
+  int? _loadedOrderId;
 
-  Future<bool> load(int orderId) async {
-    _envelope = null;
+  Future<bool> load(int orderId, {bool silent = false}) async {
+    final sequence = ++_loadSequence;
+    if (!silent || _loadedOrderId != orderId) _envelope = null;
+    _loadedOrderId = orderId;
     _setLoading(true);
     final response = await repository.getClaim(orderId);
+    if (sequence != _loadSequence) return false;
     if (_ok(response)) {
       _envelope = CustomerOrderInsuranceEnvelope.fromJson(
         Map<String, dynamic>.from(response.response!.data as Map),
       );
       _error = null;
     } else {
+      _envelope = null;
       _error = response.error?.toString();
     }
     _setLoading(false);

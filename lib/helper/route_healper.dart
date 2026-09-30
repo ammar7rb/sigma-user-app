@@ -578,11 +578,13 @@ class RouterHelper {
     required String url,
     bool fromWallet = false,
     String? orderId,
+    bool isInsurancePayment = false,
   }) {
     final params = <String, String>{
       'url': Uri.encodeComponent(url),
       'fromWallet': fromWallet.toString(),
       'orderId': orderId.toString(),
+      'isInsurancePayment': isInsurancePayment.toString(),
     };
     final query =
         '?${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
@@ -1391,6 +1393,7 @@ class RouterHelper {
               url: qp['url'] ?? '',
               fromWallet: qp['fromWallet'] == 'true',
               orderId: qp['orderId'] ?? '',
+              isInsurancePayment: qp['isInsurancePayment'] == 'true',
             );
           },
         ),

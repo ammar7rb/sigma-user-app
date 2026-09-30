@@ -19,7 +19,12 @@ class DigitalPaymentScreen extends StatefulWidget {
   final bool fromWallet;
   final String orderId;
   final bool isInsurancePayment;
-  const DigitalPaymentScreen({super.key, required this.url, this.fromWallet = false, this.orderId = '', this.isInsurancePayment = false});
+  const DigitalPaymentScreen(
+      {super.key,
+      required this.url,
+      this.fromWallet = false,
+      this.orderId = '',
+      this.isInsurancePayment = false});
 
   @override
   DigitalPaymentScreenState createState() => DigitalPaymentScreenState();
@@ -76,8 +81,10 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
   }
 
   bool _isRedirectUrl(String url) {
-    return ((url.contains('success') && url.contains('token')) || url.contains('fail') || url.contains('cancel'))
-        && url.contains(AppConstants.baseUrl);
+    return ((url.contains('success') && url.contains('token')) ||
+            url.contains('fail') ||
+            url.contains('cancel')) &&
+        url.contains(AppConstants.baseUrl);
   }
 
   @override
@@ -110,7 +117,8 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
                   if (_isLoading)
                     Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor),
                       ),
                     ),
                 ],
@@ -124,10 +132,9 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
   }
 
   void _checkRedirect(String url) {
-
     if (_canRedirect && _isRedirectUrl(url)) {
       _canRedirect = false;
-      
+
       bool isSuccess = url.contains('success');
       bool isFailed = url.contains('fail');
       bool isCancel = url.contains('cancel');
@@ -135,13 +142,16 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
       String? orderIds = _getOrderIds(url);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _handlePaymentResult(isSuccess, isFailed, isCancel, isNewUser, orderIds);
+        _handlePaymentResult(
+            isSuccess, isFailed, isCancel, isNewUser, orderIds);
       });
     }
   }
 
-  Future<void> _handlePaymentResult(bool isSuccess, bool isFailed, bool isCancel, bool isNewUser, String? orderIds) async {
-    bool isLoggedIn = Provider.of<AuthController>(context, listen: false).isLoggedIn();
+  Future<void> _handlePaymentResult(bool isSuccess, bool isFailed,
+      bool isCancel, bool isNewUser, String? orderIds) async {
+    bool isLoggedIn =
+        Provider.of<AuthController>(context, listen: false).isLoggedIn();
 
     // if (Navigator.canPop(context)) {
     //   Navigator.pop(context);
@@ -153,19 +163,21 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
           orderId: int.parse(widget.orderId),
           action: RouteAction.pushReplacement,
         );
-      } else if (widget.orderId.trim().isNotEmpty &&  orderIds == null) {
+      } else if (widget.orderId.trim().isNotEmpty && orderIds == null) {
         RouterHelper.getOrderDetailsScreenRoute(
-          orderId: int .parse(widget.orderId),
-          action: RouteAction.pushReplacement,
-          isNotification: true
-        );
+            orderId: int.parse(widget.orderId),
+            action: RouteAction.pushReplacement,
+            isNotification: true);
       } else if (isLoggedIn && orderIds != null && orderIds.isNotEmpty) {
         final firstOrderId = int.tryParse(orderIds.split(',').first.trim());
         if (firstOrderId != null) {
-          final requiresInsurance = await Provider.of<CustomerOrderInsuranceController>(context, listen: false)
-              .load(firstOrderId);
+          final requiresInsurance =
+              await Provider.of<CustomerOrderInsuranceController>(context,
+                      listen: false)
+                  .load(firstOrderId);
           if (requiresInsurance) {
-            RouterHelper.getCustomerOrderInsuranceRoute(orderId: firstOrderId, action: RouteAction.pushReplacement);
+            RouterHelper.getCustomerOrderInsuranceRoute(
+                orderId: firstOrderId, action: RouteAction.pushReplacement);
           } else {
             RouterHelper.getOrderDetailsScreenRoute(
               orderId: firstOrderId,
@@ -174,44 +186,53 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
             );
           }
         } else {
-          RouterHelper.getOrderScreenRoute(isBackButtonExist: true, action: RouteAction.push, fromPlaceOrder: true);
+          RouterHelper.getOrderScreenRoute(
+              isBackButtonExist: true,
+              action: RouteAction.push,
+              fromPlaceOrder: true);
         }
       } else {
-        RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
+        RouterHelper.getDashboardRoute(
+            action: RouteAction.pushReplacement, page: 'home');
       }
 
-      if(widget.orderId.trim() == 'null') {
+      if (widget.orderId.trim() == 'null') {
         _showResultUI(
-          isBottomSheet: true,
-          orderIds: orderIds,
-          isNewUser: isNewUser,
-          icon: Icons.check,
-          titleKey: isNewUser ? 'order_placed_Account_Created' : 'order_placed',
-          descKey: 'your_order_placed'
-        );
+            isBottomSheet: true,
+            orderIds: orderIds,
+            isNewUser: isNewUser,
+            icon: Icons.check,
+            titleKey:
+                isNewUser ? 'order_placed_Account_Created' : 'order_placed',
+            descKey: 'your_order_placed');
       }
     } else {
-      RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
+      if (widget.isInsurancePayment && widget.orderId.trim().isNotEmpty) {
+        RouterHelper.getCustomerOrderInsuranceRoute(
+            orderId: int.parse(widget.orderId),
+            action: RouteAction.pushReplacement);
+      } else {
+        RouterHelper.getDashboardRoute(
+            action: RouteAction.pushReplacement, page: 'home');
+      }
 
       _showResultUI(
           isBottomSheet: false,
           icon: Icons.clear,
           titleKey: isFailed ? 'payment_failed' : 'payment_cancelled',
           descKey: isFailed ? 'your_payment_failed' : 'your_payment_cancelled',
-          isFailed: true
-      );
+          isFailed: true);
     }
   }
 
-  void _showResultUI({
-    required bool isBottomSheet,
-    String? orderIds,
-    bool isNewUser = false,
-    required IconData icon,
-    required String titleKey,
-    required String descKey,
-    bool isFailed = false
-  }) {
+  void _showResultUI(
+      {required bool isBottomSheet,
+      String? orderIds,
+      bool isNewUser = false,
+      required IconData icon,
+      required String titleKey,
+      required String descKey,
+      bool isFailed = false}) {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (isBottomSheet) {
         showModalBottomSheet(
@@ -222,16 +243,15 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
           builder: (context) => SafeArea(
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20))
-              ),
+                  color: Theme.of(context).cardColor,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20))),
               child: OrderPlaceBottomSheetWidget(
-                orderID: orderIds,
-                icon: icon,
-                title: getTranslated(titleKey, Get.context!),
-                description: getTranslated(descKey, Get.context!),
-                isFailed: isFailed
-              ),
+                  orderID: orderIds,
+                  icon: icon,
+                  title: getTranslated(titleKey, Get.context!),
+                  description: getTranslated(descKey, Get.context!),
+                  isFailed: isFailed),
             ),
           ),
         );
@@ -242,11 +262,9 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
                 icon: icon,
                 title: getTranslated(titleKey, Get.context!),
                 description: getTranslated(descKey, Get.context!),
-                isFailed: isFailed
-            ),
+                isFailed: isFailed),
             dismissible: false,
-            willFlip: true
-        );
+            willFlip: true);
       }
     });
   }
@@ -266,7 +284,8 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
       String? encodedData = uri.queryParameters['order_ids'];
       if (encodedData != null && encodedData.isNotEmpty) {
         String decoded = utf8.decode(base64.decode(encodedData));
-        return Provider.of<CheckoutController>(context, listen: false).extractId(decoded);
+        return Provider.of<CheckoutController>(context, listen: false)
+            .extractId(decoded);
       }
     } catch (e) {
       debugPrint("Order ID Extraction Error: $e");
@@ -279,7 +298,14 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
     _canRedirect = false;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
+      if (widget.isInsurancePayment && widget.orderId.trim().isNotEmpty) {
+        RouterHelper.getCustomerOrderInsuranceRoute(
+            orderId: int.parse(widget.orderId),
+            action: RouteAction.pushReplacement);
+      } else {
+        RouterHelper.getDashboardRoute(
+            action: RouteAction.pushReplacement, page: 'home');
+      }
     });
 
     Future.delayed(const Duration(milliseconds: 600), () {
@@ -296,5 +322,4 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
       );
     });
   }
-
 }
