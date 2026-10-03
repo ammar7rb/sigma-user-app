@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/business_pages_model.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
@@ -11,9 +13,10 @@ class HtmlViewScreen extends StatelessWidget {
   const HtmlViewScreen({super.key, required this.page});
   @override
   Widget build(BuildContext context) {
+    final language = context.watch<LocalizationController>().locale.languageCode;
     return Scaffold(backgroundColor: Theme.of(context).cardColor,
       body: Column(children: [
-          CustomAppBar(title: page?.title ?? ''),
+          CustomAppBar(title: page?.localizedTitle(language) ?? ''),
           Expanded(child: SingleChildScrollView(
               padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
               physics: const BouncingScrollPhysics(),
@@ -34,7 +37,7 @@ class HtmlViewScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                HtmlWidget(page?.description ?? '',
+                HtmlWidget(page?.localizedDescription(language) ?? '',
                   onTapUrl: (String url) {
                     return launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                   },

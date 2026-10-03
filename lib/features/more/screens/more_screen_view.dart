@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
@@ -6,21 +9,13 @@ import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
 import 'package:flutter_sixvalley_ecommerce/features/order_insurance/screens/pending_post_purchase_invoices_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/domain/models/account_overview_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/customer_wallet_screen.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/widgets/logout_confirm_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/widgets/profile_info_section_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/widgets/more_horizontal_section_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_sixvalley_ecommerce/features/more/widgets/title_button_widget.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -317,237 +312,81 @@ class _MoreScreenState extends State<MoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // var authController = Provider.of<AuthController>(context, listen: false);
-
+    final auth = context.watch<AuthController>();
+    final arabic = Directionality.of(context) == TextDirection.rtl;
+    Widget menu(IconData icon, String ar, String en, VoidCallback action) =>
+        ListTile(
+            leading: Icon(icon, color: Theme.of(context).primaryColor),
+            title: Text(arabic ? ar : en),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: action);
     return Scaffold(
-      body: SigmaResponsiveContent(
-          child: CustomScrollView(slivers: [
-        const SliverToBoxAdapter(child: ProfileInfoSectionWidget()),
-        SliverToBoxAdapter(
-            child: Container(
-          decoration:
-              BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
-          child: Consumer<AuthController>(builder: (ctx, authController, _) {
-            return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: Dimensions.paddingSizeSmall),
-                      child: Center(child: MoreHorizontalSection())),
-                  if (authController.isLoggedIn())
+        body: SigmaResponsiveContent(
+            child: RefreshIndicator(
+                onRefresh: _loadWalletOverview,
+                child: ListView(children: [
+                  const ProfileInfoSectionWidget(),
+                  const MoreHorizontalSection(),
+                  if (auth.isLoggedIn()) ...[
                     _AccountOverviewSection(
-                      data: _walletOverview,
-                      loading: _walletOverviewLoading,
-                      error: _walletOverviewError,
-                      onRetry: _loadWalletOverview,
-                      onChanged: _loadWalletOverview,
-                    ),
-                  Consumer<SplashController>(
-                      builder: (context, splashController, _) {
-                    return Padding(
-                      padding:
-                          const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                      child: Container(
-                        padding:
-                            const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(22),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Theme.of(context)
-                                    .hintColor
-                                    .withValues(alpha: .05),
-                                blurRadius: 1,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 1))
-                          ],
-                          color: Provider.of<ThemeController>(context).darkTheme
-                              ? Colors.white.withValues(alpha: .05)
-                              : Theme.of(context).cardColor,
-                          border: Border.all(
-                              color: Theme.of(context)
-                                  .dividerColor
-                                  .withValues(alpha: .20)),
-                        ),
-                        child: Column(children: [
-                          if (authController.isLoggedIn())
-                            MenuButtonWidget(
-                              image: Images.shoppingImage,
-                              title: getTranslated('orders', context),
-                              onTap: () => RouterHelper.getOrderScreenRoute(
-                                  action: RouteAction.push,
-                                  isBackButtonExist: true),
-                            ),
-                          if (authController.isLoggedIn())
-                            MenuButtonWidget(
-                              image: Images.user,
-                              title: getTranslated('profile', context),
-                              onTap: () {
-                                RouterHelper.getProfileScreen1Route(
-                                    action: RouteAction.push);
-                              },
-                            ),
-                          MenuButtonWidget(
-                            image: Images.address,
-                            title: getTranslated('addresses', context),
-                            onTap: () {
-                              RouterHelper.getAddressListScreen(
-                                  action: RouteAction.push);
-                            },
-                          ),
-                          MenuButtonWidget(
-                            image: Images.coupon,
-                            title: getTranslated('coupons', context),
-                            onTap: () {
-                              RouterHelper.getCouponListScreenRoute();
-                            },
-                          ),
-                          if (authController.isLoggedIn())
-                            if (splashController
-                                    .configModel?.refEarningStatus ==
-                                "1")
-                              MenuButtonWidget(
-                                image: Images.refIcon,
-                                title: getTranslated('refer_and_earn', context),
-                                isProfile: true,
-                                onTap: () {
-                                  RouterHelper.getReferAndEarnRoute(
-                                      action: RouteAction.push);
-                                },
-                              ),
-                          if (authController.isLoggedIn())
-                            MenuButtonWidget(
-                              image: Images.restockIcon,
-                              title: getTranslated('restock_requests', context),
-                              onTap: () {
-                                RouterHelper.getRestockListRoute(
-                                    action: RouteAction.push);
-                              },
-                            ),
-                          if (splashController.configModel!.activeTheme !=
-                                  "default" &&
-                              authController.isLoggedIn())
-                            MenuButtonWidget(
-                              image: Images.compare,
-                              title: getTranslated('compare_products', context),
-                              onTap: () {
-                                RouterHelper.getCompareProductScreenRoute();
-                              },
-                            ),
-                          MenuButtonWidget(
-                            image: Images.notification,
-                            title: getTranslated(
-                              'notification',
-                              context,
-                            ),
-                            isNotification: true,
-                            onTap: () {
-                              RouterHelper.getNotificationRoute(
-                                  action: RouteAction.push);
-                            },
-                          ),
-                          MenuButtonWidget(
-                            image: Images.settings,
-                            title: getTranslated('settings', context),
-                            onTap: () {
-                              RouterHelper.getSettingsRoute(
-                                  action: RouteAction.push);
-                            },
-                          ),
-                          if (splashController
-                                  .configModel?.blogUrl?.isNotEmpty ??
-                              false)
-                            MenuButtonWidget(
-                                image: Images.blogIcon,
-                                title: getTranslated('blog', context),
-                                onTap: () {
-                                  RouterHelper.getBlogScreenRoute(
-                                      action: RouteAction.push,
-                                      url: splashController
-                                              .configModel?.blogUrl ??
-                                          '');
-                                }),
-                        ]),
-                      ),
-                    );
-                  }),
-                  Padding(
-                    padding:
-                        const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                    child: Container(
-                      padding:
-                          const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context)
-                                .hintColor
-                                .withValues(alpha: .05),
-                            blurRadius: 1,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                        color: Provider.of<ThemeController>(context).darkTheme
-                            ? Colors.white.withValues(alpha: .05)
-                            : Theme.of(context).cardColor,
-                      ),
-                      child: MenuButtonWidget(
-                        image: Images.chats,
-                        title: getTranslated('contact_admin_support', context),
-                        onTap: () => RouterHelper.getInboxScreenRoute(
-                            action: RouteAction.push),
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: SizedBox(
-                        width: 30,
-                        child: Image.asset(
-                          Images.logOut,
-                          color: Theme.of(context).primaryColor,
-                        )),
-                    title: Text(
-                        !authController.isLoggedIn()
-                            ? getTranslated('sign_in', context)!
-                            : getTranslated('sign_out', context)!,
-                        style: titilliumRegular.copyWith(
-                            fontSize: Dimensions.fontSizeLarge)),
-                    onTap: () {
-                      if (!authController.isLoggedIn()) {
-                        RouterHelper.getLoginRoute(
-                            action: RouteAction.push,
-                            fromPage:
-                                '${RouterHelper.dashboardScreen}?page=more');
-                      } else {
-                        showModalBottomSheet(
-                            backgroundColor: Colors.transparent,
-                            context: context,
+                        data: _walletOverview,
+                        loading: _walletOverviewLoading,
+                        error: _walletOverviewError,
+                        onRetry: _loadWalletOverview,
+                        onChanged: _loadWalletOverview),
+                    menu(
+                        Icons.person_outline,
+                        'الملف الشخصي',
+                        'Profile',
+                        () => RouterHelper.getProfileScreen1Route(
+                            action: RouteAction.push)),
+                    menu(
+                        Icons.location_on_outlined,
+                        'العناوين المحفوظة',
+                        'Saved addresses',
+                        () => RouterHelper.getAddressListScreen(
+                            action: RouteAction.push)),
+                    menu(
+                        Icons.receipt_long_outlined,
+                        'الطلبات السابقة',
+                        'Order history',
+                        () => RouterHelper.getOrderScreenRoute(
+                            action: RouteAction.push, isBackButtonExist: true)),
+                    menu(
+                        Icons.pending_actions,
+                        'الطلبات المعلقة',
+                        'Pending orders',
+                        () => Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) =>
-                                const LogoutCustomBottomSheetWidget());
-                      }
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        bottom: Dimensions.paddingSizeDefault),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${getTranslated('version', context)} ${AppConstants.appVersion}',
-                            style: textRegular.copyWith(
-                                fontSize: Dimensions.fontSizeLarge,
-                                color: Theme.of(context).hintColor),
-                          ),
-                        ]),
-                  ),
-                ]);
-          }),
-        )),
-      ])),
-    );
+                                const PendingPostPurchaseInvoicesScreen()))),
+                    menu(
+                        Icons.support_agent,
+                        'المساعدة والدعم',
+                        'Help & support',
+                        () => RouterHelper.getSupportTicketRoute(
+                            action: RouteAction.push)),
+                  ],
+                  menu(
+                      Icons.lock_reset,
+                      'نسيت كلمة المرور؟',
+                      'Forgot password?',
+                      () => RouterHelper.getForgetPasswordScreenRoute(
+                          action: RouteAction.push)),
+                  menu(
+                      Icons.logout,
+                      auth.isLoggedIn() ? 'تسجيل الخروج' : 'تسجيل الدخول',
+                      auth.isLoggedIn() ? 'Sign out' : 'Sign in', () {
+                    if (!auth.isLoggedIn()) {
+                      RouterHelper.getLoginRoute(action: RouteAction.push);
+                    } else {
+                      showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) =>
+                              const LogoutCustomBottomSheetWidget());
+                    }
+                  }),
+                  const SizedBox(height: 24),
+                ]))));
   }
 }

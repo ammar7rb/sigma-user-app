@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
@@ -19,6 +20,13 @@ class ContactUsController extends ChangeNotifier{
     notifyListeners();
     ApiResponseModel apiResponse = await contactUsServiceInterface.add(contactUsBody);
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+      final String? conversationUrl = apiResponse.response!.data['conversation_url'];
+      if (conversationUrl != null) {
+        final uri = Uri.tryParse(conversationUrl);
+        if (uri != null && uri.scheme == 'https' && uri.host == Uri.parse("https://sigma-eg.net").host) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      }
       _isLoading = false;
       showCustomSnackBarWidget(getTranslated('message_sent_successfully', Get.context!), Get.context!, snackBarType: SnackBarType.success);
     } else {

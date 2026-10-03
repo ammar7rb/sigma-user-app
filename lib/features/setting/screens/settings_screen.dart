@@ -4,7 +4,6 @@ import 'package:flutter_sixvalley_ecommerce/features/setting/widgets/select_lang
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
-import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +14,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Provider.of<SplashController>(context, listen: false).setFromSetting(true);
     final localization = Provider.of<LocalizationController>(context);
-    final themeController = Provider.of<ThemeController>(context);
     return PopScope(
       onPopInvokedWithResult: (_, __) =>
           Provider.of<SplashController>(context, listen: false)
@@ -37,31 +35,10 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                     localization.isLtr
-                        ? 'Personalize language and appearance'
-                        : 'خصص اللغة ومظهر التطبيق بسهولة',
+                        ? 'Choose your preferred language'
+                        : 'اختر اللغة المناسبة لك',
                     style: TextStyle(color: Theme.of(context).hintColor)),
                 const SizedBox(height: 20),
-                _SettingsTile(
-                  icon: Icons.dark_mode_outlined,
-                  title: getTranslated('dark_theme', context) ?? '',
-                  subtitle: themeController.darkTheme
-                      ? (localization.isLtr
-                          ? 'Dark mode is on'
-                          : 'الوضع الداكن مفعّل')
-                      : (localization.isLtr
-                          ? 'Light mode is on'
-                          : 'الوضع الفاتح مفعّل'),
-                  trailing: Switch.adaptive(
-                    value: themeController.darkTheme,
-                    onChanged: (_) =>
-                        Provider.of<ThemeController>(context, listen: false)
-                            .toggleTheme(),
-                  ),
-                  onTap: () =>
-                      Provider.of<ThemeController>(context, listen: false)
-                          .toggleTheme(),
-                ),
-                const SizedBox(height: 12),
                 _SettingsTile(
                   icon: Icons.language_rounded,
                   title: getTranslated('choose_language', context) ?? '',

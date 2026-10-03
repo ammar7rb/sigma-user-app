@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/register_model.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
@@ -14,7 +13,6 @@ import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/user_log
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/services/auth_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/enums/from_page.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/domain/models/profile_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
@@ -124,60 +122,23 @@ class AuthController with ChangeNotifier {
       Map map = apiResponse.response!.data;
 
 
-      String? message = '', token = '', temporaryToken= '', email = '', phone = '';
-      ProfileModel? profileModel;
-      bool isPhoneVerified = false;
-      bool isMailVerified = false;
-
-
-      try{
-        message = map['error_message'];
-        token = map['token'];
-        temporaryToken = map['temp_token'];
-        if(map["user"] != null) {
-          email = map["user"]["email"];
-          phone = map["user"]["phone"];
-          isPhoneVerified = map["user"]["is_phone_verified"] ?? false;
-          isMailVerified = map["user"]["is_email_verified"] ?? false;
-        }
-      }catch(e){
-        message = null;
-        token = null;
-        temporaryToken = null;
-      }
-
-      if(token != null){
-        authServiceInterface.saveUserToken(token);
+      final String? token = map['token'];
+      final String? temporaryToken = map['temp_token'];
+      final Map? user = map['user'];
+      final String? phone = user?['phone'];
+      final bool phoneVerified = user?['is_phone_verified'] == true || user?['is_phone_verified'] == 1;
+      if (token != null && token.isNotEmpty) {
+        await authServiceInterface.saveUserToken(token);
         await authServiceInterface.updateDeviceToken();
-        setCurrentLanguage(Provider.of<LocalizationController>(Get.context!, listen: false).getCurrentLanguage() ?? 'en');
+        setCurrentLanguage(Provider.of<LocalizationController>(Get.context!, listen: false).getCurrentLanguage() ?? 'ar');
+        callback(true, token, null, null, null, socialLogin.medium, null, socialLogin.email, socialLogin.name, fromPage, onLoginSuccess);
+      } else if (temporaryToken != null && temporaryToken.isNotEmpty) {
+        callback(true, null, temporaryToken, null, null, socialLogin.medium, null, socialLogin.email, socialLogin.name, fromPage, onLoginSuccess);
+      } else if (phone != null && phone.isNotEmpty && !phoneVerified && (customerVerification?.phone == 1 || customerVerification?.firebase == 1)) {
+        callback(true, null, null, null, null, socialLogin.medium, phone, socialLogin.email, socialLogin.name, fromPage, onLoginSuccess);
+      } else {
+        showCustomSnackBarWidget(getTranslated('wrong_credential', Get.context!), Get.context!);
       }
-
-      if(map.containsKey('user')){
-        try{
-          profileModel = ProfileModel.fromJson(map['user']);
-          callback(true, null, null, profileModel, message, socialLogin.medium, null, socialLogin.email, socialLogin.name);
-        }catch(e) {
-          if (kDebugMode) {
-            print('----------$e------------');
-          }
-        }
-      }
-
-      if(token != null && token.isNotEmpty) {
-        authServiceInterface.saveUserToken(token);
-        await authServiceInterface.updateDeviceToken();
-        setCurrentLanguage(Provider.of<LocalizationController>(Get.context!, listen: false).getCurrentLanguage() ?? 'en');
-        callback(true, token, null, null, message, socialLogin.medium, null, socialLogin.email, socialLogin.name, fromPage, onLoginSuccess);
-      }
-
-      if(temporaryToken != null && temporaryToken.isNotEmpty) {
-        callback(true, null, temporaryToken, null, message, socialLogin.medium, null, socialLogin.email, socialLogin.name, fromPage, onLoginSuccess);
-      }
-
-      if(phone != null && phone.isNotEmpty && !isPhoneVerified && (customerVerification?.phone == 1 || customerVerification?.firebase == 1)) {
-        callback(true, null, null, null, message, socialLogin.medium, phone, socialLogin.email, socialLogin.name, fromPage, onLoginSuccess);
-      }
-
     } else {
      ApiChecker.checkApi(apiResponse);
     }
@@ -211,18 +172,17 @@ class AuthController with ChangeNotifier {
     }
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       Map map = apiResponse.response!.data;
-      String? tempToken = '', token = '', message = '';
+      String? tempToken = '', token = '';
 
       if (map.containsKey('temporary_token')) {
         tempToken = map["temporary_token"];
       } else if(map.containsKey('token')) {
         token = map["token"];
       }
-      message = map["message"];
 
 
       if(token != null && token.isNotEmpty) {
-        authServiceInterface.saveUserToken(token);
+        await authServiceInterface.saveUserToken(token);
         await authServiceInterface.updateDeviceToken();
         // A newly-created account always starts from the real home screen.
         // Returning to the profile route made registration appear to finish on
@@ -289,12 +249,11 @@ class AuthController with ChangeNotifier {
       clearGuestId();
       Map map = apiResponse.response!.data;
 
-      String? temporaryToken = '', token = '', message = '', email, phone;
+      String? temporaryToken = '', token = '', email, phone;
       bool isPhoneVerified = false;
       bool isMailVerified = false;
 
       try{
-        message = map["message"];
         token = map["token"];
         temporaryToken = map["temporary_token"];
         email = map["email"];
@@ -302,7 +261,6 @@ class AuthController with ChangeNotifier {
         isPhoneVerified = map["is_phone_verified"] ?? false;
         isMailVerified = map["is_email_verified"] ?? false;
       }catch(e){
-        message = null;
         token = null;
         temporaryToken = null;
       }
@@ -330,7 +288,7 @@ class AuthController with ChangeNotifier {
 
 
       if(token != null && token.isNotEmpty) {
-        authServiceInterface.saveUserToken(token);
+        await authServiceInterface.saveUserToken(token);
         await authServiceInterface.updateDeviceToken();
       } else if (temporaryToken != null) {
         await sendVerificationCode(
@@ -458,9 +416,6 @@ class AuthController with ChangeNotifier {
     _resendButtonLoading = true;
     notifyListeners();
 
-    String? vID;
-
-    print('-resendButtonLoading---$_resendButtonLoading');
 
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: phoneNumber,
@@ -539,7 +494,6 @@ class AuthController with ChangeNotifier {
       notifyListeners();
     });
 
-    print('-resendButtonLoading---$_resendButtonLoading');
 
     // 🔥 This makes the method truly await
     await completer.future;
@@ -778,11 +732,11 @@ class AuthController with ChangeNotifier {
     return (responseModel, tempToken);
   }
 
-  Future<(ResponseModel, String?)> registerWithSocialMedia (String name, {required String email, String? phone}) async {
+  Future<(ResponseModel, String?)> registerWithSocialMedia (String name, {required String email, String? phone, String? socialToken}) async {
     _isPhoneNumberVerificationButtonLoading = true;
     _loginErrorMessage = '';
     notifyListeners();
-    ApiResponseModel apiResponse  = await authServiceInterface.registerWithSocialMedia(name, email: email, phone: phone);
+    ApiResponseModel apiResponse  = await authServiceInterface.registerWithSocialMedia(name, email: email, phone: phone, socialToken: socialToken);
     ResponseModel responseModel;
     String? token;
     String? tempToken;
@@ -798,7 +752,7 @@ class AuthController with ChangeNotifier {
       }
 
       if(token != null){
-        authServiceInterface.saveUserToken(token);
+        await authServiceInterface.saveUserToken(token);
         responseModel = ResponseModel('verification', true);
       }else if(tempToken != null){
         responseModel = ResponseModel('verification', true);

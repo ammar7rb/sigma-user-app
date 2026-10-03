@@ -172,8 +172,8 @@ class AuthService implements AuthServiceInterface{
 
 
   @override
-  Future registerWithSocialMedia(String name, {required String email,String? phone})  {
-    return authRepoInterface.registerWithSocialMedia(name, email: email, phone: phone);
+  Future registerWithSocialMedia(String name, {required String email,String? phone, String? socialToken})  {
+    return authRepoInterface.registerWithSocialMedia(name, email: email, phone: phone, socialToken: socialToken);
   }
 
   @override

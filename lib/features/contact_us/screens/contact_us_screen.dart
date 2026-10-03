@@ -5,6 +5,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -35,6 +36,15 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     super.initState();
     Provider.of<AuthController>(context, listen: false)
         .setCountryCode('+20', notify: false);
+    if (Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
+      final profile = Provider.of<ProfileController>(context, listen: false).userInfoModel;
+      if (profile != null) {
+        fullNameController.text = '${profile.fName ?? ''} ${profile.lName ?? ''}'.trim();
+        emailController.text = profile.email ?? '';
+        final localPhone = EgyptPhoneHelper.normalizeLocal(profile.phone ?? '');
+        phoneController.text = localPhone.length == 10 && localPhone.startsWith('1') ? '0$localPhone' : localPhone;
+      }
+    }
     if (widget.isPasswordReset) {
       subjectController.text =
           getTranslated('password_reset_support_subject', context) ??
@@ -43,6 +53,14 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
               'password_reset_support_request_message', context) ??
           'I need help resetting my password. Please contact me after verifying my account details.';
     }
+  }
+
+  @override
+  void dispose() {
+    for (final controller in [fullNameController, emailController, phoneController, subjectController, messageController]) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -124,6 +142,14 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                         value, 'message_is_required'),
                   ),
                 ] else ...[
+                  const SizedBox(height: Dimensions.paddingSizeDefault),
+                  CustomTextFieldWidget(
+                    maxLines: 4,
+                    required: true,
+                    controller: messageController,
+                    labelText: Directionality.of(context) == TextDirection.rtl ? 'تفاصيل المشكلة' : 'Problem details',
+                    validator: (value) => ValidateCheck.validateEmptyText(value, 'message_is_required'),
+                  ),
                   const SizedBox(height: Dimensions.paddingSizeDefault),
                   Semantics(
                     label: getTranslated(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -20,7 +19,6 @@ class ProfileInfoSectionWidget extends StatelessWidget {
     return Consumer<ProfileController>(builder: (context, profile, _) {
       final auth = Provider.of<AuthController>(context, listen: false);
       bool isGuestMode = !auth.isLoggedIn();
-      final theme = Provider.of<ThemeController>(context);
       final locale = Provider.of<LocalizationController>(context);
       return SafeArea(
         bottom: false,
@@ -49,14 +47,6 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                           ? const Locale('ar', 'SA')
                           : const Locale('en', 'US'),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  _HeaderAction(
-                    compact: compact,
-                    icon: theme.darkTheme
-                        ? Icons.light_mode_rounded
-                        : Icons.dark_mode_rounded,
-                    onTap: theme.toggleTheme,
                   ),
                 ]),
               );

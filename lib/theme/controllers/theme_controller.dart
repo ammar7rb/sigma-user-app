@@ -9,18 +9,15 @@ class ThemeController with ChangeNotifier {
     _loadCurrentTheme();
   }
 
-  bool _darkTheme = false;
-  bool get darkTheme => _darkTheme;
+  bool get darkTheme => false;
 
   void toggleTheme() {
-    _darkTheme = !_darkTheme;
-    sharedPreferences!.setBool(AppConstants.theme, _darkTheme);
-    notifyListeners();
+    // SIGMA customer accounts always use the light appearance.
+    sharedPreferences?.setBool(AppConstants.theme, false);
   }
 
   void _loadCurrentTheme() async {
-    _darkTheme = sharedPreferences!.getBool(AppConstants.theme) ?? false;
-    notifyListeners();
+    await sharedPreferences?.setBool(AppConstants.theme, false);
   }
 
   Color? selectedPrimaryColor;

@@ -4,6 +4,7 @@ import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/repositories/splash_repository_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 
 class SplashRepository implements SplashRepositoryInterface{
   final DioClient? dioClient;
@@ -23,7 +24,8 @@ class SplashRepository implements SplashRepositoryInterface{
   @override
   Future<ApiResponseModel> getBusinessPages(String type) async {
     try {
-      final response = await dioClient!.get(AppConstants.businessPagesUri+type);
+      final response = await dioClient!.get(AppConstants.businessPagesUri+type,
+        options: Options(headers: {'lang': sharedPreferences?.getString(AppConstants.languageCode) ?? AppConstants.languages.first.languageCode ?? 'en'}));
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));

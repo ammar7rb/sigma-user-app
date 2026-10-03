@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/controllers/wishlist_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:provider/provider.dart';
 
 class MoreHorizontalSection extends StatelessWidget {
@@ -13,8 +11,6 @@ class MoreHorizontalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ConfigModel? configModel =
-        Provider.of<SplashController>(context, listen: false).configModel;
 
     final bool isGuestMode =
         !Provider.of<AuthController>(context, listen: false).isLoggedIn();
@@ -43,12 +39,6 @@ class MoreHorizontalSection extends StatelessWidget {
             Icons.local_offer_rounded,
             getTranslated('offers', context) ?? 'Offers',
             () => RouterHelper.getOfferProductListScreenRoute(
-                action: RouteAction.push)),
-      if (!isGuestMode && configModel?.loyaltyPointStatus == 1)
-        _QuickItem(
-            Icons.workspace_premium_rounded,
-            getTranslated('loyalty_point', context) ?? 'Loyalty',
-            () => RouterHelper.getLoyaltyPointScreenRoute(
                 action: RouteAction.push)),
     ];
     return Padding(

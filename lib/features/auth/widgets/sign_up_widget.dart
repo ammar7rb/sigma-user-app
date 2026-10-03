@@ -306,7 +306,6 @@ class SignUpWidgetState extends State<SignUpWidget> {
                     child: CustomButton(
                       isLoading: authProvider.isLoading,
                       onTap: (authProvider.isAcceptTerms &&
-                              authProvider.isAcceptPrivacy &&
                               authProvider.registrationPoliciesLoaded)
                           ? () {
                               String firstName =

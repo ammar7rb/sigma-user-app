@@ -219,12 +219,16 @@ class SplashController extends ChangeNotifier {
       if (type == 'default') {
         _defaultBusinessPages = [];
         apiResponse.response?.data.forEach((data) {
-          _defaultBusinessPages?.add(BusinessPageModel.fromJson(data));
+          if (data['slug'] != 'privacy-policy') {
+            _defaultBusinessPages?.add(BusinessPageModel.fromJson(data));
+          }
         });
       } else {
         _businessPages = [];
         apiResponse.response?.data.forEach((data) {
-          _businessPages?.add(BusinessPageModel.fromJson(data));
+          if (data['slug'] != 'privacy-policy') {
+            _businessPages?.add(BusinessPageModel.fromJson(data));
+          }
         });
       }
     } else {

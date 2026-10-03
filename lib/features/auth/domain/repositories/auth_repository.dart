@@ -180,7 +180,8 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   bool isLoggedIn() {
-    return sharedPreferences!.containsKey(AppConstants.userLoginToken);
+    final token = getUserToken().trim();
+    return token.isNotEmpty && token != 'null';
   }
 
   @override
@@ -305,7 +306,7 @@ class AuthRepository implements AuthRepoInterface{
     try {
       Response response = await dioClient!.post(
         AppConstants.registerWithOtp,
-        data: {"name": name, "email": email, "phone": phone},
+        data: {"name": name, "email": email, "phone": phone, "terms_accepted": true},
       );
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
@@ -315,11 +316,11 @@ class AuthRepository implements AuthRepoInterface{
 
 
   @override
-  Future<ApiResponseModel> registerWithSocialMedia(String name, {required String email,String? phone}) async {
+  Future<ApiResponseModel> registerWithSocialMedia(String name, {required String email,String? phone, String? socialToken}) async {
     try {
       Response response = await dioClient!.post(
         AppConstants.registerWithSocialMedia,
-        data: {"name": name, "email": email, "phone": phone},
+        data: {"name": name, "email": email, "phone": phone, "terms_accepted": true, "social_token": socialToken},
       );
       return ApiResponseModel.withSuccess(response);
     } catch (e) {

@@ -320,6 +320,8 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
                         const SizedBox(height: Dimensions.paddingSizeLarge),
 
 
+                        ListTile(leading: const Icon(Icons.location_on_outlined), title: Text(Directionality.of(context) == TextDirection.rtl ? 'العناوين المحفوظة' : 'Saved addresses'), trailing: const Icon(Icons.chevron_right), onTap: () => RouterHelper.getAddressListScreen(action: RouteAction.push)),
+
                         CustomTextFieldWidget(
                             isPassword: true,
                             labelText: getTranslated('password', context),

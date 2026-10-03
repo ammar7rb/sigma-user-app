@@ -69,7 +69,7 @@ abstract class AuthRepoInterface<T> implements RepositoryInterface{
 
   Future<ApiResponseModel> registerWithOtp(String name, {String? email, required String phone});
 
-  Future<ApiResponseModel> registerWithSocialMedia(String name, {required String email,String? phone});
+  Future<ApiResponseModel> registerWithSocialMedia(String name, {required String email,String? phone, String? socialToken});
 
   Future<ApiResponseModel> verifyToken(String email, String token);
 

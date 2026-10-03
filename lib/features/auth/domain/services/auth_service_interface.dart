@@ -66,7 +66,7 @@ abstract class AuthServiceInterface{
 
   Future<dynamic> registerWithOtp(String name, {String? email, required String phone});
 
-  Future<dynamic> registerWithSocialMedia(String name, {required String email,String? phone});
+  Future<dynamic> registerWithSocialMedia(String name, {required String email,String? phone, String? socialToken});
 
   Future<dynamic> verifyToken(String email, String token);
 

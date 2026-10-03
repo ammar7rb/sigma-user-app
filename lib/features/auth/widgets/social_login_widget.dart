@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/signup_model.dart';
@@ -242,7 +241,7 @@ Future<void> googleLogin(BuildContext context, String? fromPage, VoidCallback? o
       token = Provider.of<GoogleSignInController>(Get.context!, listen: false).auth?.accessToken;
       name =  Provider.of<GoogleSignInController>(Get.context!, listen: false).googleAccount!.displayName;
       medium = 'google';
-      log('eemail =>$email token =>$token');
+
 
       socialLogin.email = email;
       socialLogin.medium = medium;
@@ -273,6 +272,7 @@ Future<void> facebookLogin(BuildContext context, String? fromPage, VoidCallback?
       socialLogin.medium = medium;
       socialLogin.token = token;
       socialLogin.uniqueId = id;
+      socialLogin.name = name;
       await Provider.of<AuthController>(Get.context!, listen: false).socialLogin(socialLogin, route, fromPage, onLoginSuccess);
     }
   } catch (er) {
@@ -303,7 +303,7 @@ Future<void> appleLogin(BuildContext context, String? fromPage, VoidCallback? on
     socialLogin.name = credential.givenName ?? '';
     await Provider.of<AuthController>(Get.context!, listen: false).socialLogin(socialLogin, route, fromPage, onLoginSuccess);
 
-    log('id token =>${credential.identityToken}\n===> Identifier${credential.userIdentifier}\n==>Given Name ${credential.familyName}');
+
   } catch (er) {
     debugPrint('access token error is : $er');
   }
