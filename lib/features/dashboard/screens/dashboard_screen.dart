@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/features/home/screens/sigma_care_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
@@ -74,7 +75,8 @@ class DashBoardScreenState extends State<DashBoardScreen> {
       _pageIndex = widget.pageIndex!;
     }
 
-    if (splashController.configModel?.activeTheme == "default") {
+    if (splashController.configModel?.activeTheme == "default" ||
+        splashController.configModel?.activeTheme == "theme_sigma_care") {
       HomePage.loadData(false);
     } else if (splashController.configModel?.activeTheme == "theme_aster") {
       AsterThemeHomeScreen.loadData(false);
@@ -86,11 +88,14 @@ class DashBoardScreenState extends State<DashBoardScreen> {
       NavigationModel(
         name: 'home',
         icon: Images.homeImage,
-        screen: (splashController.configModel?.activeTheme == "default")
-            ? const HomePage()
-            : (splashController.configModel?.activeTheme == "theme_aster")
-                ? const AsterThemeHomeScreen()
-                : const FashionThemeHomePage(),
+        screen: (splashController.configModel?.activeTheme ==
+                "theme_sigma_care")
+            ? const SigmaCareHomeScreen()
+            : (splashController.configModel?.activeTheme == "default")
+                ? const HomePage()
+                : (splashController.configModel?.activeTheme == "theme_aster")
+                    ? const AsterThemeHomeScreen()
+                    : const FashionThemeHomePage(),
       ),
       NavigationModel(
         name: 'CATEGORY',

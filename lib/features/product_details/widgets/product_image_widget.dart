@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/discount_tag_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/compare/controllers/compare_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers/product_details_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/domain/models/product_details_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/enums/preview_type.dart';
@@ -10,16 +9,13 @@ import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/dow
 import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/image_preview.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/pdf_preview_flutter.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/video_preview.dart';
-import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
-import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/not_logged_in_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/favourite_button_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -33,8 +29,6 @@ class ProductImageWidget extends StatelessWidget {
   final PageController _controller = PageController();
   @override
   Widget build(BuildContext context) {
-    final splashController =
-        Provider.of<SplashController>(context, listen: false);
     final bool isDarkTheme = Provider.of<ThemeController>(context).darkTheme;
 
     return productModel != null
@@ -68,7 +62,7 @@ class ProductImageWidget extends StatelessWidget {
                               bottom: Dimensions.paddingSizeEight,
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(12),
                               child: Container(
                                 decoration: BoxDecoration(
                                     color: Theme.of(context).cardColor,
@@ -83,11 +77,12 @@ class ProductImageWidget extends StatelessWidget {
                                             : Theme.of(context)
                                                 .primaryColor
                                                 .withValues(alpha: .25)),
-                                    borderRadius: BorderRadius.circular(24)),
+                                    borderRadius: BorderRadius.circular(12)),
                                 child: Stack(children: [
                                   SizedBox(
-                                    height: MediaQuery.of(context).size.width *
-                                        0.78,
+                                    height: (MediaQuery.of(context).size.width *
+                                            0.85)
+                                        .clamp(280.0, 440.0),
                                     child: productModel!.imagesFullUrl != null
                                         ? PageView.builder(
                                             controller: _controller,
@@ -161,78 +156,6 @@ class ProductImageWidget extends StatelessWidget {
                                           productId: productModel?.id,
                                           fromProductDetails: true,
                                         ),
-                                        if (splashController
-                                                .configModel!.activeTheme !=
-                                            "default")
-                                          const SizedBox(
-                                            height: Dimensions.paddingSizeSmall,
-                                          ),
-                                        if (splashController
-                                                .configModel!.activeTheme !=
-                                            "default")
-                                          InkWell(
-                                            onTap: () {
-                                              if (Provider.of<AuthController>(
-                                                      context,
-                                                      listen: false)
-                                                  .isLoggedIn()) {
-                                                Provider.of<CompareController>(
-                                                        context,
-                                                        listen: false)
-                                                    .addCompareList(
-                                                        productModel!.id!);
-                                              } else {
-                                                showModalBottomSheet(
-                                                    backgroundColor:
-                                                        const Color(0x00FFFFFF),
-                                                    context: context,
-                                                    builder: (_) =>
-                                                        const NotLoggedInBottomSheetWidget());
-                                              }
-                                            },
-                                            child: Consumer<CompareController>(
-                                              builder: (context, compare, _) {
-                                                return Card(
-                                                  elevation: 2,
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              50)),
-                                                  child: Container(
-                                                    width: 40,
-                                                    height: 40,
-                                                    decoration: BoxDecoration(
-                                                      color: compare.compIds
-                                                              .contains(
-                                                                  productModel!
-                                                                      .id)
-                                                          ? Theme.of(context)
-                                                              .primaryColor
-                                                          : Theme.of(context)
-                                                              .cardColor,
-                                                      shape: BoxShape.circle,
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .all(Dimensions
-                                                              .paddingSizeSmall),
-                                                      child: Image.asset(
-                                                        Images.compare,
-                                                        color: compare.compIds
-                                                                .contains(
-                                                                    productModel!
-                                                                        .id)
-                                                            ? Theme.of(context)
-                                                                .cardColor
-                                                            : Theme.of(context)
-                                                                .primaryColor,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
                                         const SizedBox(
                                             height:
                                                 Dimensions.paddingSizeSmall),

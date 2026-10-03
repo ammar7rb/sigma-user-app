@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 const Map<String, IconData> medicalCategoryIcons = {
+  'medical_gas_network': Icons.gas_meter_rounded,
+  'prosthetic': Icons.accessibility_new_rounded,
+  'surgical_instruments': Icons.content_cut_rounded,
+  'diagnostic_equipment': Icons.medical_information_rounded,
   'medical_bag': Icons.medical_services_rounded,
   'first_aid': Icons.health_and_safety_rounded,
   'stethoscope': Icons.medical_information_rounded,

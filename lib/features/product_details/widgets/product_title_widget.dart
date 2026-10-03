@@ -29,7 +29,7 @@ class ProductTitleWidget extends StatelessWidget {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                   color: Theme.of(context).dividerColor.withValues(alpha: .35)),
             ),
@@ -41,11 +41,10 @@ class ProductTitleWidget extends StatelessWidget {
                       Text(
                         productModel!.name ?? '',
                         style: textBold.copyWith(
-                            fontSize: 21,
+                            fontSize: 23,
                             height: 1.3,
                             color:
                                 Theme.of(context).textTheme.bodyLarge?.color),
-                        maxLines: 2,
                       ),
                       const SizedBox(height: Dimensions.paddingSizeDefault),
 

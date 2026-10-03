@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/sigma_product_policy_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart'
     show NoInternetOrDataScreenWidget;
@@ -266,6 +267,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                     ProductTitleWidget(
                                         productModel:
                                             details.productDetailsModel),
+                                    const SigmaProductPolicyWidget(),
                                     (details.productDetailsModel?.productType ==
                                                 'digital' &&
                                             (_publishingHouse.isNotEmpty ||

@@ -19,7 +19,7 @@ class CategoryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int homeLength = length >= 10 ? 10 : length;
+    int homeLength = length;
     return Padding(
       padding: EdgeInsets.only(
           left:
@@ -43,12 +43,10 @@ class CategoryWidget extends StatelessWidget {
                     color:
                         Theme.of(context).primaryColor.withValues(alpha: .125),
                     width: 1),
-                borderRadius:
-                    BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(18),
                 color: Theme.of(context).primaryColor.withValues(alpha: .075)),
             child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(18),
                 child: category.medicalIcon != null &&
                         medicalCategoryIcons.containsKey(category.medicalIcon)
                     ? Icon(medicalCategoryIcons[category.medicalIcon],
