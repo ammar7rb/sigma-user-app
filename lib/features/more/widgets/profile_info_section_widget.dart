@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -133,6 +134,13 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                           style: textRegular.copyWith(
                               color: Colors.white.withValues(alpha: .82),
                               fontSize: Dimensions.fontSizeLarge)),
+                    if (!isGuestMode && profile.userInfoModel?.accountNumber != null) ...[
+                      const SizedBox(height: 8),
+                      CustomerAccountNumberWidget(
+                        accountNumber: profile.userInfoModel!.accountNumber!,
+                        color: Colors.white,
+                      ),
+                    ],
                     if (isGuestMode) ...[
                       const SizedBox(height: 8),
                       FilledButton.icon(

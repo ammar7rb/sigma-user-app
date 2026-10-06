@@ -14,8 +14,8 @@ class LocalizationController extends ChangeNotifier {
     _loadCurrentLanguage();
   }
 
-  Locale _locale = Locale(AppConstants.languages[0].languageCode!, AppConstants.languages[0].countryCode);
-  bool _isLtr = true;
+  Locale _locale = const Locale('ar', 'SA');
+  bool _isLtr = false;
   int? _languageIndex;
 
   Locale get locale => _locale;
@@ -25,8 +25,8 @@ class LocalizationController extends ChangeNotifier {
   void setLanguage(Locale locale) {
     _locale = locale;
     _isLtr = _locale.languageCode != 'ar';
-    dioClient!.updateHeader(null, locale.countryCode);
-    Provider.of<AuthController>(Get.context!, listen: false).setCurrentLanguage(locale.countryCode == 'US'?'en': _locale.countryCode!.toLowerCase());
+    dioClient?.updateHeader(null, locale.languageCode);
+    Provider.of<AuthController>(Get.context!, listen: false).setCurrentLanguage(locale.languageCode);
     for(int index=0; index<AppConstants.languages.length; index++) {
       if(AppConstants.languages[index].languageCode == locale.languageCode) {
         _languageIndex = index;
@@ -38,8 +38,10 @@ class LocalizationController extends ChangeNotifier {
   }
 
   Future<void> _loadCurrentLanguage() async {
-    _locale = Locale(sharedPreferences!.getString(AppConstants.languageCode) ?? AppConstants.languages[0].languageCode!,
-        sharedPreferences!.getString(AppConstants.countryCode) ?? AppConstants.languages[0].countryCode);
+    // Each new app session starts in Arabic; manual switching remains available.
+    _locale = const Locale('ar', 'SA');
+    dioClient?.updateHeader(null, 'ar');
+    await _saveLanguage(_locale);
     _isLtr = _locale.languageCode != 'ar';
     for(int index=0; index<AppConstants.languages.length; index++) {
       if(AppConstants.languages[index].languageCode == locale.languageCode) {
@@ -51,12 +53,12 @@ class LocalizationController extends ChangeNotifier {
   }
 
   Future<void> _saveLanguage(Locale locale) async {
-    sharedPreferences!.setString(AppConstants.languageCode, locale.languageCode);
-    sharedPreferences!.setString(AppConstants.countryCode, locale.countryCode!);
+    await sharedPreferences!.setString(AppConstants.languageCode, locale.languageCode);
+    await sharedPreferences!.setString(AppConstants.countryCode, locale.countryCode!);
   }
 
 
   String? getCurrentLanguage() {
-    return sharedPreferences!.getString(AppConstants.countryCode) ?? "US";
+    return sharedPreferences!.getString(AppConstants.countryCode) ?? "SA";
   }
 }

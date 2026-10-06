@@ -35,7 +35,6 @@ class _ProfileBody extends StatelessWidget {
           const Spacer(),
           _circleButton(context, Icons.language_rounded, 'AR'),
           const SizedBox(width: 9),
-          _circleButton(context, Icons.dark_mode_rounded, ''),
         ]),
       )),
       SliverPadding(

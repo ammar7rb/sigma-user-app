@@ -2,6 +2,8 @@ import 'package:flutter_sixvalley_ecommerce/data/model/image_full_url.dart';
 
 class ProfileModel {
   int? id;
+  String? administrativeReference;
+  String? get accountNumber => administrativeReference ?? (id == null ? null : 'C$id');
   String? name;
   String? method;
   String? fName;
@@ -24,6 +26,7 @@ class ProfileModel {
 
   ProfileModel(
       {this.id,
+        this.administrativeReference,
         this.name,
         this.method,
         this.fName,
@@ -47,6 +50,7 @@ class ProfileModel {
 
   ProfileModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
+    administrativeReference = json['administrative_reference']?.toString();
     name = json['name'];
     method = json['_method'];
     fName = json['f_name'];

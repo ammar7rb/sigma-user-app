@@ -1198,5 +1198,6 @@
 "offer":"Offer",
 "or":"or",
 "order_placed_successfully":"Your order was placed successfully.",
-"please_accept_terms_and_conditions":"Please accept the terms and conditions to continue."
+"please_accept_terms_and_conditions":"Please accept the terms and conditions to continue.",
+  "your_account_number_is": "Your account number is"
 }

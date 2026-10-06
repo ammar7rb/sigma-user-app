@@ -52,7 +52,6 @@ import 'package:flutter_sixvalley_ecommerce/features/search_product/controllers/
 import 'package:flutter_sixvalley_ecommerce/features/shop/controllers/shop_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/push_notification/notification_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/theme/dark_theme.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/light_theme.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:go_router/go_router.dart';
@@ -312,14 +311,12 @@ class _MyAppState extends State<MyApp> {
       return Consumer<ThemeController>(builder: (context, themeController, _) {
         if ((widget.route != null && splashController.configModel == null)) {
           return Theme(
-              data: themeController.darkTheme
-                  ? dark
-                  : light(
+              data: light(
                       primaryColor: Theme.of(context).primaryColor,
                       secondaryColor: Theme.of(context).colorScheme.secondary,
                     ),
               child: Directionality(
-                  textDirection: TextDirection.ltr,
+                  textDirection: TextDirection.rtl,
                   child: MediaQuery(
                       data: MediaQueryData.fromView(View.of(context)),
                       child: SplashWidget())));
@@ -328,9 +325,8 @@ class _MyAppState extends State<MyApp> {
             routerConfig: RouterHelper.goRoutes,
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
-            theme: themeController.darkTheme
-                ? dark
-                : light(
+            themeMode: ThemeMode.light,
+            theme: light(
                     primaryColor: Theme.of(context).primaryColor,
                     secondaryColor: Theme.of(context).colorScheme.secondary,
                   ),

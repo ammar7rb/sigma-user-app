@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -222,6 +223,10 @@ class ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   child: ListView(physics: const BouncingScrollPhysics(), children: [
+                    if (profile.userInfoModel?.accountNumber != null) ...[
+                      CustomerAccountNumberWidget(accountNumber: profile.userInfoModel!.accountNumber!, color: Theme.of(context).primaryColor),
+                      const SizedBox(height: Dimensions.paddingSizeLarge),
+                    ],
                     CustomTextFieldWidget(
                       labelText: getTranslated('first_name', context),
                       inputType: TextInputType.name,
