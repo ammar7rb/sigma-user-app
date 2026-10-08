@@ -149,6 +149,11 @@ class _ClaimContent extends StatelessWidget {
                                 .titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700))),
                     const SizedBox(height: 12),
+                    if (envelope.invoiceNumber?.isNotEmpty == true)
+                      _row(
+                          context,
+                          getTranslated('public_invoice_number', context)!,
+                          envelope.invoiceNumber!),
                     _row(context, getTranslated('order_reference', context)!,
                         claim.orderReference),
                     _row(

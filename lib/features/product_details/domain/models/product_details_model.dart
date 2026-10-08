@@ -4,6 +4,7 @@ import 'package:flutter_sixvalley_ecommerce/features/shop/domain/models/seller_m
 
 class ProductDetailsModel {
   int? _id;
+  String? _administrativeReference;
   String? _addedBy;
   int? _userId;
   String? _name;
@@ -339,6 +340,7 @@ class ProductDetailsModel {
   }
 
   int? get id => _id;
+  String? get productNumber => _administrativeReference ?? (_id == null ? null : 'P$_id');
   String? get addedBy => _addedBy;
   int? get userId => _userId;
   String? get name => _name;
@@ -405,6 +407,7 @@ class ProductDetailsModel {
 
   ProductDetailsModel.fromJson(Map<String, dynamic> json) {
     _id = json['id'];
+    _administrativeReference = json['administrative_reference']?.toString();
     _addedBy = json['added_by'];
     _userId = json['user_id'];
     _name = json['name'];

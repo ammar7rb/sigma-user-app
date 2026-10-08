@@ -22,6 +22,7 @@ Map<String, dynamic> invoice(
         String status = 'pending_payment',
         bool payable = true}) =>
     {
+      'invoice_number': 'IV7',
       'claim': {
         'order_reference': '#100010',
         'purchase_amount': 100,
@@ -145,6 +146,8 @@ void main() {
         final context =
             tester.element(find.byType(CustomerOrderInsuranceScreen));
         final taxLabel = getTranslated('tax_amount_due', context)!;
+        expect(find.text('IV7'), findsOneWidget);
+        expect(find.text('#100010'), findsOneWidget);
         expect(find.text(taxLabel), findsOneWidget);
         expect(find.text(getTranslated('second_invoice_heading', context)!),
             findsOneWidget);

@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/public_reference_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_directionality_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers/product_details_controller.dart';
@@ -46,6 +47,8 @@ class ProductTitleWidget extends StatelessWidget {
                             color:
                                 Theme.of(context).textTheme.bodyLarge?.color),
                       ),
+                      const SizedBox(height: 6),
+                      PublicReferenceWidget(reference: productModel!.productNumber),
                       const SizedBox(height: Dimensions.paddingSizeDefault),
 
                       Row(

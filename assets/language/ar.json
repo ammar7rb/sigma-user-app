@@ -1,4 +1,5 @@
 {
+  "public_invoice_number": "رقم الفاتورة",
   "second_invoice_purchases_shipping": "المشتريات والشحن (الفاتورة الأولى)",
   "second_invoice_heading": "فاتورة التأمين والضريبة",
   "second_invoice_amount_now": "المبلغ المطلوب الآن",

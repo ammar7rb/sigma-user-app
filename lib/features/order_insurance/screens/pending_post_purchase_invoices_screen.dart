@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/public_reference_widget.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -142,6 +143,8 @@ class _PendingPostPurchaseInvoicesScreenState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  PublicReferenceWidget(
+                                      reference: invoice['invoice_number']),
                                   Row(children: [
                                     Icon(Icons.pending_actions_rounded,
                                         color: Theme.of(context)

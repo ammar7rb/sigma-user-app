@@ -1,9 +1,11 @@
 class CustomerOrderInsuranceEnvelope {
+  final String? invoiceNumber;
   final CustomerOrderInsuranceClaim claim;
   final CustomerInsuranceBalance balance;
   final CustomerInsurancePaymentOptions paymentOptions;
 
   const CustomerOrderInsuranceEnvelope({
+    this.invoiceNumber,
     required this.claim,
     required this.balance,
     required this.paymentOptions,
@@ -11,6 +13,7 @@ class CustomerOrderInsuranceEnvelope {
 
   factory CustomerOrderInsuranceEnvelope.fromJson(Map<String, dynamic> json) {
     return CustomerOrderInsuranceEnvelope(
+      invoiceNumber: json['invoice_number']?.toString(),
       claim: CustomerOrderInsuranceClaim.fromJson(
         Map<String, dynamic>.from(json['claim'] as Map? ?? const {}),
       ),

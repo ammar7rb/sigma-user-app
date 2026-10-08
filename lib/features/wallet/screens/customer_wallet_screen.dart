@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/public_reference_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -176,8 +177,14 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                             title: Text(item['status'] == 'approved'
                                 ? tr('wallet_deposit_success')
                                 : '${money(item['amount'])} · ${tr('wallet_status_${item['status']}')}'),
-                            subtitle: Text(
-                                '${item['created_at']}${item['status'] == 'approved' || item['review_note'] == null ? '' : '\n${item['review_note']}'}'))),
+                            subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  PublicReferenceWidget(
+                                      reference: item['transaction_number']),
+                                  Text(
+                                      '${item['created_at']}${item['status'] == 'approved' || item['review_note'] == null ? '' : '\n${item['review_note']}'}'),
+                                ]))),
                     if (pagedItems('deposits').isEmpty)
                       Padding(
                           padding: const EdgeInsets.all(16),
@@ -211,8 +218,14 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                             contentPadding: EdgeInsets.zero,
                             title: Text(
                                 '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
-                            subtitle: Text(
-                                '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'))),
+                            subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  PublicReferenceWidget(
+                                      reference: item['display_reference']),
+                                  Text(
+                                      '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'),
+                                ]))),
                     if (selectedWallet == 'insurance')
                       Text(tr('wallet_insurance_history'),
                           style: Theme.of(context).textTheme.titleLarge),
@@ -222,8 +235,14 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                             contentPadding: EdgeInsets.zero,
                             title: Text(
                                 '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
-                            subtitle: Text(
-                                '${item['order_id'] == null ? '' : '#${item['order_id']} · '}${item['created_at']}'))),
+                            subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  PublicReferenceWidget(
+                                      reference: item['transaction_number']),
+                                  Text(
+                                      '${item['order_id'] == null ? '' : '#${item['order_id']} · '}${item['created_at']}'),
+                                ]))),
                     Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

@@ -58,6 +58,7 @@ class ProductModel {
 
 class Product {
   int? _id;
+  String? _administrativeReference;
   String? _addedBy;
   int? _userId;
   String? _name;
@@ -213,6 +214,7 @@ class Product {
   }
 
   int? get id => _id;
+  String? get productNumber => _administrativeReference ?? (_id == null ? null : 'P$_id');
   String? get addedBy => _addedBy;
   int? get userId => _userId;
   String? get name => _name;
@@ -255,6 +257,7 @@ class Product {
 
   Product.fromJson(Map<String, dynamic> json) {
     _id = json['id'];
+    _administrativeReference = json['administrative_reference']?.toString();
     _addedBy = json['added_by'];
     _userId = json['user_id'];
     _name = json['name'];
@@ -435,6 +438,7 @@ class Product {
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
     data['id'] = _id;
+    data['administrative_reference'] = productNumber;
     data['added_by'] = _addedBy;
     data['user_id'] = _userId;
     data['name'] = _name;
