@@ -1,3 +1,5 @@
+import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/customer_wallet_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/subscription_payment_choices.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -106,14 +108,80 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
     }
   }
 
-  Future<void> checkout() => act(() async {
-        await api.post('/api/v1/customer/subscription/checkout',
-            data: {'request_key': requestKey});
-      });
+  Future<void> checkout() async {
+    await act(() async {
+      await api.post('/api/v1/customer/subscription/checkout',
+          data: {'request_key': requestKey});
+    });
+    if (mounted && open?['status'] == 'draft' && error == null) {
+      await choosePayment();
+    }
+  }
+
+  Future<void> choosePayment() async {
+    if (busy || open?['status'] != 'draft') return;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => SubscriptionPaymentChoices(
+        amount: '${open!['quoted_amount']} ${open!['currency_code']}',
+        walletEnabled: data!['purchase_wallet_enabled'] == true,
+        methods: (data!['offline_methods'] as List? ?? [])
+            .map((method) => Map<String, dynamic>.from(method))
+            .toList(),
+        onSelected: (value) => Navigator.pop(context, value),
+      ),
+    );
+    if (!mounted || selected == null) return;
+    if (selected == 'wallet') {
+      await wallet();
+      return;
+    }
+    final method = (data!['offline_methods'] as List? ?? [])
+        .firstWhere((method) => '${method['id']}' == selected);
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => SubscriptionTransferScreen(
+                payment: open!, method: Map<String, dynamic>.from(method))));
+    await load();
+    if (mounted) {
+      await Provider.of<ProfileController>(context, listen: false)
+          .getUserInfo(context);
+    }
+  }
 
   Future<void> wallet() async {
     final payment = open;
     if (payment == null || busy) return;
+    final balance = double.tryParse('${data?['purchase_balance']}') ?? 0;
+    final debit = double.tryParse('${payment['wallet_debit_amount']}');
+    if (debit != null && balance < debit) {
+      final action = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+                  title: const Text('رصيد المشتريات لا يكفي'),
+                  content: const Text(
+                      'عذرًا، رصيد محفظة المشتريات لا يكفي. برجاء الإيداع فيها أو استخدام طريقة أخرى.'),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, 'other'),
+                        child: const Text('طريقة أخرى')),
+                    FilledButton(
+                        onPressed: () => Navigator.pop(context, 'deposit'),
+                        child: const Text('الإيداع في المحفظة'))
+                  ]));
+      if (!mounted) return;
+      if (action == 'other') await choosePayment();
+      if (action == 'deposit' && mounted) {
+        await Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const CustomerWalletScreen()));
+        await load();
+      }
+      return;
+    }
     final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -165,50 +233,12 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                           ? checkout
                           : null),
               if (open?['status'] == 'draft') ...[
-                const SizedBox(height: 28),
-                Text('اختر طريقة الدفع',
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                Text(
-                    'المبلغ المطلوب: ${open!['quoted_amount']} ${open!['currency_code']}'),
-                if (data!['purchase_wallet_enabled'] == true)
-                  ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading:
-                          const Icon(Icons.account_balance_wallet_outlined),
-                      title: const Text('محفظة المشتريات'),
-                      subtitle: const Text('خصم مؤكد من الرصيد المعتمد'),
-                      onTap: busy ? null : wallet),
-                for (final method in data!['offline_methods'] as List? ?? [])
-                  ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.swap_horiz_rounded),
-                      title: Text('${method['method_name']}'),
-                      subtitle: Text(method['payment_channel'] == 'instapay'
-                          ? 'InstaPay · مراجعة الإدارة'
-                          : 'محفظة إلكترونية · مراجعة الإدارة'),
-                      onTap: busy
-                          ? null
-                          : () async {
-                              await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          SubscriptionTransferScreen(
-                                              payment: open!,
-                                              method: Map<String, dynamic>.from(
-                                                  method))));
-                              await load();
-                              if (context.mounted) {
-                                await Provider.of<ProfileController>(context,
-                                        listen: false)
-                                    .getUserInfo(context);
-                              }
-                            }),
-                if (data!['purchase_wallet_enabled'] != true &&
-                    (data!['offline_methods'] as List? ?? []).isEmpty)
-                  const Text(
-                      'لا توجد وسيلة دفع متاحة حاليًا. تواصل مع الإدارة.'),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: busy ? null : choosePayment,
+                  icon: const Icon(Icons.payments_outlined),
+                  label: const Text('اختر طريقة الدفع'),
+                ),
               ],
               const SizedBox(height: 32),
               Text('سجل دفعات الاشتراك',

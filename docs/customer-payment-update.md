@@ -11,3 +11,5 @@
 - تحديث التطبيق يتطلب نشر عقد الخادم نفسه. عنوان التشغيل الافتراضي هو `https://sigma-eg.net` ويمكن تغييره باستخدام `BASE_URL` وقت البناء.
 
 التحقق: اختبارات Flutter، تحليل ملفات التدفقات المعدلة، ومعاينات فعلية للمكونات في الوضعين الفاتح والداكن، وبناء Android arm64. لا يشمل ذلك تنفيذ تحويل مالي حقيقي أو تجربة على جهاز متصل.
+
+Payment selection update: subscription checkout opens explicit purchases-wallet, InstaPay and electronic-wallet choices. No default selection or debit occurs. Balance warning appears only after wallet selection. Transfers retain a separate vertical screen, fixed server quote and private proof review. Light/dark selection tests and Android production-host build verified.
