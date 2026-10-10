@@ -39,16 +39,16 @@ void main() {
         expect(find.byType(TransferRecipientCard), findsOneWidget);
         expect(
             find.byWidgetPredicate((widget) =>
-                widget is SelectableText &&
+                widget is Text &&
                 widget.data == 'instapay-recipient'),
             findsOneWidget);
         expect(
             find.byWidgetPredicate((widget) =>
-                widget is SelectableText && widget.data == 'wallet-recipient'),
+                widget is Text && widget.data == 'wallet-recipient'),
             findsNothing);
         expect(
             find.textContaining(
-                locale.languageCode == 'ar' ? 'لقطة شاشة' : 'screenshot'),
+                locale.languageCode == 'ar' ? 'إثبات الدفع' : 'screenshot'),
             findsOneWidget);
         expect(tester.takeException(), isNull);
 
@@ -76,7 +76,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(
             find.byWidgetPredicate((widget) =>
-                widget is SelectableText && widget.data == 'wallet-recipient'),
+                widget is Text && widget.data == 'wallet-recipient'),
             findsOneWidget);
         expect(find.text('instapay-recipient'), findsNothing);
         expect(tester.takeException(), isNull);

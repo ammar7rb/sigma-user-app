@@ -179,14 +179,16 @@ class CartController extends ChangeNotifier {
   }
 
 
-  Future<void> mergeGuestCart() async{
+  Future<bool> mergeGuestCart() async{
     ApiResponseModel apiResponse = await cartServiceInterface!.mergeGuestCart();
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-
+      notifyListeners();
+      return true;
     } else {
       ApiChecker.checkApi(apiResponse);
     }
     notifyListeners();
+    return false;
   }
 
 

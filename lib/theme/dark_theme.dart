@@ -23,7 +23,8 @@ ThemeData dark = ThemeData(
     tertiary: const Color(0xFFFFBB38), // Warning Color
     tertiaryContainer: const Color(0xFF6C7A8E),
     surface: const Color(0xFF14243C),
-    onPrimary: Colors.white,
+    onPrimary: const Color(0xFF091525),
+    onSecondary: const Color(0xFF172942),
     onTertiaryContainer: const Color(0xFF04BB7B), // Success Color
     primaryContainer: const Color(0xFF243B5E),
     onPrimaryContainer: const Color(0xFFD6E6FF),
@@ -42,6 +43,7 @@ ThemeData dark = ThemeData(
     scrolledUnderElevation: 0,
     surfaceTintColor: Colors.transparent,
   ),
+  iconTheme: const IconThemeData(color: Color(0xFFE9EEF4)),
   dividerColor: const Color(0xFF243652),
   navigationBarTheme: const NavigationBarThemeData(
     backgroundColor: Color(0xFF0E1E33),

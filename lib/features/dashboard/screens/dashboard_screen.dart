@@ -7,7 +7,6 @@ import 'package:flutter_sixvalley_ecommerce/features/category/screens/category_s
 import 'package:flutter_sixvalley_ecommerce/features/chat/controllers/chat_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/models/navigation_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/dashboard_menu_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/customer_activation_banner_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/deal/controllers/flash_deal_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/restock/controllers/restock_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/search_product/controllers/search_product_controller.dart';
@@ -142,17 +141,8 @@ class DashBoardScreenState extends State<DashBoardScreen> {
         },
         child: Scaffold(
             key: _scaffoldKey,
-            body: Consumer<ProfileController>(
-                builder: (context, profileController, _) {
-              final activation = profileController.userInfoModel?.activation;
-              return Column(children: [
-                if (activation != null && !activation.isActive)
-                  CustomerActivationBannerWidget(activation: activation),
-                Expanded(
-                    child: PageStorage(
-                        bucket: bucket, child: _screens[_pageIndex].screen)),
-              ]);
-            }),
+            body:
+                PageStorage(bucket: bucket, child: _screens[_pageIndex].screen),
             bottomNavigationBar: Container(
                 height: 76,
                 decoration: BoxDecoration(

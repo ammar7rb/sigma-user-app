@@ -1,5 +1,3 @@
-
-
 import 'package:flutter_sixvalley_ecommerce/data/model/image_full_url.dart';
 import 'package:flutter_sixvalley_ecommerce/features/shop/domain/models/seller_model.dart';
 
@@ -22,7 +20,6 @@ class OrderModel {
       });
     }
   }
-
 }
 
 class Orders {
@@ -87,81 +84,86 @@ class Orders {
   String? customerDeliveryConfirmationStatus;
   String? customerDeliveryConfirmationDueAt;
   Map<String, dynamic>? shippingPriceSnapshot;
+  String? customerFulfillmentStatus;
+  List<String> customerPendingReasons = [];
   String? commerceFlowStatus;
   Map<String, dynamic>? refundSummary;
 
-
-
   Orders(
       {this.id,
-        this.customerId,
-        this.isGuest,
-        this.customerType,
-        this.paymentStatus,
-        this.orderStatus,
-        this.paymentMethod,
-        this.transactionRef,
-        this.paymentBy,
-        this.paymentNote,
-        this.orderAmount,
-        this.paidAmount,
-        this.adminCommission,
-        this.cause,
-        this.createdAt,
-        this.updatedAt,
-        this.discountAmount,
-        this.discountType,
-        this.couponCode,
-        this.couponDiscountBearer,
-        this.shippingMethodId,
-        this.shippingCost,
-        this.isShippingFree,
-        this.orderGroupId,
-        this.verificationCode,
-        this.verificationStatus,
-        this.sellerId,
-        this.sellerIs,
-        this.shippingAddressData,
-        this.deliveryManId,
-        this.deliverymanCharge,
-        this.expectedDeliveryDate,
-        this.orderNote,
-        this.billingAddress,
-        this.billingAddressData,
-        this.orderType,
-        this.extraDiscount,
-        this.extraDiscountType,
-        this.freeDeliveryBearer,
-        this.shippingType,
-        this.deliveryType,
-        this.deliveryServiceName,
-        this.thirdPartyDeliveryTrackingId,
-        this.orderDetailsCount,
-        this.details,
-        this.deliveryMan,
-        this.seller,
-        this.bringChangeAmount,
-        this.bringChangeAmountCurrency,
-        this.deliverymanAssignedAt,
-        this.totalTaxAmount,
-        this.taxModel,
-        this.editedStatus,
-        this.editDueAmount,
-        this.editReturnAmount
-      });
+      this.customerId,
+      this.isGuest,
+      this.customerType,
+      this.paymentStatus,
+      this.orderStatus,
+      this.paymentMethod,
+      this.transactionRef,
+      this.paymentBy,
+      this.paymentNote,
+      this.orderAmount,
+      this.paidAmount,
+      this.adminCommission,
+      this.cause,
+      this.createdAt,
+      this.updatedAt,
+      this.discountAmount,
+      this.discountType,
+      this.couponCode,
+      this.couponDiscountBearer,
+      this.shippingMethodId,
+      this.shippingCost,
+      this.isShippingFree,
+      this.orderGroupId,
+      this.verificationCode,
+      this.verificationStatus,
+      this.sellerId,
+      this.sellerIs,
+      this.shippingAddressData,
+      this.deliveryManId,
+      this.deliverymanCharge,
+      this.expectedDeliveryDate,
+      this.orderNote,
+      this.billingAddress,
+      this.billingAddressData,
+      this.orderType,
+      this.extraDiscount,
+      this.extraDiscountType,
+      this.freeDeliveryBearer,
+      this.shippingType,
+      this.deliveryType,
+      this.deliveryServiceName,
+      this.thirdPartyDeliveryTrackingId,
+      this.orderDetailsCount,
+      this.details,
+      this.deliveryMan,
+      this.seller,
+      this.bringChangeAmount,
+      this.bringChangeAmountCurrency,
+      this.deliverymanAssignedAt,
+      this.totalTaxAmount,
+      this.taxModel,
+      this.editedStatus,
+      this.editDueAmount,
+      this.editReturnAmount});
 
   Orders.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     customerId = json['customer_id'];
-    if(json['temporary_close'] != null){
+    if (json['temporary_close'] != null) {
       isGuest = int.parse(json['temporary_close'].toString());
-    }else{
+    } else {
       isGuest = 0;
     }
 
     customerType = json['customer_type'];
     paymentStatus = json['payment_status'];
     orderStatus = json['order_status'];
+    customerFulfillmentStatus = json['customer_fulfillment_status'];
+    customerPendingReasons = (json['customer_pending_reasons'] is List
+            ? json['customer_pending_reasons'] as List
+            : [])
+        .map((e) => e.toString())
+        .toList();
     paymentMethod = json['payment_method'];
     transactionRef = json['transaction_ref'];
     paymentBy = json['payment_by'];
@@ -169,10 +171,10 @@ class Orders {
     orderAmount = json['order_amount'].toDouble();
     if (json['paid_amount'] != null) {
       paidAmount = json['paid_amount'].toDouble();
-    }else{
+    } else {
       paidAmount = 0;
     }
-    adminCommission =  double.tryParse(json['admin_commission'].toString());
+    adminCommission = double.tryParse(json['admin_commission'].toString());
     cause = json['cause'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
@@ -182,18 +184,20 @@ class Orders {
     couponDiscountBearer = json['coupon_discount_bearer'];
     shippingMethodId = json['shipping_method_id'];
     shippingCost = json['shipping_cost'].toDouble();
-    isShippingFree = json['is_shipping_free']??false;
+    isShippingFree = json['is_shipping_free'] ?? false;
     orderGroupId = json['order_group_id'];
     verificationCode = json['verification_code'];
-    verificationStatus = json['verification_status']??false;
+    verificationStatus = json['verification_status'] ?? false;
     sellerId = json['seller_id'];
     sellerIs = json['seller_is'];
     final shippingData = json['shipping_address_data'];
-    shippingAddressData = shippingData is Map<String, dynamic> ? ShippingAddressData.fromJson(shippingData) : null;
+    shippingAddressData = shippingData is Map<String, dynamic>
+        ? ShippingAddressData.fromJson(shippingData)
+        : null;
     deliveryManId = json['delivery_man_id'];
-    if(json['deliveryman_charge'] != null){
+    if (json['deliveryman_charge'] != null) {
       deliverymanCharge = double.parse(json['deliveryman_charge'].toString());
-    }else{
+    } else {
       deliverymanCharge = 0;
     }
 
@@ -201,7 +205,10 @@ class Orders {
     deliverymanAssignedAt = json['deliveryman_assigned_at'];
     orderNote = json['order_note'];
     billingAddress = json['billing_address'];
-    billingAddressData = (json['billing_address_data'] != null  && json['billing_address_data'] is  !List) ? BillingAddressData.fromJson(json['billing_address_data']) : null;
+    billingAddressData = (json['billing_address_data'] != null &&
+            json['billing_address_data'] is! List)
+        ? BillingAddressData.fromJson(json['billing_address_data'])
+        : null;
     orderType = json['order_type'];
     extraDiscount = json['extra_discount'].toDouble();
     extraDiscountType = json['extra_discount_type'];
@@ -210,9 +217,9 @@ class Orders {
     deliveryType = json['delivery_type'];
     deliveryServiceName = json['delivery_service_name'];
     thirdPartyDeliveryTrackingId = json['third_party_delivery_tracking_id'];
-    if(json['order_details_count'] != null){
+    if (json['order_details_count'] != null) {
       orderDetailsCount = int.parse(json['order_details_count'].toString());
-    }else{
+    } else {
       orderDetailsCount = 0;
     }
 
@@ -222,29 +229,39 @@ class Orders {
         details!.add(Details.fromJson(v));
       });
     }
-    deliveryMan = json['delivery_man'] != null ? DeliveryMan.fromJson(json['delivery_man']) : null;
+    deliveryMan = json['delivery_man'] != null
+        ? DeliveryMan.fromJson(json['delivery_man'])
+        : null;
     seller = json['seller'] != null ? Seller.fromJson(json['seller']) : null;
     bringChangeAmount = double.tryParse('${json['bring_change_amount']}');
     bringChangeAmountCurrency = json['bring_change_amount_currency'];
-    totalTaxAmount = json['total_tax_amount'] != null ? double.tryParse('${json['total_tax_amount']}') : null;
+    totalTaxAmount = json['total_tax_amount'] != null
+        ? double.tryParse('${json['total_tax_amount']}')
+        : null;
     taxModel = json['tax_model'];
     editedStatus = json['edited_status'];
-    editDueAmount = json['edit_due_amount'] != null ? double.tryParse(json['edit_due_amount'].toString()) : null;
-    editReturnAmount = json['edit_return_amount'] != null ? double.tryParse(json['edit_return_amount'].toString()) : null;
+    editDueAmount = json['edit_due_amount'] != null
+        ? double.tryParse(json['edit_due_amount'].toString())
+        : null;
+    editReturnAmount = json['edit_return_amount'] != null
+        ? double.tryParse(json['edit_return_amount'].toString())
+        : null;
     shipmentReference = json['shipment_reference']?.toString();
     shippingOperationalStatus = json['shipping_operational_status']?.toString();
     shippingResponsibleParty = json['shipping_responsible_party']?.toString();
-    customerDeliveryConfirmationStatus = json['customer_delivery_confirmation_status']?.toString();
-    customerDeliveryConfirmationDueAt = json['customer_delivery_confirmation_due_at']?.toString();
+    customerDeliveryConfirmationStatus =
+        json['customer_delivery_confirmation_status']?.toString();
+    customerDeliveryConfirmationDueAt =
+        json['customer_delivery_confirmation_due_at']?.toString();
     shippingPriceSnapshot = json['shipping_price_snapshot'] is Map
-        ? Map<String, dynamic>.from(json['shipping_price_snapshot']) : null;
+        ? Map<String, dynamic>.from(json['shipping_price_snapshot'])
+        : null;
     commerceFlowStatus = json['commerce_flow_status']?.toString();
     refundSummary = json['refund_summary'] is Map
-        ? Map<String, dynamic>.from(json['refund_summary']) : null;
-
+        ? Map<String, dynamic>.from(json['refund_summary'])
+        : null;
   }
 }
-
 
 class BillingAddressData {
   int? id;
@@ -262,17 +279,17 @@ class BillingAddressData {
 
   BillingAddressData(
       {this.id,
-        this.contactPersonName,
-        this.addressType,
-        this.address,
-        this.city,
-        this.zip,
-        this.phone,
-        this.createdAt,
-        this.updatedAt,
-        this.country,
-        this.latitude,
-        this.longitude});
+      this.contactPersonName,
+      this.addressType,
+      this.address,
+      this.city,
+      this.zip,
+      this.phone,
+      this.createdAt,
+      this.updatedAt,
+      this.country,
+      this.latitude,
+      this.longitude});
 
   BillingAddressData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -288,7 +305,6 @@ class BillingAddressData {
     latitude = json['latitude'];
     longitude = json['longitude'];
   }
-
 }
 
 class ShippingAddressData {
@@ -305,16 +321,16 @@ class ShippingAddressData {
 
   ShippingAddressData(
       {int? id,
-        String? contactPersonName,
-        String? addressType,
-        String? address,
-        String? city,
-        String? zip,
-        String? phone,
-        String? createdAt,
-        String? updatedAt,
-        void state,
-        String? country}) {
+      String? contactPersonName,
+      String? addressType,
+      String? address,
+      String? city,
+      String? zip,
+      String? phone,
+      String? createdAt,
+      String? updatedAt,
+      void state,
+      String? country}) {
     if (id != null) {
       _id = id;
     }
@@ -360,7 +376,6 @@ class ShippingAddressData {
   String? get updatedAt => _updatedAt;
   String? get country => _country;
 
-
   ShippingAddressData.fromJson(Map<String, dynamic> json) {
     _id = json['id'];
     _contactPersonName = json['contact_person_name'];
@@ -373,7 +388,6 @@ class ShippingAddressData {
     _updatedAt = json['updated_at'];
     _country = json['country'];
   }
-
 }
 
 class DeliveryMan {
@@ -386,17 +400,14 @@ class DeliveryMan {
   String? _image;
   ImageFullUrl? _imageFullUrl;
   DeliveryMan(
-      {
-        int? id,
-        String? fName,
-        String? lName,
-        String? phone,
-        String? countryCode,
-        String? email,
-        String? image,
-        ImageFullUrl? imageFullUrl
-      }) {
-
+      {int? id,
+      String? fName,
+      String? lName,
+      String? phone,
+      String? countryCode,
+      String? email,
+      String? image,
+      ImageFullUrl? imageFullUrl}) {
     if (id != null) {
       _id = id;
     }
@@ -421,11 +432,10 @@ class DeliveryMan {
     if (image != null) {
       _image = image;
     }
-    if(imageFullUrl != null) {
+    if (imageFullUrl != null) {
       _imageFullUrl = imageFullUrl;
     }
   }
-
 
   int? get id => _id;
   String? get fName => _fName;
@@ -437,7 +447,6 @@ class DeliveryMan {
   ImageFullUrl? get imageFullUrl => _imageFullUrl;
 
   DeliveryMan.fromJson(Map<String, dynamic> json) {
-
     _id = json['id'];
     _fName = json['f_name'];
     _lName = json['l_name'];
@@ -466,20 +475,16 @@ class DeliveryMan {
   }
 }
 
-
-
 class Shop {
   String? image;
   String? name;
-  Shop(
-      {this.image, this.name});
+  Shop({this.image, this.name});
 
   Shop.fromJson(Map<String, dynamic> json) {
     image = json['image'];
     name = json['name'];
   }
 }
-
 
 class Details {
   Product? product;
@@ -488,23 +493,16 @@ class Details {
   double? tax;
   double? discount;
 
-  Details(
-      {
-        this.product,
-        this.qty,
-        this.price,
-        this.tax,
-        this.discount
-      });
+  Details({this.product, this.qty, this.price, this.tax, this.discount});
 
   Details.fromJson(Map<String, dynamic> json) {
-    product = json['product'] != null ? Product.fromJson(json['product']) : null;
+    product =
+        json['product'] != null ? Product.fromJson(json['product']) : null;
     qty = json['qty'];
     price = json['price'].toDouble();
     tax = json['tax'].toDouble();
     discount = json['discount'].toDouble();
   }
-
 }
 
 class Product {
@@ -512,9 +510,7 @@ class Product {
   String? productType;
   ImageFullUrl? thumbnailFullUrl;
 
-
-  Product(
-      {this.thumbnail, this.productType, this.thumbnailFullUrl});
+  Product({this.thumbnail, this.productType, this.thumbnailFullUrl});
 
   Product.fromJson(Map<String, dynamic> json) {
     thumbnail = json['thumbnail'];
@@ -522,9 +518,5 @@ class Product {
     thumbnailFullUrl = json['thumbnail_full_url'] != null
         ? ImageFullUrl.fromJson(json['thumbnail_full_url'])
         : null;
-
   }
-
-
 }
-

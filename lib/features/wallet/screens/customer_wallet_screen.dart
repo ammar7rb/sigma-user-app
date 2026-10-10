@@ -1,5 +1,6 @@
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'dart:math';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/public_reference_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,10 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/order_insurance/screens/pending_post_purchase_invoices_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
-import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 
 /// The same restricted balances and review queue used by the customer website.
@@ -92,191 +91,104 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
       ]));
 
   @override
-  Widget build(BuildContext context) {
-    final insurance = map(data?['insurance']);
-    return Scaffold(
-        appBar: AppBar(title: Text(tr('wallet_my_wallet'))),
-        body: RefreshIndicator(
-            onRefresh: load,
-            child: data == null
-                ? ListView(children: [
-                    const SizedBox(height: 80),
-                    Center(
-                        child: error == null
-                            ? const CircularProgressIndicator()
-                            : TextButton(onPressed: load, child: Text(error!)))
-                  ])
-                : ListView(padding: const EdgeInsets.all(16), children: [
-                    if (error != null) Text(error!),
-                    SegmentedButton<String>(
-                      segments: [
-                        ButtonSegment(
-                            value: 'purchase',
-                            label: Text(tr('purchase_wallet')),
-                            icon: const Icon(Icons.shopping_bag_outlined)),
-                        ButtonSegment(
-                            value: 'insurance',
-                            label: Text(tr('insurance_wallet')),
-                            icon: const Icon(Icons.shield_outlined)),
-                      ],
-                      selected: {selectedWallet},
-                      onSelectionChanged: (value) =>
-                          setState(() => selectedWallet = value.first),
-                    ),
-                    const SizedBox(height: 14),
-                    if (selectedWallet == 'purchase')
-                      balance('purchase_wallet', data!['purchase_balance'],
-                          Icons.shopping_bag_outlined, 'purchase')
-                    else
-                      balance(
-                          'insurance_wallet',
-                          insurance['available_balance'],
-                          Icons.shield_outlined,
-                          'insurance'),
-                    if ((int.tryParse(
-                                '${data!['pending_invoices_count'] ?? 0}') ??
-                            0) >
-                        0)
-                      card(ListTile(
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(title: Text(tr('wallet_my_wallet'))),
+      body: RefreshIndicator(
+          onRefresh: load,
+          child: data == null
+              ? ListView(children: [
+                  const SizedBox(height: 80),
+                  Center(
+                      child: error == null
+                          ? const CircularProgressIndicator()
+                          : TextButton(onPressed: load, child: Text(error!)))
+                ])
+              : ListView(padding: const EdgeInsets.all(16), children: [
+                  if (error != null) Text(error!),
+                  balance('purchase_wallet', data!['purchase_balance'],
+                      Icons.shopping_bag_outlined, 'purchase'),
+                  Card(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: Icon(Icons.calendar_month_outlined,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer),
+                          title: Text('الاشتراك الشهري',
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
+                                  fontWeight: FontWeight.w700)),
+                          subtitle: Text(
+                              map(data!['subscription'])['active'] == true
+                                  ? 'فعال · متبقي ${map(data!['subscription'])['remaining_days']} يومًا'
+                                  : 'إدارة الاشتراك والدفع',
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer)),
+                          trailing: const Icon(Icons.chevron_left),
+                          onTap: () async {
+                            await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const MonthlySubscriptionScreen()));
+                            await load();
+                          })),
+                  const SizedBox(height: 20),
+                  Text(tr('wallet_deposit_history'),
+                      style: Theme.of(context).textTheme.titleLarge),
+                  for (final item in pagedItems('deposits'))
+                    card(ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.pending_actions_rounded,
-                            color: Colors.orange),
-                        title: Text(tr('pending_completion_orders')),
+                        title: Text(
+                            '${money(item['amount'])} · ${tr('wallet_status_${item['status']}')}'),
                         subtitle: Text(
-                            '${tr('pending_orders_count')}: ${data!['pending_invoices_count']}'),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const PendingPostPurchaseInvoicesScreen(),
-                          ),
-                        ),
-                      )),
-                    if (selectedWallet == 'insurance')
-                      card(Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                '${tr('insurance_held_balance')}: ${money(insurance['held_balance'])}'),
-                            if (insurance['next_maturity_at'] != null)
-                              Text(
-                                  '${tr('next_insurance_maturity')}: ${insurance['next_maturity_at']}'),
-                            const SizedBox(height: 8),
-                            Text(tr('wallet_reuse_notice')),
-                          ])),
-                    Text(tr('wallet_deposit_history'),
-                        style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 12),
-                    for (final item in pagedItems('deposits'))
-                      if (item['wallet_type'] == selectedWallet)
-                        card(ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(item['wallet_type'] == 'insurance'
-                                ? Icons.shield_outlined
-                                : Icons.shopping_bag_outlined),
-                            title: Text(item['status'] == 'approved'
-                                ? tr('wallet_deposit_success')
-                                : '${money(item['amount'])} · ${tr('wallet_status_${item['status']}')}'),
-                            subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  PublicReferenceWidget(
-                                      reference: item['transaction_number']),
-                                  Text(
-                                      '${item['created_at']}${item['status'] == 'approved' || item['review_note'] == null ? '' : '\n${item['review_note']}'}'),
-                                ]))),
-                    if (pagedItems('deposits').isEmpty)
-                      Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(tr('wallet_no_records'))),
-                    if (selectedWallet == 'insurance')
-                      Text(tr('wallet_order_history'),
-                          style: Theme.of(context).textTheme.titleLarge),
-                    if (selectedWallet == 'insurance')
-                      const SizedBox(height: 12),
-                    for (final item in pagedItems('orders'))
-                      if (selectedWallet == 'insurance')
-                        card(ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.receipt_long_outlined),
-                            title: Text(
-                                '#${item['id']} · ${money(item['amount'])}'),
-                            subtitle: Text(
-                                '${tr('insurance_wallet')}: ${money(item['insurance']?['amount'])}\n${tr('next_insurance_maturity')}: ${item['insurance']?['matures_at'] ?? tr('wallet_not_scheduled')}'),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () =>
-                                RouterHelper.getOrderDetailsScreenRoute(
-                                    orderId: item['id'],
-                                    action: RouteAction.push,
-                                    isNotification: true))),
-                    if (selectedWallet == 'purchase')
-                      Text(tr('wallet_history'),
-                          style: Theme.of(context).textTheme.titleLarge),
-                    for (final item in pagedItems('purchase_entries'))
-                      if (selectedWallet == 'purchase')
-                        card(ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(
-                                '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
-                            subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  PublicReferenceWidget(
-                                      reference: item['display_reference']),
-                                  Text(
-                                      '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'),
-                                ]))),
-                    if (selectedWallet == 'insurance')
-                      Text(tr('wallet_insurance_history'),
-                          style: Theme.of(context).textTheme.titleLarge),
-                    for (final item in list(data!['insurance_entries']))
-                      if (selectedWallet == 'insurance')
-                        card(ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(
-                                '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
-                            subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  PublicReferenceWidget(
-                                      reference: item['transaction_number']),
-                                  Text(
-                                      '${item['order_id'] == null ? '' : '#${item['order_id']} · '}${item['created_at']}'),
-                                ]))),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                              onPressed: page > 1
-                                  ? () {
-                                      setState(() {
-                                        page--;
-                                      });
-                                      load();
-                                    }
-                                  : null,
-                              child: Text(tr('wallet_previous'))),
-                          Text('$page'),
-                          TextButton(
-                              onPressed: (map(data!['orders'])[
-                                              'next_page_url'] !=
-                                          null ||
-                                      map(data!['deposits'])['next_page_url'] !=
-                                          null ||
-                                      map(data!['purchase_entries'])[
-                                              'next_page_url'] !=
-                                          null)
-                                  ? () {
-                                      setState(() {
-                                        page++;
-                                      });
-                                      load();
-                                    }
-                                  : null,
-                              child: Text(tr('wallet_next'))),
-                        ]),
-                  ])));
-  }
+                            '${item['created_at']}${item['review_note'] == null ? '' : '\n${item['review_note']}'}'))),
+                  if (pagedItems('deposits').isEmpty)
+                    Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(tr('wallet_no_records'))),
+                  const SizedBox(height: 20),
+                  Text(tr('wallet_history'),
+                      style: Theme.of(context).textTheme.titleLarge),
+                  for (final item in pagedItems('purchase_entries'))
+                    card(ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                            '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
+                        subtitle: Text(
+                            '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'))),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                            onPressed: page > 1
+                                ? () {
+                                    setState(() => page--);
+                                    load();
+                                  }
+                                : null,
+                            child: Text(tr('wallet_previous'))),
+                        Text('$page'),
+                        TextButton(
+                            onPressed:
+                                map(data!['deposits'])['next_page_url'] !=
+                                            null ||
+                                        map(data!['purchase_entries'])[
+                                                'next_page_url'] !=
+                                            null
+                                    ? () {
+                                        setState(() => page++);
+                                        load();
+                                      }
+                                    : null,
+                            child: Text(tr('wallet_next')))
+                      ]),
+                ])));
 }
 
 class CustomerDepositScreen extends StatefulWidget {
@@ -314,7 +226,8 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
         .whereType<Map>()
         .toList();
     final explicit = methods.where((item) =>
-        item['payment_channel']?.toString().trim().toLowerCase() == selectedChannel);
+        item['payment_channel']?.toString().trim().toLowerCase() ==
+        selectedChannel);
     if (explicit.isNotEmpty) return explicit.first;
     return null;
   }
@@ -353,7 +266,9 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
               'currency_code': currency,
               'method_id': transferMethod!['id'],
               'request_key': requestKey,
-              'payment_reference': requestKey,
+              'transfer_schema': 'sender_v2',
+              'sender_phone': EgyptPhoneHelper.normalizeLocal(senderPhone.text),
+              'sender_name': senderName.text.trim(),
               'method_information[sender_name]': senderName.text.trim(),
               'method_information[sender_wallet_or_phone]':
                   senderPhone.text.trim(),
@@ -407,31 +322,38 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
             const SizedBox(height: 20),
             if (_methodFor('wallet') != null || _methodFor('instapay') != null)
               Row(children: [
-              if (_methodFor('wallet') != null) Expanded(
-                  child: _CustomerTransferChoice(
-                icon: Icons.account_balance_wallet_outlined,
-                title: tr('electronic_wallet_payment'),
-                selected: channel == 'wallet',
-                onTap: busy ? null : () => setState(() {
-                  channel = 'wallet';
-                  senderPhone.clear();
-                  proof = null;
-                }),
-              )),
-              if (_methodFor('wallet') != null && _methodFor('instapay') != null)
-                const SizedBox(width: 10),
-              if (_methodFor('instapay') != null) Expanded(
-                  child: _CustomerTransferChoice(
-                icon: Icons.account_balance_rounded,
-                title: tr('instapay_payment'),
-                selected: channel == 'instapay',
-                onTap: busy ? null : () => setState(() {
-                  channel = 'instapay';
-                  senderPhone.clear();
-                  proof = null;
-                }),
-              )),
-            ]),
+                if (_methodFor('wallet') != null)
+                  Expanded(
+                      child: _CustomerTransferChoice(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: tr('electronic_wallet_payment'),
+                    selected: channel == 'wallet',
+                    onTap: busy
+                        ? null
+                        : () => setState(() {
+                              channel = 'wallet';
+                              senderPhone.clear();
+                              proof = null;
+                            }),
+                  )),
+                if (_methodFor('wallet') != null &&
+                    _methodFor('instapay') != null)
+                  const SizedBox(width: 10),
+                if (_methodFor('instapay') != null)
+                  Expanded(
+                      child: _CustomerTransferChoice(
+                    icon: Icons.account_balance_rounded,
+                    title: tr('instapay_payment'),
+                    selected: channel == 'instapay',
+                    onTap: busy
+                        ? null
+                        : () => setState(() {
+                              channel = 'instapay';
+                              senderPhone.clear();
+                              proof = null;
+                            }),
+                  )),
+              ]),
             if (_methodFor('wallet') == null && _methodFor('instapay') == null)
               Text(tr('wallet_payment_method_unavailable')),
             if (transferMethod != null) ...[
@@ -439,11 +361,10 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
               TransferRecipientCard(
                 channel: channel!,
                 details: [
-                  for (final field in
-                      (transferMethod!['method_fields'] as List? ?? const [])
+                  for (final field
+                      in (transferMethod!['method_fields'] as List? ?? const [])
                           .whereType<Map>())
-                    TransferRecipientDetail(
-                        '${field['input_name'] ?? ''}',
+                    TransferRecipientDetail('${field['input_name'] ?? ''}',
                         '${field['input_data'] ?? ''}'),
                 ],
               ),
@@ -453,7 +374,9 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                   maxLength: 100,
                   decoration: InputDecoration(
                       counterText: '',
-                      labelText: tr('transfer_sender_full_name'),
+                      labelText: channel == 'instapay'
+                          ? 'اسم الحساب الخاص بك'
+                          : 'اسم المحفظة الخاصة بك',
                       hintText: tr('transfer_sender_full_name_hint')),
                   validator: (value) =>
                       (value?.trim().isEmpty ?? true) ? tr('required') : null),
@@ -469,14 +392,14 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                   maxLength: 30,
                   decoration: InputDecoration(
                       counterText: '',
-                      labelText: tr(channel == 'instapay'
-                          ? 'transfer_sender_instapay'
-                          : 'transfer_sender_wallet'),
+                      labelText: 'الرقم الذي حولت منه',
                       hintText: tr(channel == 'instapay'
                           ? 'transfer_sender_instapay_hint'
                           : 'transfer_sender_wallet_hint')),
                   validator: (value) =>
-                      (value?.trim().isEmpty ?? true) ? tr('required') : null),
+                      EgyptPhoneHelper.isValidLocal(value ?? '')
+                          ? null
+                          : 'أدخل رقم موبايل مصري صحيحًا من 11 رقمًا.'),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                   onPressed: busy

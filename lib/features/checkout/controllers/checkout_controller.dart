@@ -1,3 +1,6 @@
+import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
+import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
@@ -17,6 +20,24 @@ import 'dart:convert';
 class CheckoutController with ChangeNotifier {
   final CheckoutServiceInterface checkoutServiceInterface;
   CheckoutController({required this.checkoutServiceInterface});
+
+  Future<bool> validatePurchaseEligibility() async {
+    try {
+      final response = await di.sl<DioClient>().get(AppConstants.customerUri);
+      final state = response.data['purchase_eligibility'];
+      if (state is Map && state['can_checkout'] == true) return true;
+      showCustomSnackBar(
+          state is Map
+              ? state['message']?.toString() ??
+                  'يجب تفعيل الحساب ودفع الاشتراك الشهري.'
+              : 'تعذر التحقق من أهلية الشراء. حاول مرة أخرى.',
+          Get.context!);
+    } catch (_) {
+      showCustomSnackBar(
+          'تعذر التحقق من أهلية الشراء. حاول مرة أخرى.', Get.context!);
+    }
+    return false;
+  }
 
   int? _addressIndex;
   int? _selectedAddressId;
@@ -89,6 +110,7 @@ class CheckoutController with ChangeNotifier {
     String? paymentProofPath,
     bool isfOffline = false,
   }) async {
+    if (_isLoading || !await validatePurchaseEligibility()) return;
     String imagePath = paymentProofPath ?? '';
     if (isfOffline) {
       Map<String, String> methodInformations = {};
@@ -111,6 +133,7 @@ class CheckoutController with ChangeNotifier {
 
       String base64EncodedJson = base64Encode(utf8.encode(jsonEncode({
         ...methodInformations,
+        'transfer_schema': 'sender_v2',
         'sender_name': senderName?.trim() ?? '',
         'sender_identifier': senderIdentifier?.trim() ?? '',
       })));
@@ -254,7 +277,7 @@ class CheckoutController with ChangeNotifier {
 
   Future<void> payWithPurchaseWallet(String addressId, String couponCode,
       String couponDiscount, String orderNote, Function callback) async {
-    if (_isLoading) return;
+    if (_isLoading || !await validatePurchaseEligibility()) return;
     _isLoading = true;
     notifyListeners();
     try {
@@ -356,8 +379,9 @@ class CheckoutController with ChangeNotifier {
     if (methodIndex < 0 ||
         offlinePaymentModel?.offlineMethods == null ||
         methodIndex >= offlinePaymentModel!.offlineMethods!.length ||
-        offlinePaymentModel!.offlineMethods![methodIndex]
-                .paymentChannel?.toLowerCase() != channel) {
+        offlinePaymentModel!.offlineMethods![methodIndex].paymentChannel
+                ?.toLowerCase() !=
+            channel) {
       return;
     }
     if (!isOfflineChecked) {
@@ -407,6 +431,9 @@ class CheckoutController with ChangeNotifier {
       String? couponCode,
       String? couponDiscount,
       String? paymentMethod}) async {
+    if (_isLoading || !await validatePurchaseEligibility()) {
+      return ApiResponseModel.withError('customer_purchase_restricted');
+    }
     _isLoading = true;
     notifyListeners();
 

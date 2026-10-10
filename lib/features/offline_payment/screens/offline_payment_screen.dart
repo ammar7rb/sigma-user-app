@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -61,10 +62,10 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
         .trim();
   }
 
-  Future<void> _pickPaymentProof(
-      BuildContext context, CheckoutController checkout, int? fieldIndex) async {
-    final image = await ImagePicker().pickImage(
-        source: ImageSource.gallery, imageQuality: 75);
+  Future<void> _pickPaymentProof(BuildContext context,
+      CheckoutController checkout, int? fieldIndex) async {
+    final image = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, imageQuality: 75);
     if (image == null) return;
     final file = File(image.path);
     final extension = image.path.split('.').last.toLowerCase();
@@ -74,14 +75,17 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
     if (!validType || !validSize) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(getTranslated(
-                validType ? 'wallet_proof_too_large' : 'wallet_proof_invalid_type',
+                validType
+                    ? 'wallet_proof_too_large'
+                    : 'wallet_proof_invalid_type',
                 context) ??
             ''),
       ));
       return;
     }
     setState(() => _pickedImage = file);
-    if (fieldIndex != null && fieldIndex < checkout.inputFieldControllerList.length) {
+    if (fieldIndex != null &&
+        fieldIndex < checkout.inputFieldControllerList.length) {
       checkout.inputFieldControllerList[fieldIndex].text = image.path;
     }
   }
@@ -117,8 +121,8 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                           .offlineMethodSelectedIndex]
                                       .methodFields ??
                                   const <MethodFields>[])
-                                TransferRecipientDetail(
-                                    field.inputName ?? '', field.inputData ?? ''),
+                                TransferRecipientDetail(field.inputName ?? '',
+                                    field.inputData ?? ''),
                             ],
                           ),
                           Center(
@@ -148,42 +152,63 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 16),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text(getTranslated('payment_screenshot', context) ?? '',
+                                            Text(
+                                                getTranslated(
+                                                        'payment_screenshot',
+                                                        context) ??
+                                                    '',
                                                 style: textBold),
                                             const SizedBox(height: 8),
                                             OutlinedButton.icon(
-                                              onPressed: () => _pickPaymentProof(
-                                                  context, checkoutProvider, null),
-                                              icon: const Icon(Icons.add_photo_alternate_outlined),
-                                              label: Text(getTranslated('wallet_upload_proof', context) ?? ''),
+                                              onPressed: () =>
+                                                  _pickPaymentProof(context,
+                                                      checkoutProvider, null),
+                                              icon: const Icon(Icons
+                                                  .add_photo_alternate_outlined),
+                                              label: Text(getTranslated(
+                                                      'wallet_upload_proof',
+                                                      context) ??
+                                                  ''),
                                             ),
                                             if (_pickedImage != null)
                                               Padding(
-                                                padding: const EdgeInsets.only(top: 8),
+                                                padding: const EdgeInsets.only(
+                                                    top: 8),
                                                 child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  child: Image.file(_pickedImage!,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: Image.file(
+                                                      _pickedImage!,
                                                       height: 140,
                                                       width: double.infinity,
                                                       fit: BoxFit.cover),
                                                 ),
                                               ),
                                             FormField<String>(
-                                              validator: (_) => _pickedImage == null
-                                                  ? getTranslated('wallet_proof_required', context)
+                                              validator: (_) => _pickedImage ==
+                                                      null
+                                                  ? getTranslated(
+                                                      'wallet_proof_required',
+                                                      context)
                                                   : null,
                                               builder: (state) => state.hasError
                                                   ? Text(state.errorText!,
-                                                      style: TextStyle(color: Theme.of(context).colorScheme.error))
+                                                      style: TextStyle(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .error))
                                                   : const SizedBox.shrink(),
                                             ),
                                           ],
                                         ),
                                       );
                                     }
-                                    final methodInformation = configuredInputs[index];
+                                    final methodInformation =
+                                        configuredInputs[index];
 
                                     // إذا كان نوع الحقل القادم من الأدمن image يتم رسم زر اختيار صورة بدلاً من الـ TextField
                                     if (methodInformation.inputType ==
@@ -196,7 +221,7 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                               '${getTranslated(methodInformation.customerInput ?? '', context) ?? methodInformation.customerPlaceholder ?? ''}${methodInformation.isRequired == 1 ? ' *' : ''}',
+                                              '${getTranslated(methodInformation.customerInput ?? '', context) ?? methodInformation.customerPlaceholder ?? ''}${methodInformation.isRequired == 1 ? ' *' : ''}',
                                               style: textBold.copyWith(
                                                   fontSize: Dimensions
                                                       .fontSizeDefault),
@@ -204,7 +229,9 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                             const SizedBox(height: 10),
                                             InkWell(
                                               onTap: () => _pickPaymentProof(
-                                                  context, checkoutProvider, index),
+                                                  context,
+                                                  checkoutProvider,
+                                                  index),
                                               child: Container(
                                                 height: 140,
                                                 width: double.infinity,
@@ -217,7 +244,8 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                                   border: Border.all(
                                                       color: Theme.of(context)
                                                           .hintColor
-                                                          .withValues(alpha: 0.5)),
+                                                          .withValues(
+                                                              alpha: 0.5)),
                                                 ),
                                                 child: _pickedImage != null
                                                     ? ClipRRect(
@@ -310,17 +338,11 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                         .replaceAll('_', ' ')
                                         .capitalize();
                                     final label = isSenderName
-                                        ? getTranslated(
-                                                'transfer_sender_full_name',
-                                                context) ??
-                                            fallbackLabel
+                                        ? (isInstaPay
+                                            ? 'اسم الحساب الخاص بك'
+                                            : 'اسم المحفظة الخاصة بك')
                                         : isSenderIdentifier
-                                            ? getTranslated(
-                                                    isInstaPay
-                                                        ? 'transfer_sender_instapay'
-                                                        : 'transfer_sender_wallet',
-                                                    context) ??
-                                                fallbackLabel
+                                            ? 'الرقم الذي حولت منه'
                                             : translatedLabel != null &&
                                                     translatedLabel != fieldKey
                                                 ? translatedLabel
@@ -353,7 +375,15 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                                             methodInformation.isRequired == 1,
                                         labelText: label,
                                         hintText: hint,
+                                        inputType: isSenderIdentifier
+                                            ? TextInputType.phone
+                                            : TextInputType.text,
                                         validator: (value) {
+                                          if (isSenderIdentifier &&
+                                              !EgyptPhoneHelper.isValidLocal(
+                                                  value ?? '')) {
+                                            return 'أدخل رقم موبايل مصري صحيحًا من 11 رقمًا.';
+                                          }
                                           if (isSenderName ||
                                               isSenderIdentifier ||
                                               methodInformation.isRequired ==
@@ -442,7 +472,8 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                     final senderName = _senderName(checkoutProvider);
                     final senderIdentifier =
                         _senderIdentifier(checkoutProvider);
-                    if (senderName.isEmpty || senderIdentifier.isEmpty) {
+                    if (senderName.isEmpty ||
+                        !EgyptPhoneHelper.isValidLocal(senderIdentifier)) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(getTranslated(
@@ -483,7 +514,8 @@ class _OfflinePaymentScreenState extends State<OfflinePaymentScreen> {
                         couponCode: couponCode,
                         couponAmount: couponCodeAmount,
                         senderName: senderName,
-                        senderIdentifier: senderIdentifier,
+                        senderIdentifier:
+                            EgyptPhoneHelper.normalizeLocal(senderIdentifier),
                         paymentProofPath: _pickedImage?.path,
                         isfOffline: true,
                       );

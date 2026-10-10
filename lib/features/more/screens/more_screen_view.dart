@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -96,16 +97,15 @@ class _AccountOverviewSection extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _BalanceCard(
-                      title: getTranslated('insurance_balance', context) ??
-                          'Insurance balance',
-                      value:
-                          '${_compact(data!.insuranceAvailableBalance)} ${getTranslated('egp_short', context) ?? 'EGP'}',
-                      icon: Icons.verified_user_rounded,
+                      title: 'الاشتراك الشهري',
+                      value: data!.subscriptionActive
+                          ? 'متبقي ${data!.subscriptionRemainingDays} يومًا'
+                          : 'اشترك أو جدّد',
+                      icon: Icons.calendar_month_outlined,
                       color: const Color(0xFF14A673),
                       onTap: () async {
                         await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => const CustomerWalletScreen(
-                              initialWallet: 'insurance'),
+                          builder: (_) => const MonthlySubscriptionScreen(),
                         ));
                         await onChanged();
                       },

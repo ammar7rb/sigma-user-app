@@ -9,6 +9,9 @@ void main() {
     for (final number in ['01312345678', '0101234567', '010123456789']) {
       expect(EgyptPhoneHelper.isValidLocal(number), isFalse);
     }
+    expect(EgyptPhoneHelper.isValidLocal('010abc12345678'), isFalse);
+    expect(EgyptPhoneHelper.normalizeLocal('٠١٠ ١٢٣٤-٥٦٧٨'), '01012345678');
+    expect(EgyptPhoneHelper.normalizeLocal('۰۱۰۱۲۳۴۵۶۷۸'), '01012345678');
   });
 
   test('normalizes a local number to the backend canonical form', () {

@@ -3,7 +3,8 @@ import 'package:flutter_sixvalley_ecommerce/data/model/image_full_url.dart';
 class ProfileModel {
   int? id;
   String? administrativeReference;
-  String? get accountNumber => administrativeReference ?? (id == null ? null : 'C$id');
+  String? get accountNumber =>
+      administrativeReference ?? (id == null ? null : 'C$id');
   String? name;
   String? method;
   String? fName;
@@ -22,31 +23,32 @@ class ProfileModel {
   double? totalOrder;
   int? isPhoneVerified;
   String? emailVerificationToken;
+  Map<String, dynamic>? purchaseEligibility;
   CustomerActivationModel? activation;
 
-  ProfileModel(
-      {this.id,
-        this.administrativeReference,
-        this.name,
-        this.method,
-        this.fName,
-        this.lName,
-        this.phone,
-        this.image,
-        this.email,
-        this.emailVerifiedAt,
-        this.createdAt,
-        this.updatedAt,
-        this.walletBalance,
-        this.loyaltyPoint,
-        this.referCode,
-        this.referCount,
-        this.totalOrder,
-        this.imageFullUrl,
-        this.isPhoneVerified,
-        this.emailVerificationToken,
-        this.activation,
-      });
+  ProfileModel({
+    this.id,
+    this.administrativeReference,
+    this.name,
+    this.method,
+    this.fName,
+    this.lName,
+    this.phone,
+    this.image,
+    this.email,
+    this.emailVerifiedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.walletBalance,
+    this.loyaltyPoint,
+    this.referCode,
+    this.referCount,
+    this.totalOrder,
+    this.imageFullUrl,
+    this.isPhoneVerified,
+    this.emailVerificationToken,
+    this.activation,
+  });
 
   ProfileModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -61,41 +63,44 @@ class ProfileModel {
     emailVerifiedAt = json['email_verified_at'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    if(json['wallet_balance'] != null){
+    if (json['wallet_balance'] != null) {
       walletBalance = json['wallet_balance'].toDouble();
     }
-    if(json['loyalty_point'] != null){
+    if (json['loyalty_point'] != null) {
       loyaltyPoint = json['loyalty_point'].toDouble();
-    }else{
+    } else {
       loyaltyPoint = 0.0;
     }
-    if(json['referral_code'] != null){
+    if (json['referral_code'] != null) {
       referCode = json['referral_code'];
     }
-    if(json['referral_user_count'] != null){
-      try{
+    if (json['referral_user_count'] != null) {
+      try {
         referCount = json['referral_user_count'];
-      }catch(e){
+      } catch (e) {
         referCount = int.parse(json['referral_user_count'].toString());
       }
-
     }
-    if(json['orders_count'] != null){
-      try{
+    if (json['orders_count'] != null) {
+      try {
         totalOrder = json['orders_count'].toDouble();
-      }catch(e){
+      } catch (e) {
         totalOrder = double.parse(json['orders_count'].toString());
       }
     }
 
     imageFullUrl = json['image_full_url'] != null
-      ? ImageFullUrl.fromJson(json['image_full_url'])
-      : null;
+        ? ImageFullUrl.fromJson(json['image_full_url'])
+        : null;
 
     emailVerificationToken = json['email_verification_token'];
     isPhoneVerified = json['is_phone_verified'];
+    purchaseEligibility = json['purchase_eligibility'] is Map
+        ? Map<String, dynamic>.from(json['purchase_eligibility'])
+        : null;
     activation = json['activation'] is Map
-        ? CustomerActivationModel.fromJson(Map<String, dynamic>.from(json['activation']))
+        ? CustomerActivationModel.fromJson(
+            Map<String, dynamic>.from(json['activation']))
         : null;
   }
 
@@ -114,6 +119,7 @@ class ProfileModel {
     data['updated_at'] = updatedAt;
     data['wallet_balance'] = walletBalance;
     data['loyalty_point'] = loyaltyPoint;
+    data['purchase_eligibility'] = purchaseEligibility;
     data['activation'] = activation?.toJson();
     return data;
   }
@@ -148,11 +154,11 @@ class CustomerActivationModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'customer_reference': customerReference,
-    'status': status,
-    'is_active': isActive,
-    'ticket_id': ticketId,
-    'ticket_status': ticketStatus,
-    'message': message,
-  };
+        'customer_reference': customerReference,
+        'status': status,
+        'is_active': isActive,
+        'ticket_id': ticketId,
+        'ticket_status': ticketStatus,
+        'message': message,
+      };
 }

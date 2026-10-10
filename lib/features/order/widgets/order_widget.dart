@@ -200,7 +200,9 @@ class _OrderWidgetState extends State<OrderWidget> {
                           color: _getStatusBgColor(context, widget.orderModel!.orderStatus),
                         ),
                         child: Text(
-                          _hasInsuranceAction(widget.orderModel?.commerceFlowStatus)
+                          widget.orderModel?.customerFulfillmentStatus == 'preparing' && widget.orderModel?.orderStatus == 'pending'
+                              ? 'قيد التجهيز'
+                              : _hasInsuranceAction(widget.orderModel?.commerceFlowStatus)
                               ? (getTranslated('insurance_action_required', context) ?? '')
                               : (getTranslated(
                                       widget.orderModel!.orderStatus == 'pending'
@@ -285,11 +287,7 @@ class _OrderWidgetState extends State<OrderWidget> {
     }
   }
 
-  bool _hasInsuranceAction(String? status) => const {
-    'customer_insurance_pending',
-    'customer_insurance_under_review',
-    'purchase_refund_pending',
-  }.contains(status);
+  bool _hasInsuranceAction(String? status) => false;
 
   Color _getStatusTextColor(BuildContext context, String? status) {
     switch (status) {

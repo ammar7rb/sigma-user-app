@@ -1,3 +1,5 @@
+import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/customer_account_notices.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
@@ -312,9 +314,9 @@ class _MyAppState extends State<MyApp> {
         if ((widget.route != null && splashController.configModel == null)) {
           return Theme(
               data: light(
-                      primaryColor: Theme.of(context).primaryColor,
-                      secondaryColor: Theme.of(context).colorScheme.secondary,
-                    ),
+                primaryColor: Theme.of(context).primaryColor,
+                secondaryColor: Theme.of(context).colorScheme.secondary,
+              ),
               child: Directionality(
                   textDirection: TextDirection.rtl,
                   child: MediaQuery(
@@ -327,9 +329,9 @@ class _MyAppState extends State<MyApp> {
             debugShowCheckedModeBanner: false,
             themeMode: ThemeMode.light,
             theme: light(
-                    primaryColor: Theme.of(context).primaryColor,
-                    secondaryColor: Theme.of(context).colorScheme.secondary,
-                  ),
+              primaryColor: Theme.of(context).primaryColor,
+              secondaryColor: Theme.of(context).colorScheme.secondary,
+            ),
             locale: Provider.of<LocalizationController>(context).locale,
             localizationsDelegates: [
               AppLocalization.delegate,
@@ -342,7 +344,14 @@ class _MyAppState extends State<MyApp> {
               return MediaQuery(
                   data: MediaQuery.of(context)
                       .copyWith(textScaler: TextScaler.noScaling),
-                  child: SafeArea(top: false, child: child!));
+                  child: SafeArea(
+                      top: false,
+                      child: CustomerAccountNotices(
+                          onRenew: () => Get.navigator?.push(
+                              MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      const MonthlySubscriptionScreen())),
+                          child: child!)));
             },
             supportedLocales: locals,
           );

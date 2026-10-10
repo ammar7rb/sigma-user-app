@@ -6,6 +6,8 @@ class AccountOverviewModel {
   final bool purchaseEnabled;
   final bool insuranceEnabled;
   final bool taxEnabled;
+  final bool subscriptionActive;
+  final int subscriptionRemainingDays;
 
   const AccountOverviewModel({
     required this.purchaseBalance,
@@ -15,6 +17,8 @@ class AccountOverviewModel {
     required this.purchaseEnabled,
     required this.insuranceEnabled,
     required this.taxEnabled,
+    this.subscriptionActive = false,
+    this.subscriptionRemainingDays = 0,
   });
 
   factory AccountOverviewModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,8 @@ class AccountOverviewModel {
       insuranceEnabled:
           json['insurance_enabled'] == true || json['insurance_enabled'] == 1,
       taxEnabled: json['tax_enabled'] == true || json['tax_enabled'] == 1,
+      subscriptionActive: (json['subscription'] as Map?)?['active'] == true,
+      subscriptionRemainingDays: int.tryParse('${(json['subscription'] as Map?)?['remaining_days'] ?? 0}') ?? 0,
     );
   }
 

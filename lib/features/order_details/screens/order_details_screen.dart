@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order/widgets/customer_order_state.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
@@ -169,6 +170,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       Expanded(
                         child: ListView(padding: const EdgeInsets.all(0), children: [
                           const SizedBox(height: Dimensions.paddingSizeDefault),
+                          CustomerOrderState(order: orderProvider.orders!),
                           const OrderPaymentInfoWidget(),
                           PostPaymentRefundCard(order: orderProvider.orders),
 
