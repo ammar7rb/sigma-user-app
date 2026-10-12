@@ -8,6 +8,7 @@ class AccountOverviewModel {
   final bool taxEnabled;
   final bool subscriptionActive;
   final int subscriptionRemainingDays;
+  final String? subscriptionPackageName;
 
   const AccountOverviewModel({
     required this.purchaseBalance,
@@ -19,6 +20,7 @@ class AccountOverviewModel {
     required this.taxEnabled,
     this.subscriptionActive = false,
     this.subscriptionRemainingDays = 0,
+    this.subscriptionPackageName,
   });
 
   factory AccountOverviewModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class AccountOverviewModel {
       taxEnabled: json['tax_enabled'] == true || json['tax_enabled'] == 1,
       subscriptionActive: (json['subscription'] as Map?)?['active'] == true,
       subscriptionRemainingDays: int.tryParse('${(json['subscription'] as Map?)?['remaining_days'] ?? 0}') ?? 0,
+      subscriptionPackageName: (json['subscription'] as Map?)?['package_name']?.toString(),
     );
   }
 

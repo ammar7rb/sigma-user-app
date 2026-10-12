@@ -1,5 +1,6 @@
 import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
@@ -80,7 +81,7 @@ class _AccountOverviewSection extends StatelessWidget {
                   Expanded(
                     child: _BalanceCard(
                       title: getTranslated('purchase_balance', context) ??
-                          'Purchase balance',
+                          'Wallet Balance',
                       value:
                           '${_compact(data!.purchaseBalance)} ${getTranslated('egp_short', context) ?? 'EGP'}',
                       icon: Icons.account_balance_wallet_rounded,
@@ -97,11 +98,11 @@ class _AccountOverviewSection extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _BalanceCard(
-                      title: 'الاشتراك الشهري',
+                      title: 'الباقة الشهرية',
                       value: data!.subscriptionActive
-                          ? 'متبقي ${data!.subscriptionRemainingDays} يومًا'
+                          ? 'مدفوع · ${data!.subscriptionPackageName ?? ''}\nمتبقي ${data!.subscriptionRemainingDays} يومًا'
                           : 'اشترك أو جدّد',
-                      icon: Icons.calendar_month_outlined,
+                      icon: data!.subscriptionActive ? Icons.verified : Icons.calendar_month_outlined,
                       color: const Color(0xFF14A673),
                       onTap: () async {
                         await Navigator.of(context).push(MaterialPageRoute(
@@ -112,6 +113,7 @@ class _AccountOverviewSection extends StatelessWidget {
                     ),
                   ),
                 ]),
+                const CreditLimitStrip(profile: true),
                 if (data!.insuranceEnabled ||
                     data!.taxEnabled ||
                     pendingCount > 0) ...[

@@ -40,7 +40,7 @@ void main() {
       colorScheme:ColorScheme.fromSeed(seedColor:const Color(0xff1a428a))),
       home:Directionality(textDirection:TextDirection.rtl,child:Scaffold(appBar:AppBar(title:const Text('الاشتراك الشهري')),
         body:const Padding(padding:EdgeInsets.all(20),child:MonthlySubscriptionSummary(subscription:{
-          'active':true,'status':'active','remaining_days':24,'price':'100.000','currency_code':'EGP','expires_at':'2026-11-03T10:00:00+02:00'
+          'active':true,'status':'active','package_name':'Silver','remaining_days':24,'price':'100.000','currency_code':'EGP','expires_at':'2026-11-03T10:00:00+02:00','allowance':{'available_limit':2300}
         }))))));
     await tester.pumpAndSettle();expect(tester.takeException(),isNull);
     await expectLater(find.byType(Scaffold),matchesGoldenFile('goldens/customer_monthly_subscription.png'));

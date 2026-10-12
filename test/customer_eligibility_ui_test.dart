@@ -172,7 +172,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.textContaining('الدفع قيد المراجعة'), findsOneWidget);
-      expect(find.byIcon(Icons.calendar_month_outlined), findsNWidgets(2));
+      expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
       expect(find.text('تواصل لتفعيل الحساب'), findsOneWidget);
       await expectLater(find.byType(Scaffold),
           matchesGoldenFile('goldens/customer_eligibility_${entry.$1}.png'));

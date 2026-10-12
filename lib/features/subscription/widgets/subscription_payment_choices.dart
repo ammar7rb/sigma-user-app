@@ -39,7 +39,7 @@ class SubscriptionPaymentChoices extends StatelessWidget {
                   _choice(
                       context,
                       'wallet',
-                      'محفظة المشتريات',
+                      'المحفظة',
                       'الدفع من رصيدك المتاح',
                       Icons.account_balance_wallet_outlined,
                       Theme.of(context).colorScheme.primary),

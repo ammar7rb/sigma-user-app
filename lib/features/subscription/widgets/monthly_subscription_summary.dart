@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class MonthlySubscriptionSummary extends StatelessWidget {
   final Map<String, dynamic> subscription;
@@ -17,78 +18,77 @@ class MonthlySubscriptionSummary extends StatelessWidget {
         (subscription['open_payment'] as Map?)?['status'] == 'pending_review';
     final expiry =
         DateTime.tryParse('${subscription['expires_at']}')?.toLocal();
+    final allowance = subscription['allowance'] as Map?;
     final theme = Theme.of(context);
+    String money(dynamic value) =>
+        NumberFormat('#,##0.##', 'ar').format(double.tryParse('$value') ?? 0);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16)),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(Icons.calendar_month_outlined,
-                size: 32, color: theme.colorScheme.onPrimaryContainer),
-            const SizedBox(height: 16),
-            Text(
-                active
-                    ? 'اشتراك فعال'
-                    : (subscription['status'] == 'expired'
-                        ? 'انتهى الاشتراك'
-                        : 'لا يوجد اشتراك فعال'),
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(color: theme.colorScheme.onPrimaryContainer)),
-            const SizedBox(height: 8),
-            Text(
-                active
-                    ? 'متبقي ${subscription['remaining_days']} يومًا'
-                    : '30 يومًا بعد اعتماد الدفع',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.onPrimaryContainer)),
-            if (expiry != null)
-              Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                      'تاريخ الانتهاء: ${expiry.year}/${expiry.month}/${expiry.day}',
-                      style: TextStyle(
-                          color: theme.colorScheme.onPrimaryContainer))),
-          ])),
-      const SizedBox(height: 24),
-      Text('سعر الاشتراك الحالي', style: theme.textTheme.titleMedium),
-      const SizedBox(height: 8),
-      Text(
-          subscription['price'] == null
-              ? 'لم تحدد الإدارة السعر بعد'
-              : '${subscription['price']} ${subscription['currency_code']}',
-          style: theme.textTheme.headlineSmall),
-      const SizedBox(height: 16),
-      const Text(
-          'كل دفعة جديدة تبدأ 30 يومًا من وقت اعتمادها، دون تمديد الأيام المتبقية.'),
-      const SizedBox(height: 24),
+      if (active) ...[
+        Row(children: [
+          Expanded(
+              child: Text('${subscription['package_name'] ?? 'باقتك الحالية'}',
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800))),
+          const Icon(Icons.check_circle, size: 18, color: Color(0xFF238451)),
+          const SizedBox(width: 6),
+          Text('مدفوع',
+              style: theme.textTheme.labelLarge
+                  ?.copyWith(color: const Color(0xFF238451)))
+        ]),
+        const SizedBox(height: 8),
+        Text(
+            'متبقي ${subscription['remaining_days']} يومًا${expiry == null ? '' : ' · تنتهي ${expiry.year}/${expiry.month}/${expiry.day}'}',
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        if (allowance != null) ...[
+          const SizedBox(height: 20),
+          Wrap(spacing: 28, runSpacing: 14, children: [
+            for (final item in <String, String>{
+              'granted_limit': 'الحد الائتماني',
+              'committed_limit': 'المستخدم أو المحجوز',
+              'available_limit': 'المتاح الآن'
+            }.entries)
+              if (allowance[item.key] != null)
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(item.value,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant)),
+                  const SizedBox(height: 4),
+                  Text('${money(allowance[item.key])} ج.م',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                ]),
+          ]),
+        ],
+        const SizedBox(height: 20),
+        const Divider(),
+      ] else
+        Text(
+            subscription['status'] == 'expired'
+                ? 'انتهت باقتك. اختر الباقة المناسبة للمتابعة.'
+                : 'اختر باقتك وحدك الائتماني المناسب.',
+            style: theme.textTheme.bodyMedium),
       if (pending)
-        Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: theme.colorScheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(12)),
+        Padding(
+            padding: const EdgeInsets.only(top: 16),
             child: Semantics(
                 liveRegion: true,
                 child: Text(
-                    'الدفع قيد المراجعة\nيبدأ الاشتراك بعد اعتماد الإدارة.',
-                    style: TextStyle(
-                        color: theme.colorScheme.onSecondaryContainer))))
+                    'الدفع قيد المراجعة\nتُفعّل الباقة بعد اعتماد الإدارة.',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant))))
       else if (onCheckout != null)
-        FilledButton.icon(
-            onPressed: busy ? null : onCheckout,
-            icon: busy
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.arrow_back_rounded),
-            label: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Text('المتابعة إلى دفع الاشتراك'))),
+        Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: FilledButton.icon(
+                onPressed: busy ? null : onCheckout,
+                icon: busy
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.payments_outlined),
+                label: const Text('المتابعة إلى دفع الاشتراك'))),
     ]);
   }
 }

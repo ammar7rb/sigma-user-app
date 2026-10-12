@@ -6,6 +6,7 @@ import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile
 import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/monthly_package_choices.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
@@ -25,7 +26,7 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
   Map<String, dynamic>? data;
   String? error;
   bool busy = false;
-  late final String requestKey;
+  late String requestKey;
   Map<String, dynamic> get subscription =>
       Map<String, dynamic>.from(data?['subscription'] ?? {});
   Map<String, dynamic>? get open => subscription['open_payment'] is Map
@@ -36,14 +37,17 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    requestKey = newRequestKey();
+    load();
+  }
+
+  String newRequestKey() {
     final random = Random.secure();
     final bytes = List.generate(16, (_) => random.nextInt(256));
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
     final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
-    requestKey =
-        '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
-    load();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
   @override
@@ -58,6 +62,14 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
   }
 
   String failure(Object e) {
+    if (e is DioException && e.response?.statusCode == 429) {
+      return 'محاولات كثيرة. انتظر ${e.response?.headers.value('retry-after') ?? '60'} ثانية ثم أعد المحاولة.';
+    }
+    if (e is DioException &&
+        (e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.connectionTimeout)) {
+      return 'انتهت مهلة الاتصال. تحقق من حالة الدفع قبل إعادة المحاولة؛ لن يتكرر الخصم لنفس العملية.';
+    }
     if (e is DioException && e.response?.data is Map) {
       final errors = e.response!.data['errors'];
       if (errors is Map && errors.isNotEmpty) {
@@ -82,6 +94,7 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
           data = Map<String, dynamic>.from(response.data);
           error = null;
         });
+        if (open == null) requestKey = newRequestKey();
       }
     } catch (e) {
       if (mounted) setState(() => error = failure(e));
@@ -97,21 +110,28 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
     try {
       await action();
       await load();
+      if (open == null) requestKey = newRequestKey();
       if (mounted) {
         await Provider.of<ProfileController>(context, listen: false)
             .getUserInfo(context);
       }
     } catch (e) {
+      await load();
       if (mounted) setState(() => error = failure(e));
     } finally {
       if (mounted) setState(() => busy = false);
     }
   }
 
-  Future<void> checkout() async {
+  Future<void> checkout(
+      {int? packageId, int? offerId, int quantity = 1}) async {
     await act(() async {
-      await api.post('/api/v1/customer/subscription/checkout',
-          data: {'request_key': requestKey});
+      await api.post('/api/v1/customer/subscription/checkout', data: {
+        'request_key': requestKey,
+        if (packageId != null) 'package_id': packageId,
+        if (offerId != null) 'offer_id': offerId,
+        'quantity': quantity
+      });
     });
     if (mounted && open?['status'] == 'draft' && error == null) {
       await choosePayment();
@@ -162,9 +182,9 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
       final action = await showDialog<String>(
           context: context,
           builder: (context) => AlertDialog(
-                  title: const Text('رصيد المشتريات لا يكفي'),
+                  title: const Text('رصيد المحفظة لا يكفي'),
                   content: const Text(
-                      'عذرًا، رصيد محفظة المشتريات لا يكفي. برجاء الإيداع فيها أو استخدام طريقة أخرى.'),
+                      'عذرًا، رصيد المحفظة لا يكفي. برجاء الإيداع فيها أو استخدام طريقة أخرى.'),
                   actions: [
                     TextButton(
                         onPressed: () => Navigator.pop(context, 'other'),
@@ -187,7 +207,7 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
         builder: (context) => AlertDialog(
                 title: const Text('دفع الاشتراك'),
                 content: Text(
-                    'سيتم خصم ${payment['quoted_amount']} ${payment['currency_code']} من محفظة المشتريات. يبدأ الاشتراك 30 يومًا من الاعتماد، دون تمديد الصلاحية السابقة.'),
+                    'سيتم خصم ${payment['quoted_amount']} ${payment['currency_code']} من المحفظة. يبدأ الاشتراك 30 يومًا من الاعتماد، دون تمديد الصلاحية السابقة.'),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.pop(context, false),
@@ -198,14 +218,17 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                 ]));
     if (confirmed == true && mounted) {
       await act(() async {
-        await api.post('/api/v1/customer/subscription/${payment['id']}/wallet');
+        await api.post('/api/v1/customer/subscription/${payment['id']}/wallet',
+            options: Options(
+                receiveTimeout: const Duration(seconds: 20),
+                sendTimeout: const Duration(seconds: 20)));
       });
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('الاشتراك الشهري')),
+      appBar: AppBar(title: const Text('الباقات الشهرية')),
       body: RefreshIndicator(
           onRefresh: load,
           child: ListView(padding: const EdgeInsets.all(20), children: [
@@ -228,17 +251,39 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
               MonthlySubscriptionSummary(
                   subscription: subscription,
                   busy: busy,
-                  onCheckout:
-                      open == null && subscription['payment_available'] == true
-                          ? checkout
-                          : null),
+                  onCheckout: data?['packages'] == null &&
+                          subscription['active'] != true &&
+                          open == null &&
+                          subscription['payment_available'] == true
+                      ? checkout
+                      : null),
+              if (data?['packages'] != null)
+                MonthlyPackageChoices(
+                    data: data!,
+                    busy: busy,
+                    onIncrease: (offerId, quantity) =>
+                        checkout(offerId: offerId, quantity: quantity),
+                    onBuy: (packageId, offerId) =>
+                        checkout(packageId: packageId, offerId: offerId)),
               if (open?['status'] == 'draft') ...[
                 const SizedBox(height: 20),
                 FilledButton.icon(
                   onPressed: busy ? null : choosePayment,
                   icon: const Icon(Icons.payments_outlined),
-                  label: const Text('اختر طريقة الدفع'),
+                  label: Text(open?['purchase_kind'] == 'increase'
+                      ? 'دفع زيادة الحد'
+                      : open?['purchase_kind'] == 'upgrade'
+                          ? 'دفع الترقية'
+                          : 'دفع الباقة المختارة'),
                 ),
+                TextButton(
+                    onPressed: busy
+                        ? null
+                        : () => act(() async {
+                              await api.post(
+                                  '/api/v1/customer/subscription/${open!['id']}/cancel');
+                            }),
+                    child: const Text('إلغاء المسودة لاختيار عرض آخر')),
               ],
               const SizedBox(height: 32),
               Text('سجل دفعات الاشتراك',
@@ -253,7 +298,8 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                       'draft': 'لم يُرسل الدفع بعد',
                       'pending_review': 'الدفع قيد المراجعة',
                       'approved': 'تم اعتماد الدفع',
-                      'rejected': 'رُفض الدفع'
+                      'rejected': 'رُفض الدفع',
+                      'cancelled': 'ملغى'
                     }[payment['status']]}${payment['review_note'] == null ? '' : '\n${payment['review_note']}'}'),
                     trailing: Text('#${payment['id']}')),
             ],

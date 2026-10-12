@@ -16,7 +16,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/coupon/controllers/coupon_controller.dart';
+
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
@@ -24,9 +24,8 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/amount_widget.dart
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/choose_payment_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/coupon_apply_widget.dart';
+
 import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/shipping_details_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -65,10 +64,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
   String? _quoteReadyKey;
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
       GlobalKey<ScaffoldMessengerState>();
-  final TextEditingController _controller = TextEditingController();
   final GlobalKey<FormState> passwordFormKey = GlobalKey<FormState>();
 
-  final FocusNode _orderNoteNode = FocusNode();
+
   double _order = 0;
   double _tax = 0;
   late bool _billingAddress;
@@ -95,8 +93,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     Provider.of<AddressController>(context, listen: false).getAddressList();
     Provider.of<CheckoutController>(context, listen: false)
         .getReferralAmount('0');
-    Provider.of<CouponController>(context, listen: false)
-        .removePrevCouponData();
+    
     Provider.of<CartController>(context, listen: false).getCartData(context);
     Provider.of<CheckoutController>(context, listen: false)
         .resetPaymentMethod();
@@ -108,10 +105,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           .getOfflinePaymentList();
     }
 
-    if (Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
-      Provider.of<CouponController>(context, listen: false)
-          .getAvailableCouponList();
-    }
+    
 
     // Billing addresses are not collected in this store. The delivery address
     // is the only address used for physical orders.
@@ -141,7 +135,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             shipping.isCheckItemExist == 1 &&
             physicalCartGroupIds.contains(shipping.cartGroupId))
         .toList();
-    final coupon = context.watch<CouponController>();
+
     final checkout = context.watch<CheckoutController>();
     final addresses = context.watch<AddressController>().addressList;
     final resolvedAddressIndex = checkout.selectedAddressId != null &&
@@ -166,15 +160,13 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             ? shippingController.selectedQuoteCost
             : 0.0;
     final quoteKey =
-        '${coupon.couponCode}:${coupon.discount}:${checkout.addressIndex}:${selectedShipping.map((s) => '${s.cartGroupId}:${s.shippingCost}').join(',')}';
+        '${checkout.addressIndex}:${selectedShipping.map((s) => '${s.cartGroupId}:${s.shippingCost}').join(',')}';
     if (_quoteKey != quoteKey) {
       _quoteKey = quoteKey;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
         await checkout.getOrderInsuranceQuote(
-            couponCode: coupon.discount != null && coupon.discount != 0
-                ? coupon.couponCode
-                : '');
+            couponCode: '');
         if (mounted && _quoteKey == quoteKey) {
           setState(() => _quoteReadyKey =
               checkout.orderInsuranceQuote == null ? null : quoteKey);
@@ -192,8 +184,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
               builder: (context, locationProvider, _) {
               return Consumer<CheckoutController>(
                   builder: (context, orderProvider, child) {
-                return Consumer<CouponController>(
-                    builder: (context, couponProvider, _) {
+                return Builder(builder: (context) {
                   if (orderProvider.orderInsuranceQuote?.postPurchaseEnabled ==
                       true) {
                     _tax = 0;
@@ -306,19 +297,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                                     false)) {
                                               return;
                                             }
-                                            final orderNote = orderProvider
-                                                .orderNoteController.text
-                                                .trim();
-                                            final couponCode = couponProvider
-                                                            .discount !=
-                                                        null &&
-                                                    couponProvider.discount != 0
-                                                ? couponProvider.couponCode
-                                                : '';
-                                            final couponAmount = couponProvider
-                                                    .discount
-                                                    ?.toString() ??
-                                                '0';
+                                            const orderNote = '';
+                                            const couponCode = '';
+                                            const couponAmount = '0';
                                             final addressId = orderProvider
                                                         .addressIndex !=
                                                     null
@@ -494,17 +475,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                   passwordFormKey: passwordFormKey,
                                 ),
                               ),
-                              if (Provider.of<AuthController>(context,
-                                      listen: false)
-                                  .isLoggedIn())
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      bottom: Dimensions.paddingSizeSmall),
-                                  child: CouponApplyWidget(
-                                    couponController: _controller,
-                                    orderAmount: _order,
-                                  ),
-                                ),
                               if (deliveryIsConfirmed)
                                 Padding(
                                   padding:
@@ -580,10 +550,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                 child: Consumer<CheckoutController>(
                                   builder:
                                       (context, checkoutController, child) {
-                                    _couponDiscount =
-                                        Provider.of<CouponController>(context)
-                                                .discount ??
-                                            0;
+                                    _couponDiscount = 0;
                                     _referralDiscount =
                                         Provider.of<CheckoutController>(context)
                                                 .referralAmount
@@ -620,12 +587,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                           amount: PriceConverter.convertPrice(
                                               context, widget.discount),
                                         ),
-                                        AmountWidget(
-                                          title: getTranslated(
-                                              'coupon_voucher', context),
-                                          amount: PriceConverter.convertPrice(
-                                              context, _couponDiscount),
-                                        ),
+                                        
                                         if (checkoutController
                                                     .orderInsuranceQuote
                                                     ?.postPurchaseEnabled !=
@@ -693,54 +655,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                               ),
                               SizedBox(height: Dimensions.paddingSizeSmall),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).cardColor,
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Theme.of(context)
-                                            .hintColor
-                                            .withValues(alpha: 0.2),
-                                        spreadRadius: 3,
-                                        blurRadius: 3)
-                                  ],
-                                ),
-                                padding: const EdgeInsets.fromLTRB(
-                                  Dimensions.paddingSizeDefault,
-                                  Dimensions.paddingSizeDefault,
-                                  Dimensions.paddingSizeDefault,
-                                  Dimensions.paddingSizeDefault,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(children: [
-                                      Text(
-                                        '${getTranslated('order_note', context)}',
-                                        style: textRegular.copyWith(
-                                          fontSize: Dimensions.fontSizeLarge,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.color,
-                                        ),
-                                      ),
-                                    ]),
-                                    const SizedBox(
-                                        height: Dimensions.paddingSizeSmall),
-                                    CustomTextFieldWidget(
-                                      hintText:
-                                          getTranslated('enter_note', context),
-                                      inputType: TextInputType.multiline,
-                                      inputAction: TextInputAction.done,
-                                      maxLines: 3,
-                                      focusNode: _orderNoteNode,
-                                      controller:
-                                          orderProvider.orderNoteController,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              
                               SizedBox(height: Dimensions.paddingSizeDefault),
                             ],
                           ),
@@ -909,3 +824,5 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 }
+
+

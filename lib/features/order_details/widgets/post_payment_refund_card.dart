@@ -41,7 +41,7 @@ class PostPaymentRefundCard extends StatelessWidget {
           )),
         ]),
         const SizedBox(height: 10),
-        _line(context, getTranslated('purchase_balance', context) ?? 'Purchase balance',
+        _line(context, getTranslated('purchase_balance', context) ?? 'Wallet Balance',
             PriceConverter.convertPrice(context, purchaseAmount)),
         _line(context, getTranslated('insurance_balance', context) ?? 'Insurance balance',
             PriceConverter.convertPrice(context, insuranceAmount)),

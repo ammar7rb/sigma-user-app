@@ -88,7 +88,7 @@ class _ProfileBody extends StatelessWidget {
             Expanded(
                 child: _balanceCard(
                     context,
-                    'رصيد المشتريات',
+                    'رصيد المحفظة',
                     '1.25K ج.م',
                     Icons.account_balance_wallet_rounded,
                     const Color(0xFF075ACB))),

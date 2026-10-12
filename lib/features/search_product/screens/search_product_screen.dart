@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/controllers/brand_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/controllers/category_controller.dart';
@@ -67,6 +68,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
 
         body: CustomScrollView(slivers: [
+          const SliverToBoxAdapter(child: CreditLimitStrip()),
            SliverToBoxAdapter(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Container(padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
                 decoration: BoxDecoration(color: Theme.of(context).canvasColor,

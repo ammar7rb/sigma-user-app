@@ -1,5 +1,7 @@
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/delete_account_bottom_sheet_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/profile_image_shortcut.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
@@ -72,7 +74,7 @@ class ProfileInfoSectionWidget extends StatelessWidget {
               ),
               child: Row(children: [
                 InkWell(
-                  onTap: () {
+                  onTap: () async {
                     if (isGuestMode) {
                       showModalBottomSheet(
                           backgroundColor: Colors.transparent,
@@ -81,8 +83,7 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                               fromPage: RouterHelper.profileScreen1));
                     } else {
                       if (profile.userInfoModel != null) {
-                        RouterHelper.getProfileScreen1Route(
-                            action: RouteAction.push);
+                        await changeCustomerProfileImage(context);
                       }
                     }
                   },
@@ -134,7 +135,8 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                           style: textRegular.copyWith(
                               color: Colors.white.withValues(alpha: .82),
                               fontSize: Dimensions.fontSizeLarge)),
-                    if (!isGuestMode && profile.userInfoModel?.accountNumber != null) ...[
+                    if (!isGuestMode &&
+                        profile.userInfoModel?.accountNumber != null) ...[
                       const SizedBox(height: 8),
                       CustomerAccountNumberWidget(
                         accountNumber: profile.userInfoModel!.accountNumber!,
@@ -163,10 +165,27 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                   ],
                 )),
                 if (!isGuestMode)
-                  IconButton(
-                    onPressed: () => RouterHelper.getProfileScreen1Route(
-                        action: RouteAction.push),
-                    icon: const Icon(Icons.edit_rounded, color: Colors.white),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                          value: 'edit', child: Text('تعديل الملف الشخصي')),
+                      PopupMenuItem(value: 'delete', child: Text('حذف الحساب'))
+                    ],
+                    onSelected: (action) {
+                      if (action == 'edit') {
+                        RouterHelper.getProfileScreen1Route(
+                            action: RouteAction.push);
+                      }
+                      if (action == 'delete' && profile.userInfoModel != null) {
+                        showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            builder: (_) => DeleteAccountBottomSheet(
+                                customerId: '${profile.userInfoModel!.id}'));
+                      }
+                    },
                   ),
               ]),
             ),

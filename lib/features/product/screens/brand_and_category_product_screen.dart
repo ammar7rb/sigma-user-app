@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/paginated_list_view_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/domain/models/category_model.dart';
@@ -124,6 +125,7 @@ class _BrandAndCategoryProductScreenState extends State<BrandAndCategoryProductS
       body: Consumer<ProductController>(
         builder: (context, productController, child) {
           return Column(children: [
+            const CreditLimitStrip(),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall).copyWith(right: Dimensions.paddingSizeDefault),

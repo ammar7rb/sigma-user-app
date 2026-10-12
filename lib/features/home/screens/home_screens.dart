@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
@@ -179,6 +180,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   )),
               SliverToBoxAdapter(child: BannersWidget()),
+              const SliverToBoxAdapter(child: CreditLimitStrip()),
               SliverToBoxAdapter(
                 child: CategoryListWidget(isHomePage: true),
               ),

@@ -94,7 +94,7 @@ void main() {
     expect(paymentSheet, isNot(contains("name.contains('insta')")));
     expect(paymentSheet, isNot(contains("name.contains('wallet')")));
     expect(paymentSheet, isNot(contains('methods.length > 1 ? 1 : 0')));
-    expect(preview, contains('رصيد المشتريات'));
+    expect(preview, contains('رصيد المحفظة'));
     expect(preview, contains('محفظة إلكترونية'));
     expect(preview, contains('إنستا باي'));
     expect(preview,

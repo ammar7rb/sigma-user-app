@@ -53,7 +53,6 @@ import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_c
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/business_pages_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/domain/models/support_ticket_model.dart';
-import 'package:flutter_sixvalley_ecommerce/features/support/screens/add_ticket_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/screens/support_conversation_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/screens/support_ticket_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/widgets/support_ticket_type_widget.dart';
@@ -1596,27 +1595,7 @@ class RouterHelper {
         ),
         GoRoute(
           path: addTicketScreen,
-          builder: (context, state) {
-            final ticketParam = state.uri.queryParameters['ticket'];
-            final categoryIndexParam =
-                state.uri.queryParameters['categoryIndex'];
-
-            late TicketModel ticketModel;
-            if (ticketParam != null) {
-              ticketModel = TicketModel.fromJson(
-                jsonDecode(
-                  utf8.decode(base64Url.decode(ticketParam)),
-                ),
-              );
-            }
-
-            final categoryIndex = int.tryParse(categoryIndexParam ?? '0') ?? 0;
-
-            return AddTicketScreen(
-              ticketModel: ticketModel,
-              categoryIndex: categoryIndex,
-            );
-          },
+          builder: (context, state) => const SupportTicketScreen(),
         ),
         GoRoute(
           path: supportConversationScreen,

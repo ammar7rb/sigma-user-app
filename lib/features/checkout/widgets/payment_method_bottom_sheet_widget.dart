@@ -12,7 +12,7 @@ import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:provider/provider.dart';
 
-/// Purchase balance, online payment and offline transfer share checkout consent.
+/// Wallet Balance, online payment and offline transfer share checkout consent.
 class PaymentMethodBottomSheetWidget extends StatelessWidget {
   final bool onlyDigital;
   const PaymentMethodBottomSheetWidget({super.key, required this.onlyDigital});

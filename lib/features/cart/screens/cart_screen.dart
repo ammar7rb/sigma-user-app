@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_content.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
@@ -236,6 +237,7 @@ class CartScreenState extends State<CartScreen> {
                             borderRadius: BorderRadius.circular(10)),
                         child: cartList.isNotEmpty
                             ? Column(children: [
+                                const CreditLimitStrip(cart: true),
                                 Padding(
                                   padding: const EdgeInsets.only(
                                       bottom: Dimensions.paddingSizeSmall),
@@ -462,6 +464,8 @@ class CartScreenState extends State<CartScreen> {
                                             }
                                           }
 
+                                          if (!await validateCustomerCartLimit(context, amount)) return;
+                                          if (!context.mounted) return;
                                           if (!Provider.of<AuthController>(
                                                   context,
                                                   listen: false)

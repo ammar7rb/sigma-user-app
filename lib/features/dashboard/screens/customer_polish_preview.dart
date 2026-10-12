@@ -283,7 +283,7 @@ class _CheckoutPreview extends StatelessWidget {
                     _paymentChoice(
                         context,
                         Icons.account_balance_wallet_outlined,
-                        'رصيد المشتريات',
+                        'رصيد المحفظة',
                         'الدفع من الرصيد المتاح',
                         true),
                     const SizedBox(height: 8),

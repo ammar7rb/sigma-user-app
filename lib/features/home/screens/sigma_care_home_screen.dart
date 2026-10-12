@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
+import 'package:flutter_sixvalley_ecommerce/features/home/domain/homepage_product_sections.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/banners_widget.dart';
@@ -20,6 +22,7 @@ class SigmaCareHomeScreen extends StatefulWidget {
 class _SigmaCareHomeScreenState extends State<SigmaCareHomeScreen> {
   List<Map<String, dynamic>>? _sections;
   bool _failed = false;
+  bool _loading = false;
   @override
   void initState() {
     super.initState();
@@ -27,18 +30,25 @@ class _SigmaCareHomeScreenState extends State<SigmaCareHomeScreen> {
   }
 
   Future<void> _load() async {
+    if (_loading) return;
+    _loading = true;
     try {
       final response =
           await di.sl<DioClient>().get('/api/v1/banners/homepage-layout');
-      final data = response.data['product_sections'] as List;
+      final data = await readHomepageProductSections(Map<String, dynamic>.from(response.data), () async {
+        final latest = await di.sl<DioClient>().get('/api/v1/products/latest?guest_id=1&limit=20&offset=1');
+        return Map<String, dynamic>.from(latest.data);
+      });
       if (mounted) {
         setState(() {
-          _sections = data.map((e) => Map<String, dynamic>.from(e)).toList();
+          _sections = data;
           _failed = false;
         });
       }
     } catch (_) {
       if (mounted) setState(() => _failed = true);
+    } finally {
+      _loading = false;
     }
   }
 
@@ -73,6 +83,7 @@ class _SigmaCareHomeScreenState extends State<SigmaCareHomeScreen> {
                     child: const SearchHomePageWidget()),
                 BannersWidget(),
                 const CategoryListWidget(isHomePage: true),
+                const CreditLimitStrip(),
                 if (_sections == null && !_failed)
                   const Padding(
                       padding: EdgeInsets.all(32),

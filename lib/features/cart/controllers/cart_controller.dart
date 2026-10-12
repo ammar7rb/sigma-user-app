@@ -69,6 +69,9 @@ class CartController extends ChangeNotifier {
 
 
   Future<ApiResponseModel> updateCartProductQuantity(int? key, int quantity, BuildContext context, bool increment, int index) async{
+    final item = cartList[index];
+    final previousQuantity = item.quantity;
+    item.quantity = quantity;
     if(increment){
       cartList[index].increment = true;
     }else{
@@ -87,6 +90,7 @@ class CartController extends ChangeNotifier {
       cartList[index].increment  = false;
       cartList[index].decrement = false;
       ApiChecker.checkApi(apiResponse);
+      item.quantity = previousQuantity;
     }
     notifyListeners();
     return apiResponse;
