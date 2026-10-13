@@ -39,7 +39,10 @@ class ProfileRepository implements ProfileRepositoryInterface {
       ProfileModel userInfoModel, String pass, File? file, String token) async {
     http.MultipartRequest request = http.MultipartRequest('POST',
         Uri.parse('${AppConstants.baseUrl}${AppConstants.updateProfileUri}'));
-    request.headers.addAll(<String, String>{'Authorization': 'Bearer $token'});
+    request.headers.addAll(<String, String>{
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json'
+    });
     if (file != null) {
       request.files.add(http.MultipartFile(
           'image', file.readAsBytes().asStream(), file.lengthSync(),
