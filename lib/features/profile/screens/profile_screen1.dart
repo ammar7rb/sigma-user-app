@@ -1,4 +1,6 @@
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_contact_phones.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
@@ -45,6 +47,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool isMailChanged = false;
@@ -72,7 +75,6 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
   Future<void> _updateUserAccount() async {
     String firstName = _firstNameController.text.trim();
     String lastName = _lastNameController.text.trim();
-    String email = _emailController.text.trim();
     String phoneNumber = _phoneController.text.trim();
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
@@ -88,12 +90,12 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       showCustomSnackBarWidget(getTranslated('first_name_is_required', context), context, snackBarType: SnackBarType.warning);
     } else if(lastName.isEmpty) {
       showCustomSnackBarWidget(getTranslated('last_name_is_required', context), context, snackBarType: SnackBarType.warning);
-    } else if (email.isEmpty) {
-      showCustomSnackBarWidget(getTranslated('email_is_required', context), context, snackBarType: SnackBarType.warning);
     } else if (phoneNumber.isEmpty) {
       showCustomSnackBarWidget(getTranslated('phone_must_be_required', context), context, snackBarType: SnackBarType.warning);
     } else if((password.isNotEmpty && password.length < 8) || (confirmPassword.isNotEmpty && confirmPassword.length < 8)) {
       showCustomSnackBarWidget(getTranslated('minimum_password_is_8_character', context), context, snackBarType: SnackBarType.warning);
+    } else if (password.isNotEmpty && _currentPasswordController.text.isEmpty) {
+      showCustomSnackBarWidget('أدخل كلمة المرور الحالية لتغييرها.', context, snackBarType: SnackBarType.warning);
     } else if(password != confirmPassword) {
       showCustomSnackBarWidget(getTranslated('confirm_password_not_matched', context), context, snackBarType: SnackBarType.warning);
     }
@@ -106,6 +108,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       updateUserInfoModel.phone = _phoneController.text;
       updateUserInfoModel.email = _emailController.text;
       String pass = _passwordController.text;
+      updateUserInfoModel.currentPassword = _currentPasswordController.text;
 
       await Provider.of<ProfileController>(context, listen: false).updateUserInfo(
         updateUserInfoModel, pass, file, Provider.of<AuthController>(context, listen: false).getUserToken(),
@@ -114,6 +117,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
           Provider.of<ProfileController>(Get.context!, listen: false).getUserInfo(Get.context!);
           showCustomSnackBarWidget(getTranslated('profile_info_updated_successfully', Get.context!), Get.context!, snackBarType: SnackBarType.success);
           _passwordController.clear();
+          _currentPasswordController.clear();
           _confirmPasswordController.clear();
           setState(() {});
         } else {
@@ -121,6 +125,12 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
         }
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _currentPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -139,6 +149,8 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       },
       child: Scaffold(
         appBar: CustomAppBar(
+          showResetIcon: true,
+          reset: const CustomerCommunicationHeader(),
           title: getTranslated('profile', context),
           onBackPressed: () {
             if(Navigator.of(context).canPop()){
@@ -293,7 +305,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
 
 
                         CustomTextFieldWidget(
-                          isEnabled: config?.customerVerification?.phone == 0 || profile.userInfoModel?.isPhoneVerified == 0,
+                          isEnabled: true,
                           labelText: getTranslated('phone', context),
                           inputType: TextInputType.phone,
                           focusNode: _phoneFocus,
@@ -327,6 +339,9 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
 
                         ListTile(leading: const Icon(Icons.location_on_outlined), title: Text(Directionality.of(context) == TextDirection.rtl ? 'العناوين المحفوظة' : 'Saved addresses'), trailing: const Icon(Icons.chevron_right), onTap: () => RouterHelper.getAddressListScreen(action: RouteAction.push)),
 
+                        const CustomerContactPhones(),
+                        CustomTextFieldWidget(isPassword:true,labelText:'كلمة المرور الحالية',controller:_currentPasswordController),
+                        const SizedBox(height: Dimensions.paddingSizeLarge),
                         CustomTextFieldWidget(
                             isPassword: true,
                             labelText: getTranslated('password', context),

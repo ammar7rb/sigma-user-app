@@ -5,8 +5,9 @@ class ProfileModel {
   String? currentPassword;
   int? id;
   String? administrativeReference;
-  String? get accountNumber =>
-      administrativeReference ?? (id == null ? null : 'C$id');
+  String? get accountNumber => id == null
+      ? administrativeReference
+      : 'C${id.toString().padLeft(6, '0')}';
   String? name;
   String? method;
   String? fName;

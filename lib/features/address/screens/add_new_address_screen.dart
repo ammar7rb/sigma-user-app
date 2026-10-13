@@ -50,6 +50,16 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
   final TextEditingController _districtController = TextEditingController();
   final TextEditingController _streetController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
+  final Map<String, TextEditingController> _detailControllers = {
+    for (final field in [
+      'building_number',
+      'floor',
+      'unit_number',
+      'company_details'
+    ])
+      field: TextEditingController(),
+  };
   final FocusNode _addressNode = FocusNode();
   final FocusNode _nameNode = FocusNode();
   final FocusNode _emailNode = FocusNode();
@@ -106,6 +116,14 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
           widget.address?.district ?? widget.address?.area ?? '';
       _streetController.text = widget.address?.street ?? '';
       _landmarkController.text = widget.address?.landmark ?? '';
+      _areaController.text = widget.address?.area ?? '';
+      _detailControllers['building_number']!.text =
+          widget.address?.buildingNumber ?? '';
+      _detailControllers['floor']!.text = widget.address?.floor ?? '';
+      _detailControllers['unit_number']!.text =
+          widget.address?.unitNumber ?? '';
+      _detailControllers['company_details']!.text =
+          widget.address?.companyDetails ?? '';
       if (widget.address!.addressType == 'Home') {
         Provider.of<AddressController>(context, listen: false)
             .updateAddressIndex(0, false);
@@ -142,6 +160,15 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
         _contactPersonNumberController.text = phoneNumberOnly;
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _areaController.dispose();
+    for (final controller in _detailControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -448,8 +475,10 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
 
                             CustomTextFieldWidget(
                               required: true,
-                              labelText: getTranslated('address_district', context),
-                              hintText: getTranslated('address_district_hint', context),
+                              labelText:
+                                  getTranslated('address_district', context),
+                              hintText: getTranslated(
+                                  'address_district_hint', context),
                               prefixIcon: Images.city,
                               controller: _districtController,
                               inputType: TextInputType.streetAddress,
@@ -462,8 +491,10 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                 height: Dimensions.paddingSizeDefaultAddress),
                             CustomTextFieldWidget(
                               required: true,
-                              labelText: getTranslated('address_street', context),
-                              hintText: getTranslated('address_street_hint', context),
+                              labelText:
+                                  getTranslated('address_street', context),
+                              hintText:
+                                  getTranslated('address_street_hint', context),
                               prefixIcon: Images.address,
                               controller: _streetController,
                               inputType: TextInputType.streetAddress,
@@ -474,9 +505,43 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                             ),
                             const SizedBox(
                                 height: Dimensions.paddingSizeDefaultAddress),
+                            TextFormField(
+                                controller: _areaController,
+                                decoration:
+                                    const InputDecoration(labelText: 'المنطقة'),
+                                validator: (value) =>
+                                    value == null || value.trim().isEmpty
+                                        ? 'أدخل المنطقة'
+                                        : null),
+                            for (final entry in {
+                              'building_number': 'رقم المنزل',
+                              'floor': 'الدور',
+                              'unit_number': 'رقم الشقة / المكتب',
+                              'company_details': 'بيانات الشركة / المكتب'
+                            }.entries)
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: TextFormField(
+                                    controller: _detailControllers[entry.key],
+                                    maxLength: entry.key == 'company_details'
+                                        ? 500
+                                        : 100,
+                                    decoration: InputDecoration(
+                                        labelText: entry.value,
+                                        counterText: ''),
+                                    validator: entry.key == 'building_number'
+                                        ? (value) => value == null ||
+                                                value.trim().isEmpty
+                                            ? 'أدخل رقم المنزل'
+                                            : null
+                                        : null,
+                                  )),
                             CustomTextFieldWidget(
-                              labelText: getTranslated('address_landmark', context),
-                              hintText: getTranslated('address_landmark_hint', context),
+                              labelText:
+                                  getTranslated('address_landmark', context),
+                              hintText: getTranslated(
+                                  'address_landmark_hint', context),
                               prefixIcon: Images.address,
                               controller: _landmarkController,
                               inputType: TextInputType.streetAddress,
@@ -694,8 +759,22 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                             longitude: null,
                                             district:
                                                 _districtController.text.trim(),
-                                            area:
-                                                _districtController.text.trim(),
+                                            area: _areaController.text.trim(),
+                                            buildingNumber: _detailControllers[
+                                                    'building_number']!
+                                                .text
+                                                .trim(),
+                                            floor: _detailControllers['floor']!
+                                                .text
+                                                .trim(),
+                                            unitNumber: _detailControllers[
+                                                    'unit_number']!
+                                                .text
+                                                .trim(),
+                                            companyDetails: _detailControllers[
+                                                    'company_details']!
+                                                .text
+                                                .trim(),
                                             street:
                                                 _streetController.text.trim(),
                                             landmark:

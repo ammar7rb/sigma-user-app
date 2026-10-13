@@ -1,4 +1,5 @@
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_contact_phones.dart';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +67,6 @@ class ProfileScreenState extends State<ProfileScreen> {
   Future<void> _updateUserAccount() async {
     String firstName = _firstNameController.text.trim();
     String lastName = _lastNameController.text.trim();
-    String email = _emailController.text.trim();
     String phoneNumber = _phoneController.text.trim();
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
@@ -95,8 +95,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     } else if (lastName.isEmpty) {
       showCustomSnackBar(
           getTranslated('last_name_is_required', context), context);
-    } else if (email.isEmpty) {
-      showCustomSnackBar(getTranslated('email_is_required', context), context);
     } else if (phoneNumber.isEmpty) {
       showCustomSnackBar(
           getTranslated('phone_must_be_required', context), context);
@@ -322,7 +320,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
                         CustomTextFieldWidget(
-                          isEnabled: false,
+                          isEnabled: true,
                           labelText: getTranslated('email', context),
                           inputType: TextInputType.emailAddress,
                           focusNode: _emailFocus,
@@ -333,7 +331,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
                         CustomTextFieldWidget(
-                          isEnabled: profile.userInfoModel?.phone == null,
+                          isEnabled: true,
                           labelText: getTranslated('phone', context),
                           inputType: TextInputType.phone,
                           focusNode: _phoneFocus,
@@ -343,6 +341,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                           isAmount: true,
                         ),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
+                        const CustomerContactPhones(),
                         CustomTextFieldWidget(
                             isPassword: true,
                             labelText:

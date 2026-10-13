@@ -1,4 +1,5 @@
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/delete_account_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/profile_image_shortcut.dart';
@@ -165,28 +166,33 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                   ],
                 )),
                 if (!isGuestMode)
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(
-                          value: 'edit', child: Text('تعديل الملف الشخصي')),
-                      PopupMenuItem(value: 'delete', child: Text('حذف الحساب'))
-                    ],
-                    onSelected: (action) {
-                      if (action == 'edit') {
-                        RouterHelper.getProfileScreen1Route(
-                            action: RouteAction.push);
-                      }
-                      if (action == 'delete' && profile.userInfoModel != null) {
-                        showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            useSafeArea: true,
-                            builder: (_) => DeleteAccountBottomSheet(
-                                customerId: '${profile.userInfoModel!.id}'));
-                      }
-                    },
-                  ),
+                  Column(mainAxisSize: MainAxisSize.min, children: [
+                    const CustomerCommunicationHeader(color: Colors.white),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                            value: 'edit', child: Text('تعديل الملف الشخصي')),
+                        PopupMenuItem(
+                            value: 'delete', child: Text('حذف الحساب'))
+                      ],
+                      onSelected: (action) {
+                        if (action == 'edit') {
+                          RouterHelper.getProfileScreen1Route(
+                              action: RouteAction.push);
+                        }
+                        if (action == 'delete' &&
+                            profile.userInfoModel != null) {
+                          showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              builder: (_) => DeleteAccountBottomSheet(
+                                  customerId: '${profile.userInfoModel!.id}'));
+                        }
+                      },
+                    ),
+                  ]),
               ]),
             ),
           ]),
