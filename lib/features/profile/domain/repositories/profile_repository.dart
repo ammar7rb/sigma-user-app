@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/exception/api_error_handler.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
@@ -9,12 +8,10 @@ import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-class ProfileRepository implements ProfileRepositoryInterface{
+class ProfileRepository implements ProfileRepositoryInterface {
   final DioClient? dioClient;
   final SharedPreferences? sharedPreferences;
   ProfileRepository({required this.dioClient, required this.sharedPreferences});
-
-
 
   @override
   Future<ApiResponseModel> getProfileInfo() async {
@@ -26,41 +23,55 @@ class ProfileRepository implements ProfileRepositoryInterface{
     }
   }
 
-
   @override
   Future<ApiResponseModel> delete(int customerId) async {
     try {
-      final response = await dioClient!.get('${AppConstants.deleteCustomerAccount}/$customerId');
+      final response = await dioClient!
+          .get('${AppConstants.deleteCustomerAccount}/$customerId');
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
     }
   }
 
-
-
-
   @override
-  Future<http.StreamedResponse> updateProfile(ProfileModel userInfoModel, String pass, File? file, String token) async {
-    http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse('${AppConstants.baseUrl}${AppConstants.updateProfileUri}'));
-    request.headers.addAll(<String,String>{'Authorization': 'Bearer $token'});
-    if(file != null){
-      request.files.add(http.MultipartFile('image', file.readAsBytes().asStream(), file.lengthSync(), filename: file.path.split('/').last));
+  Future<http.StreamedResponse> updateProfile(
+      ProfileModel userInfoModel, String pass, File? file, String token) async {
+    http.MultipartRequest request = http.MultipartRequest('POST',
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.updateProfileUri}'));
+    request.headers.addAll(<String, String>{'Authorization': 'Bearer $token'});
+    if (file != null) {
+      request.files.add(http.MultipartFile(
+          'image', file.readAsBytes().asStream(), file.lengthSync(),
+          filename: file.path.split('/').last));
     }
-     Map<String, String> fields = {};
-    if(pass.isEmpty) {
+    Map<String, String> fields = {};
+    if (pass.isEmpty) {
       fields.addAll(<String, String>{
-        '_method': 'put', 'f_name': userInfoModel.fName!, 'l_name': userInfoModel.lName!, 'phone': userInfoModel.phone!, 'email': userInfoModel.email!
+        '_method': 'put',
+        'f_name': userInfoModel.fName!,
+        'l_name': userInfoModel.lName!,
+        'phone': userInfoModel.phone!,
+        'email': userInfoModel.email!
       });
-    }else {
+    } else {
       fields.addAll(<String, String>{
-        '_method': 'put', 'f_name': userInfoModel.fName!, 'l_name': userInfoModel.lName!, 'phone': userInfoModel.phone!, 'password': pass, 'email': userInfoModel.email!
+        '_method': 'put',
+        'f_name': userInfoModel.fName!,
+        'l_name': userInfoModel.lName!,
+        'phone': userInfoModel.phone!,
+        'password': pass,
+        'email': userInfoModel.email!
       });
+    }
+    final currentPassword = userInfoModel.currentPassword;
+    userInfoModel.currentPassword = null;
+    if (pass.isNotEmpty) {
+      fields['current_password'] = currentPassword ?? '';
+      fields['password_confirmation'] = pass;
     }
     request.fields.addAll(fields);
-    if (kDebugMode) {
-      print('========>${fields.toString()}');
-    }
+
     http.StreamedResponse response = await request.send();
     return response;
   }
@@ -70,7 +81,6 @@ class ProfileRepository implements ProfileRepositoryInterface{
     // TODO: implement add
     throw UnimplementedError();
   }
-
 
   @override
   Future get(String id) {
@@ -89,5 +99,4 @@ class ProfileRepository implements ProfileRepositoryInterface{
     // TODO: implement update
     throw UnimplementedError();
   }
-
 }

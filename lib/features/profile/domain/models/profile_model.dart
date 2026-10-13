@@ -1,6 +1,8 @@
 import 'package:flutter_sixvalley_ecommerce/data/model/image_full_url.dart';
 
 class ProfileModel {
+  // Transient credential used only by the next profile update; never serialized.
+  String? currentPassword;
   int? id;
   String? administrativeReference;
   String? get accountNumber =>
