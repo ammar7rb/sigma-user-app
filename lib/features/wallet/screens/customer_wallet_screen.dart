@@ -238,7 +238,6 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                           'subscription': 'اشتراك',
                           'upgrade': 'ترقية',
                           'renew_limit': 'تجديد الحد',
-                          'increase': 'زيادة الحد',
                           'refund': 'استرداد',
                           'adjustment': 'تسوية',
                           'loyalty': 'تحويل نقاط'
