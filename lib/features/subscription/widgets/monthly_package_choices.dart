@@ -6,12 +6,14 @@ class MonthlyPackageChoices extends StatefulWidget {
   final bool busy;
   final void Function(int? packageId, int? offerId) onBuy;
   final void Function(int offerId, int quantity)? onIncrease;
+  final void Function(int packageId)? onRenew;
   const MonthlyPackageChoices(
       {super.key,
       required this.data,
       required this.busy,
       required this.onBuy,
-      this.onIncrease});
+      this.onIncrease,
+      this.onRenew});
   @override
   State<MonthlyPackageChoices> createState() => _MonthlyPackageChoicesState();
 }
@@ -21,7 +23,7 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
   int? selectedOfferId;
   double number(dynamic value) => double.tryParse('$value') ?? 0;
   String money(dynamic value) =>
-      NumberFormat('#,##0.##', 'ar').format(number(value));
+      NumberFormat('#,##0.###', 'ar').format(number(value));
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
     final allowance = sub['allowance'] as Map? ?? {};
     final active = sub['active'] == true;
     final pending = sub['open_payment'] as Map?;
-    final locked = widget.busy || pending != null;
+    final locked = widget.busy;
     final packages = widget.data['packages'] as List? ?? [];
     final offers =
         List<dynamic>.from(widget.data['increase_offers'] as List? ?? []);
@@ -159,7 +161,9 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
                           onPressed: locked
                               ? null
                               : () => widget.onBuy(p['id'] as int, null),
-                          child: Text(active ? 'ترقية' : 'اختيار الباقة'))
+                          child: Text(active
+                              ? 'ترقية من رصيد المحفظة'
+                              : 'اشتراك من رصيد المحفظة'))
                     else
                       Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -171,6 +175,25 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
                               style: theme.textTheme.bodyMedium
                                   ?.copyWith(color: muted))),
                     const SizedBox(height: 20),
+                    if (current) ...[
+                      Text('تجديد الحد فقط؛ يبقى تاريخ انتهاء الباقة كما هو.',
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: muted)),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                          onPressed: locked ||
+                                  widget.onRenew == null ||
+                                  number(p['renewal_price']) <= 0
+                              ? null
+                              : () => widget.onRenew!(p['id'] as int),
+                          child: Text(number(p['renewal_price']) > 0
+                              ? 'تجديد الحد بـ${money(p['renewal_price'])} ج.م'
+                              : 'رسوم تجديد الحد لم تُحدد بعد')),
+                      const SizedBox(height: 12),
+                    ],
+                    Text('الاشتراك الجديد: 30 يومًا',
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(color: muted)),
                     Divider(color: theme.dividerColor),
                     const SizedBox(height: 12),
                     Row(children: [
@@ -278,7 +301,7 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
                         widget.onBuy(null, offer['id'] as int);
                       }
                     },
-              child: const Text('المتابعة إلى الدفع')),
+              child: const Text('زيادة الحد من رصيد المحفظة')),
         ],
       ],
     ]);

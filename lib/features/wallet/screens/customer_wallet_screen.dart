@@ -25,6 +25,11 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
   Map<String, dynamic>? data;
   String? error;
   int page = 1;
+  int depositsPage = 1;
+  String? entryType;
+  String? fromDate;
+  String? toDate;
+  int loadVersion = 0;
   late String selectedWallet;
   String tr(String key) => getTranslated(key, context) ?? key;
   String money(dynamic value) =>
@@ -42,24 +47,88 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
   }
 
   Future<void> load() async {
+    final version = ++loadVersion;
     if (mounted) setState(() => error = null);
     try {
-      final response = await api.get('/api/v1/customer/wallet/overview',
-          queryParameters: {'page': page});
-      if (mounted) {
+      final response =
+          await api.get('/api/v1/customer/wallet/overview', queryParameters: {
+        'entries_page': page,
+        'deposits_page': depositsPage,
+        if (entryType != null) 'entry_type': entryType,
+        if (fromDate != null) 'from': fromDate,
+        if (toDate != null) 'to': toDate
+      });
+      if (mounted && version == loadVersion) {
         setState(() {
           data = Map<String, dynamic>.from(response.data);
           error = null;
         });
       }
     } catch (_) {
-      if (mounted) setState(() => error = tr('wallet_load_failed'));
+      if (mounted && version == loadVersion) {
+        setState(() => error = tr('wallet_load_failed'));
+      }
     }
   }
 
   Widget card(Widget child) => Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(padding: const EdgeInsets.all(16), child: child));
+
+  Future<void> pickStatementDate(bool start) async {
+    final picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime.now());
+    if (picked == null || !mounted) return;
+    final value =
+        '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+    setState(() {
+      if (start) {
+        fromDate = value;
+      } else {
+        toDate = value;
+      }
+      page = 1;
+    });
+    await load();
+  }
+
+  Widget pagination(String key, bool deposits) {
+    final current = deposits ? depositsPage : page;
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      TextButton(
+          onPressed: current > 1
+              ? () {
+                  setState(() {
+                    if (deposits) {
+                      depositsPage--;
+                    } else {
+                      page--;
+                    }
+                  });
+                  load();
+                }
+              : null,
+          child: Text(tr('wallet_previous'))),
+      Text('$current'),
+      TextButton(
+          onPressed: map(data![key])['next_page_url'] != null
+              ? () {
+                  setState(() {
+                    if (deposits) {
+                      depositsPage++;
+                    } else {
+                      page++;
+                    }
+                  });
+                  load();
+                }
+              : null,
+          child: Text(tr('wallet_next')))
+    ]);
+  }
 
   Future<void> deposit(String wallet) async {
     await Navigator.of(context).push(MaterialPageRoute(
@@ -155,39 +224,65 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                   const SizedBox(height: 20),
                   Text(tr('wallet_history'),
                       style: Theme.of(context).textTheme.titleLarge),
+                  pagination('deposits', true),
+                  DropdownButtonFormField<String>(
+                      initialValue: entryType,
+                      decoration:
+                          const InputDecoration(labelText: 'نوع العملية'),
+                      items: [
+                        const DropdownMenuItem(
+                            value: null, child: Text('كل العمليات')),
+                        for (final item in {
+                          'deposit': 'إيداع',
+                          'purchase': 'شراء منتجات',
+                          'subscription': 'اشتراك',
+                          'upgrade': 'ترقية',
+                          'renew_limit': 'تجديد الحد',
+                          'increase': 'زيادة الحد',
+                          'refund': 'استرداد',
+                          'adjustment': 'تسوية',
+                          'loyalty': 'تحويل نقاط'
+                        }.entries)
+                          DropdownMenuItem(
+                              value: item.key, child: Text(item.value))
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          entryType = value;
+                          page = 1;
+                        });
+                        load();
+                      }),
+                  Wrap(spacing: 8, children: [
+                    TextButton(
+                        onPressed: () => pickStatementDate(true),
+                        child: Text(fromDate ?? 'من تاريخ')),
+                    TextButton(
+                        onPressed: () => pickStatementDate(false),
+                        child: Text(toDate ?? 'إلى تاريخ')),
+                    TextButton(
+                        onPressed: () {
+                          setState(() {
+                            fromDate = null;
+                            toDate = null;
+                            page = 1;
+                          });
+                          load();
+                        },
+                        child: const Text('مسح التاريخ'))
+                  ]),
                   for (final item in pagedItems('purchase_entries'))
                     card(ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                            '${tr('wallet_credit')}: ${money(item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}'),
+                            '${item['entry_label'] ?? item['transaction_type']}${item['package_name'] == null ? '' : ' · ${item['package_name']}'}'),
                         subtitle: Text(
-                            '${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}'))),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                            onPressed: page > 1
-                                ? () {
-                                    setState(() => page--);
-                                    load();
-                                  }
-                                : null,
-                            child: Text(tr('wallet_previous'))),
-                        Text('$page'),
-                        TextButton(
-                            onPressed:
-                                map(data!['deposits'])['next_page_url'] !=
-                                            null ||
-                                        map(data!['purchase_entries'])[
-                                                'next_page_url'] !=
-                                            null
-                                    ? () {
-                                        setState(() => page++);
-                                        load();
-                                      }
-                                    : null,
-                            child: Text(tr('wallet_next')))
-                      ]),
+                            '${tr('wallet_credit')}: ${money(item['credited_amount'] ?? item['credit'])} · ${tr('wallet_debit')}: ${money(item['debit'])}\n${tr('purchase_wallet')}: ${money(item['balance'])} · ${item['created_at']}\n${item['payment_method'] ?? 'طريقة الدفع غير مسجلة'} · ${item['reference_label'] ?? item['reference'] ?? item['transaction_id']}\n${list(item['orders']).map((o) => 'طلب #${o['order_id']}${o['invoice_number'] == null ? '' : ' · ${o['invoice_number']}'}').join('\n')}${item['customer_note'] == null ? '' : '\nملاحظة الإدارة: ${item['customer_note']}'}'))),
+                  if (pagedItems('purchase_entries').isEmpty)
+                    const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('لا توجد حركات تطابق التصفية')),
+                  pagination('purchase_entries', false),
                 ])));
 }
 

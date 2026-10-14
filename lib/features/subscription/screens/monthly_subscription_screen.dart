@@ -1,5 +1,4 @@
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/customer_wallet_screen.dart';
-import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/subscription_payment_choices.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -27,6 +26,8 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
   String? error;
   bool busy = false;
   late String requestKey;
+  Map<String, dynamic>? pendingTransaction;
+  final scrollController = ScrollController();
   Map<String, dynamic> get subscription =>
       Map<String, dynamic>.from(data?['subscription'] ?? {});
   Map<String, dynamic>? get open => subscription['open_payment'] is Map
@@ -52,6 +53,7 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
 
   @override
   void dispose() {
+    scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -94,7 +96,6 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
           data = Map<String, dynamic>.from(response.data);
           error = null;
         });
-        if (open == null) requestKey = newRequestKey();
       }
     } catch (e) {
       if (mounted) setState(() => error = failure(e));
@@ -110,120 +111,86 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
     try {
       await action();
       await load();
-      if (open == null) requestKey = newRequestKey();
       if (mounted) {
         await Provider.of<ProfileController>(context, listen: false)
             .getUserInfo(context);
       }
     } catch (e) {
       await load();
-      if (mounted) setState(() => error = failure(e));
+      if (mounted) {
+        setState(() => error = failure(e));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && scrollController.hasClients) {
+            scrollController.jumpTo(0);
+          }
+        });
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
   }
 
   Future<void> checkout(
-      {int? packageId, int? offerId, int quantity = 1}) async {
+      {int? packageId,
+      int? offerId,
+      int quantity = 1,
+      bool renew = false}) async {
+    if (busy || pendingTransaction != null) return;
+    final items =
+        data?[offerId == null ? 'packages' : 'increase_offers'] as List? ?? [];
+    final item = items
+        .cast<Map>()
+        .where((p) => p['id'] == (offerId ?? packageId))
+        .firstOrNull;
+    if (item == null) return;
+    final amount = (double.tryParse(item[renew
+                    ? 'renewal_price'
+                    : offerId == null
+                        ? 'package_price'
+                        : 'price']
+                .toString()) ??
+            0) *
+        quantity;
+    pendingTransaction = {
+      'request_key': requestKey,
+      'operation': renew ? 'renew_limit' : 'purchase',
+      if (packageId != null) 'package_id': packageId,
+      if (offerId != null) 'offer_id': offerId,
+      'quantity': quantity,
+      'quote_token': item['quote_token'],
+      'expected_amount': amount.toStringAsFixed(3),
+      'expected_subscription_id': subscription['active'] == true
+          ? subscription['allowance']['subscription_id']
+          : null,
+      'expected_revision': subscription['limit_revision'] ?? 0,
+    };
+    await sendPending();
+  }
+
+  Future<void> sendPending() async {
+    if (busy || pendingTransaction == null) return;
     await act(() async {
-      await api.post('/api/v1/customer/subscription/checkout', data: {
-        'request_key': requestKey,
-        if (packageId != null) 'package_id': packageId,
-        if (offerId != null) 'offer_id': offerId,
-        'quantity': quantity
-      });
-    });
-    if (mounted && open?['status'] == 'draft' && error == null) {
-      await choosePayment();
-    }
-  }
-
-  Future<void> choosePayment() async {
-    if (busy || open?['status'] != 'draft') return;
-    final selected = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (context) => SubscriptionPaymentChoices(
-        amount: '${open!['quoted_amount']} ${open!['currency_code']}',
-        walletEnabled: data!['purchase_wallet_enabled'] == true,
-        methods: (data!['offline_methods'] as List? ?? [])
-            .map((method) => Map<String, dynamic>.from(method))
-            .toList(),
-        onSelected: (value) => Navigator.pop(context, value),
-      ),
-    );
-    if (!mounted || selected == null) return;
-    if (selected == 'wallet') {
-      await wallet();
-      return;
-    }
-    final method = (data!['offline_methods'] as List? ?? [])
-        .firstWhere((method) => '${method['id']}' == selected);
-    await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => SubscriptionTransferScreen(
-                payment: open!, method: Map<String, dynamic>.from(method))));
-    await load();
-    if (mounted) {
-      await Provider.of<ProfileController>(context, listen: false)
-          .getUserInfo(context);
-    }
-  }
-
-  Future<void> wallet() async {
-    final payment = open;
-    if (payment == null || busy) return;
-    final balance = double.tryParse('${data?['purchase_balance']}') ?? 0;
-    final debit = double.tryParse('${payment['wallet_debit_amount']}');
-    if (debit != null && balance < debit) {
-      final action = await showDialog<String>(
-          context: context,
-          builder: (context) => AlertDialog(
-                  title: const Text('رصيد المحفظة لا يكفي'),
-                  content: const Text(
-                      'عذرًا، رصيد المحفظة لا يكفي. برجاء الإيداع فيها أو استخدام طريقة أخرى.'),
-                  actions: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context, 'other'),
-                        child: const Text('طريقة أخرى')),
-                    FilledButton(
-                        onPressed: () => Navigator.pop(context, 'deposit'),
-                        child: const Text('الإيداع في المحفظة'))
-                  ]));
-      if (!mounted) return;
-      if (action == 'other') await choosePayment();
-      if (action == 'deposit' && mounted) {
-        await Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const CustomerWalletScreen()));
-        await load();
-      }
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-                title: const Text('دفع الاشتراك'),
-                content: Text(
-                    'سيتم خصم ${payment['quoted_amount']} ${payment['currency_code']} من المحفظة. يبدأ الاشتراك 30 يومًا من الاعتماد، دون تمديد الصلاحية السابقة.'),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('إلغاء')),
-                  FilledButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('تأكيد الدفع'))
-                ]));
-    if (confirmed == true && mounted) {
-      await act(() async {
-        await api.post('/api/v1/customer/subscription/${payment['id']}/wallet',
+      try {
+        await api.post('/api/v1/customer/subscription/transact',
+            data: pendingTransaction,
             options: Options(
                 receiveTimeout: const Duration(seconds: 20),
                 sendTimeout: const Duration(seconds: 20)));
-      });
-    }
+        pendingTransaction = null;
+        requestKey = newRequestKey();
+      } on DioException catch (e) {
+        final status = e.response?.statusCode;
+        if (status != null &&
+            status >= 400 &&
+            status < 500 &&
+            status != 408 &&
+            status != 429) {
+          pendingTransaction = null;
+          requestKey = newRequestKey();
+        }
+        rethrow;
+      }
+    });
   }
 
   @override
@@ -231,79 +198,81 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
       appBar: AppBar(title: const Text('الباقات الشهرية')),
       body: RefreshIndicator(
           onRefresh: load,
-          child: ListView(padding: const EdgeInsets.all(20), children: [
-            if (error != null)
-              Semantics(
-                  liveRegion: true,
-                  child: Column(children: [
-                    Text(error!,
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
-                    TextButton(
-                        onPressed: busy ? null : load,
-                        child: const Text('إعادة المحاولة'))
-                  ])),
-            if (data == null && error == null)
-              const Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Center(child: CircularProgressIndicator())),
-            if (data != null) ...[
-              MonthlySubscriptionSummary(
-                  subscription: subscription,
-                  busy: busy,
-                  onCheckout: data?['packages'] == null &&
-                          subscription['active'] != true &&
-                          open == null &&
-                          subscription['payment_available'] == true
-                      ? checkout
-                      : null),
-              if (data?['packages'] != null)
-                MonthlyPackageChoices(
-                    data: data!,
-                    busy: busy,
-                    onIncrease: (offerId, quantity) =>
-                        checkout(offerId: offerId, quantity: quantity),
-                    onBuy: (packageId, offerId) =>
-                        checkout(packageId: packageId, offerId: offerId)),
-              if (open?['status'] == 'draft') ...[
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: busy ? null : choosePayment,
-                  icon: const Icon(Icons.payments_outlined),
-                  label: Text(open?['purchase_kind'] == 'increase'
-                      ? 'دفع زيادة الحد'
-                      : open?['purchase_kind'] == 'upgrade'
-                          ? 'دفع الترقية'
-                          : 'دفع الباقة المختارة'),
-                ),
-                TextButton(
-                    onPressed: busy
-                        ? null
-                        : () => act(() async {
-                              await api.post(
-                                  '/api/v1/customer/subscription/${open!['id']}/cancel');
-                            }),
-                    child: const Text('إلغاء المسودة لاختيار عرض آخر')),
-              ],
-              const SizedBox(height: 32),
-              Text('سجل دفعات الاشتراك',
-                  style: Theme.of(context).textTheme.titleLarge),
-              for (final payment
-                  in (data!['payments'] as Map?)?['data'] as List? ?? [])
-                ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                        '${payment['quoted_amount']} ${payment['currency_code']}'),
-                    subtitle: Text('${{
-                      'draft': 'لم يُرسل الدفع بعد',
-                      'pending_review': 'الدفع قيد المراجعة',
-                      'approved': 'تم اعتماد الدفع',
-                      'rejected': 'رُفض الدفع',
-                      'cancelled': 'ملغى'
-                    }[payment['status']]}${payment['review_note'] == null ? '' : '\n${payment['review_note']}'}'),
-                    trailing: Text('#${payment['id']}')),
-            ],
-          ])));
+          child: ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.all(20),
+              children: [
+                if (error != null)
+                  Semantics(
+                      liveRegion: true,
+                      child: Column(children: [
+                        Text(error!,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error)),
+                        TextButton(
+                            onPressed: busy
+                                ? null
+                                : (pendingTransaction == null
+                                    ? load
+                                    : sendPending),
+                            child: Text(pendingTransaction == null
+                                ? 'إعادة تحميل البيانات'
+                                : 'إعادة إرسال العملية نفسها'))
+                      ])),
+                if (data == null && error == null)
+                  const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(child: CircularProgressIndicator())),
+                if (data != null) ...[
+                  Text(
+                      'تُخصم معاملات الباقات مباشرة من رصيد محفظة المنصة وتُفعّل فورًا.'),
+                  if (subscription['active'] == true)
+                    const Text(
+                        'الترقية بسعر الباقة الأعلى كاملًا، مع الحفاظ على تاريخ انتهاء الاشتراك الحالي.'),
+                  TextButton.icon(
+                      onPressed: busy
+                          ? null
+                          : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const CustomerWalletScreen())),
+                      icon: const Icon(Icons.account_balance_wallet_outlined),
+                      label: const Text('شحن محفظة المنصة')),
+                  if (subscription['legacy_open_payment'] != null)
+                    const Text(
+                        'توجد عملية سابقة محفوظة في السجل. لا تُخصم تلقائيًا؛ تابع حالتها مع الإدارة.'),
+                  MonthlySubscriptionSummary(
+                      subscription: subscription, busy: busy, onCheckout: null),
+                  if (data?['packages'] != null)
+                    MonthlyPackageChoices(
+                        data: data!,
+                        busy: busy || pendingTransaction != null,
+                        onRenew: (packageId) =>
+                            checkout(packageId: packageId, renew: true),
+                        onIncrease: (offerId, quantity) =>
+                            checkout(offerId: offerId, quantity: quantity),
+                        onBuy: (packageId, offerId) =>
+                            checkout(packageId: packageId, offerId: offerId)),
+                  const SizedBox(height: 32),
+                  Text('سجل دفعات الاشتراك',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  for (final payment
+                      in (data!['payments'] as Map?)?['data'] as List? ?? [])
+                    ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                            '${payment['quoted_amount']} ${payment['currency_code']}'),
+                        subtitle: Text('${{
+                          'draft': 'لم يُرسل الدفع بعد',
+                          'pending_review': 'الدفع قيد المراجعة',
+                          'approved': 'تم اعتماد الدفع',
+                          'rejected': 'رُفض الدفع',
+                          'cancelled': 'ملغى'
+                        }[payment['status']]}${payment['review_note'] == null ? '' : '\n${payment['review_note']}'}'),
+                        trailing: Text('#${payment['id']}')),
+                ],
+              ])));
 }
 
 class SubscriptionTransferScreen extends StatefulWidget {

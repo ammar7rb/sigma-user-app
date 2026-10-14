@@ -8,6 +8,8 @@ import 'package:flutter_sixvalley_ecommerce/features/address/screens/add_new_add
 import 'package:flutter_sixvalley_ecommerce/features/address/screens/saved_address_list_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/screens/saved_billing_address_list_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/screens/checkout_registration_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/screens/customer_password_recovery_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/enums/from_page.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/screens/otp_login_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/screens/otp_registration_screen.dart';
@@ -988,6 +990,11 @@ class RouterHelper {
   static final goRoutes = GoRouter(
       redirect: (BuildContext context, GoRouterState state) {
         final isLoggedIn = _isUserLoggedIn(context);
+        if (isLoggedIn &&
+            context.read<AuthController>().mustChangePassword &&
+            state.matchedLocation != '/password-change-required') {
+          return '/password-change-required';
+        }
         final String? referralCode = state.uri.queryParameters['referral_code'];
 
         if (state.matchedLocation == initial && isLoggedIn) {
@@ -1009,6 +1016,13 @@ class RouterHelper {
           ctx, const DashBoardScreen(pageIndex: 0),
           path: '/', isBranchCheck: true),
       routes: [
+        GoRoute(
+            path: '/password-change-required',
+            builder: (_, __) =>
+                const CustomerPasswordRecoveryScreen(changeRequired: true)),
+        GoRoute(
+            path: '/customer-password-recovery',
+            builder: (_, __) => const CustomerPasswordRecoveryScreen()),
         GoRoute(
             path: initial,
             builder: (context, state) => DashBoardScreen(pageIndex: 0)),
@@ -1351,6 +1365,10 @@ class RouterHelper {
         GoRoute(
           path: checkoutScreen,
           builder: (context, state) {
+            if (!context.read<AuthController>().isLoggedIn()) {
+              return const CheckoutRegistrationScreen(
+                  resumeCheckoutRoute: true);
+            }
             final qp = state.uri.queryParameters;
 
             final cartListStr = qp['cartList'] ?? '[]';

@@ -76,13 +76,13 @@ void main() {
     expect(find.text('الاشتراك في الباقة'), findsNothing);
     expect(find.textContaining('حد الشراء'), findsNothing);
     expect(find.textContaining('المدة 30'), findsNothing);
-    await tester.ensureVisible(find.text('ترقية'));
-    await tester.tap(find.text('ترقية'));
+    await tester.ensureVisible(find.text('ترقية من رصيد المحفظة'));
+    await tester.tap(find.text('ترقية من رصيد المحفظة'));
     expect(chosenPackage, 2);
     await tester.ensureVisible(find.text('5,000 ج.م').last);
     await tester.tap(find.text('5,000 ج.م').last);
-    await tester.ensureVisible(find.text('المتابعة إلى الدفع'));
-    await tester.tap(find.text('المتابعة إلى الدفع'));
+    await tester.ensureVisible(find.text('زيادة الحد من رصيد المحفظة'));
+    await tester.tap(find.text('زيادة الحد من رصيد المحفظة'));
     expect(chosenQuantity, 5);
     expect(tester.takeException(), isNull);
     await tester.pumpAndSettle();

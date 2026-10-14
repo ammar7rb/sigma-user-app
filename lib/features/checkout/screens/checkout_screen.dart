@@ -66,7 +66,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       GlobalKey<ScaffoldMessengerState>();
   final GlobalKey<FormState> passwordFormKey = GlobalKey<FormState>();
 
-
   double _order = 0;
   double _tax = 0;
   late bool _billingAddress;
@@ -93,7 +92,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     Provider.of<AddressController>(context, listen: false).getAddressList();
     Provider.of<CheckoutController>(context, listen: false)
         .getReferralAmount('0');
-    
+
     Provider.of<CartController>(context, listen: false).getCartData(context);
     Provider.of<CheckoutController>(context, listen: false)
         .resetPaymentMethod();
@@ -104,8 +103,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       Provider.of<CheckoutController>(context, listen: false)
           .getOfflinePaymentList();
     }
-
-    
 
     // Billing addresses are not collected in this store. The delivery address
     // is the only address used for physical orders.
@@ -165,8 +162,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       _quoteKey = quoteKey;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        await checkout.getOrderInsuranceQuote(
-            couponCode: '');
+        await checkout.getOrderInsuranceQuote(couponCode: '');
         if (mounted && _quoteKey == quoteKey) {
           setState(() => _quoteReadyKey =
               checkout.orderInsuranceQuote == null ? null : quoteKey);
@@ -566,7 +562,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                                     '${getTranslated('sub_total', context)} ${' (${widget.quantity} ${getTranslated('items', context)}) '}',
                                                 amount:
                                                     PriceConverter.convertPrice(
-                                                        context, _order),
+                                                        context,
+                                                        _order -
+                                                            widget.discount),
                                               )
                                             : AmountWidget(
                                                 title:
@@ -581,13 +579,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                           amount: PriceConverter.convertPrice(
                                               context, selectedShippingFee),
                                         ),
-                                        AmountWidget(
-                                          title: getTranslated(
-                                              'discount', context),
-                                          amount: PriceConverter.convertPrice(
-                                              context, widget.discount),
-                                        ),
-                                        
                                         if (checkoutController
                                                     .orderInsuranceQuote
                                                     ?.postPurchaseEnabled !=
@@ -600,13 +591,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                                 getTranslated('tax', context),
                                             amount: PriceConverter.convertPrice(
                                                 context, _tax),
-                                          ),
-                                        if ((_referralDiscount ?? 0) > 0)
-                                          AmountWidget(
-                                            title: getTranslated(
-                                                'referral_discount', context),
-                                            amount: PriceConverter.convertPrice(
-                                                context, _referralDiscount),
                                           ),
                                         Divider(
                                             height: 5,
@@ -655,7 +639,6 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                               ),
                               SizedBox(height: Dimensions.paddingSizeSmall),
-                              
                               SizedBox(height: Dimensions.paddingSizeDefault),
                             ],
                           ),
@@ -824,5 +807,3 @@ class CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 }
-
-

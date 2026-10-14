@@ -21,7 +21,7 @@ class MonthlySubscriptionSummary extends StatelessWidget {
     final allowance = subscription['allowance'] as Map?;
     final theme = Theme.of(context);
     String money(dynamic value) =>
-        NumberFormat('#,##0.##', 'ar').format(double.tryParse('$value') ?? 0);
+        NumberFormat('#,##0.###', 'ar').format(double.tryParse('$value') ?? 0);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (active) ...[
         Row(children: [
@@ -44,8 +44,8 @@ class MonthlySubscriptionSummary extends StatelessWidget {
           const SizedBox(height: 20),
           Wrap(spacing: 28, runSpacing: 14, children: [
             for (final item in <String, String>{
-              'granted_limit': 'الحد الائتماني',
-              'committed_limit': 'المستخدم أو المحجوز',
+              'granted_limit': 'إجمالي الحد الممنوح خلال الاشتراك',
+              'committed_limit': 'المستخدم أو المحجوز خلال الاشتراك',
               'available_limit': 'المتاح الآن'
             }.entries)
               if (allowance[item.key] != null)

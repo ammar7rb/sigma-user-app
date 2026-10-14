@@ -13,26 +13,31 @@ Future<bool> validateCustomerCartLimit(
   try {
     final loggedIn =
         Provider.of<AuthController>(context, listen: false).isLoggedIn();
+    if (!loggedIn) return true;
     final response =
         await di.sl<DioClient>().get('/api/v1/customer/purchasing-limit');
     final limit = response.data['limit'] as Map?;
     final eligibility = response.data['eligibility'] as Map?;
-    final available = loggedIn
-        ? double.tryParse('${limit?['available_limit']}') ?? 0
-        : 3000.0;
+    if (limit?['unlimited_initial_checkout'] == true &&
+        eligibility?['can_checkout'] == true) {
+      return true;
+    }
+    final available =
+        loggedIn ? double.tryParse('${limit?['available_limit']}') ?? 0 : 0.0;
     final reserved = double.tryParse('${limit?['cart_reserved_amount']}') ?? 0;
-    if (amount - reserved <= available &&
-        (!loggedIn || eligibility?['can_checkout'] == true)) {
+    final insufficient = limit?['unlimited_initial_checkout'] != true &&
+        amount - reserved > available;
+    if (!insufficient && (!loggedIn || eligibility?['can_checkout'] == true)) {
       return true;
     }
     if (!context.mounted) return false;
     await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-                title: Text(amount > available
+                title: Text(insufficient
                     ? 'الحد الائتماني غير كافٍ'
                     : 'متطلبات الشراء'),
-                content: Text(amount > available
+                content: Text(insufficient
                     ? 'الحد الائتماني المتاح ${available.toStringAsFixed(2)} ج.م. زد الحد أو اختر باقة أعلى أو قلل المنتجات.'
                     : '${eligibility?['message'] ?? 'أكمل تفعيل الحساب والباقة الشهرية.'}'),
                 actions: [
@@ -116,6 +121,15 @@ class _CreditLimitStripState extends State<CreditLimitStrip>
 
   @override
   Widget build(BuildContext context) {
+    if (!context.watch<AuthController>().isLoggedIn()) {
+      return const SizedBox.shrink();
+    }
+    final accountEligibility =
+        context.watch<ProfileController>().userInfoModel?.purchaseEligibility;
+    if (accountEligibility?['show_credit_indicator'] == false ||
+        limit?['show_credit_indicator'] == false) {
+      return const SizedBox.shrink();
+    }
     if (failed) {
       return TextButton(
           onPressed: load,

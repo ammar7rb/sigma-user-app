@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
@@ -17,7 +19,10 @@ void openCommunicationItem(Map<String, dynamic> item) {
   if (target is! Map) return;
   final id = int.tryParse('${target['id']}');
   if (id == null) return;
-  if (target['type'] == 'order') {
+  if (target['type'] == 'subscription' && Get.context != null) {
+    Navigator.of(Get.context!).push(MaterialPageRoute<void>(
+        builder: (_) => const MonthlySubscriptionScreen()));
+  } else if (target['type'] == 'order') {
     RouterHelper.getOrderDetailsScreenRoute(
         action: RouteAction.push, orderId: id, isNotification: true);
   } else if (target['type'] == 'message') {

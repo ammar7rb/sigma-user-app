@@ -464,14 +464,27 @@ class CartScreenState extends State<CartScreen> {
                                             }
                                           }
 
-                                          if (!await validateCustomerCartLimit(context, amount)) return;
+                                          if (!await validateCustomerCartLimit(
+                                              context, amount)) return;
                                           if (!context.mounted) return;
                                           if (!Provider.of<AuthController>(
                                                   context,
                                                   listen: false)
                                               .isLoggedIn()) {
-                                            await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const CheckoutRegistrationScreen()));
-                                          } else if (cart.cartList.isEmpty) {
+                                            final registered = await Navigator
+                                                    .of(context)
+                                                .push<bool>(MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const CheckoutRegistrationScreen()));
+                                            if (!context.mounted ||
+                                                registered != true ||
+                                                !context
+                                                    .read<AuthController>()
+                                                    .isLoggedIn()) {
+                                              return;
+                                            }
+                                          }
+                                          if (cart.cartList.isEmpty) {
                                             showCustomSnackBarWidget(
                                                 getTranslated(
                                                     'select_at_least_one_product',
