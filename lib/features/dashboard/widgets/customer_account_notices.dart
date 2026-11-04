@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/customer_activation_banner_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/subscription_expiry_banner.dart';
 
 class CustomerAccountNotices extends StatefulWidget {
@@ -59,18 +58,14 @@ class _CustomerAccountNoticesState extends State<CustomerAccountNotices>
   Widget build(BuildContext context) {
     final loggedIn = context.watch<AuthController>().isLoggedIn();
     final profile = context.watch<ProfileController>().userInfoModel;
-    final activation = loggedIn ? profile?.activation : null;
     final subscription = profile?.purchaseEligibility?['subscription'];
     if (!loggedIn) return widget.child;
-    final visible = (activation != null && !activation.isActive) ||
-        (subscription is Map && subscription['status'] == 'expired');
+    final visible = subscription is Map && subscription['status'] == 'expired';
     if (!visible) return widget.child;
     return Column(children: [
       SafeArea(
           bottom: false,
           child: Column(children: [
-            if (activation != null && !activation.isActive)
-              CustomerActivationBannerWidget(activation: activation),
             SubscriptionExpiryBanner(
                 subscription: subscription, onRenew: widget.onRenew),
           ])),

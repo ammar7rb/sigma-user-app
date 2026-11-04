@@ -88,6 +88,7 @@ class Orders {
   List<String> customerPendingReasons = [];
   String? commerceFlowStatus;
   Map<String, dynamic>? refundSummary;
+  Map<String, dynamic>? purchaseEligibility;
 
   Orders(
       {this.id,
@@ -159,6 +160,7 @@ class Orders {
     paymentStatus = json['payment_status'];
     orderStatus = json['order_status'];
     customerFulfillmentStatus = json['customer_fulfillment_status'];
+    purchaseEligibility = json['purchase_eligibility'] is Map ? Map<String, dynamic>.from(json['purchase_eligibility']) : null;
     customerPendingReasons = (json['customer_pending_reasons'] is List
             ? json['customer_pending_reasons'] as List
             : [])

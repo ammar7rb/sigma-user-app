@@ -3,7 +3,7 @@ import 'package:flutter_sixvalley_ecommerce/features/address/domain/models/addre
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/location/controllers/location_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/helper/country_code_helper.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/egypt_location_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
@@ -137,8 +137,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
       String countryCode = _egyptDialCode;
       Provider.of<AuthController>(context, listen: false)
           .setCountryCode(countryCode, notify: false);
-      String phoneNumberOnly = CountryCodeHelper.extractPhoneNumber(
-          countryCode, widget.address?.phone ?? '');
+      String phoneNumberOnly = EgyptPhoneHelper.normalizeLocal(widget.address?.phone ?? '');
       _contactPersonNumberController.text = phoneNumberOnly;
     } else {
       if (Provider.of<ProfileController>(context, listen: false)
@@ -151,8 +150,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
         String countryCode = _egyptDialCode;
         Provider.of<AuthController>(context, listen: false)
             .setCountryCode(countryCode);
-        String phoneNumberOnly = CountryCodeHelper.extractPhoneNumber(
-            countryCode,
+        String phoneNumberOnly = EgyptPhoneHelper.normalizeLocal(
             Provider.of<ProfileController>(context, listen: false)
                     .userInfoModel!
                     .phone ??
@@ -256,10 +254,9 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                 nextFocus: _emailNode,
                                 showCodePicker: false,
                                 countryDialCode: _egyptDialCode,
-                                isAmount: true,
-                                validator: (value) =>
-                                    ValidateCheck.validateEmptyText(
-                                        value, "phone_must_be_required"),
+                                validator: (value) => EgyptPhoneHelper.isValidLocal(value ?? '')
+                                    ? null
+                                    : 'أدخل رقم موبايل مصري صحيح يبدأ بـ 010 أو 011 أو 012 أو 015',
                                 inputAction: TextInputAction.next,
                                 inputType: TextInputType.phone,
                               );
@@ -735,8 +732,7 @@ class _AddNewAddressScreenState extends State<AddNewAddressScreen> {
                                             contactPersonName:
                                                 _contactPersonNameController
                                                     .text,
-                                            phone:
-                                                '${Provider.of<AuthController>(context, listen: false).countryDialCode}${_contactPersonNumberController.text.trim()}',
+                                            phone: EgyptPhoneHelper.toInternational(_contactPersonNumberController.text),
                                             email: _contactPersonEmailController
                                                 .text
                                                 .trim(),

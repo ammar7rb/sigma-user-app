@@ -77,21 +77,20 @@ class SupportTicketController extends ChangeNotifier {
   Future<http.StreamedResponse> sendReply(int? ticketID, String message) async {
     _isLoading = true;
     notifyListeners();
-    http.StreamedResponse response = await supportTicketServiceInterface.sendReply(ticketID.toString(), message, pickedImageFileStored);
-    if (response.statusCode == 200) {
-      getSupportTicketReplyList(Get.context!, ticketID);
-      _pickedImageFiles = [];
-      pickedImageFileStored = [];
+    try {
+      final response = await supportTicketServiceInterface.sendReply(ticketID.toString(), message, pickedImageFileStored);
+      if (response.statusCode == 200) {
+        _pickedImageFiles = [];
+        pickedImageFileStored = [];
+        await getSupportTicketReplyList(Get.context!, ticketID);
+      }
+      return response;
+    } finally {
       _isLoading = false;
-    } else {
-      _isLoading = false;
+      notifyListeners();
     }
-    _pickedImageFiles = [];
-    pickedImageFileStored = [];
-    _isLoading = false;
-    notifyListeners();
-    return response;
   }
+
 
 
   Future<void> closeSupportTicket(int? ticketID) async {

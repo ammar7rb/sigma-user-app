@@ -127,6 +127,7 @@ class _CreditLimitStripState extends State<CreditLimitStrip>
     final accountEligibility =
         context.watch<ProfileController>().userInfoModel?.purchaseEligibility;
     if (accountEligibility?['show_credit_indicator'] == false ||
+        accountEligibility?['can_pay_before_subscription'] == true ||
         limit?['show_credit_indicator'] == false) {
       return const SizedBox.shrink();
     }

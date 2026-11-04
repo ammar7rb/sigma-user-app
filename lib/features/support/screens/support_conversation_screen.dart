@@ -9,9 +9,8 @@ import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_contr
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
-import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 
 class SupportConversationScreen extends StatefulWidget {
@@ -27,20 +26,19 @@ class SupportConversationScreen extends StatefulWidget {
 class _SupportConversationScreenState extends State<SupportConversationScreen> {
   final TextEditingController _controller = TextEditingController();
   Timer? _liveTimer;
-  bool _activationHandled = false;
   bool _refreshing = false;
   @override
   void initState() {
-    if (Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
-      Provider.of<SupportTicketController>(context, listen: false)
-          .getSupportTicketReplyList(context, widget.supportTicketModel.id);
-      _liveTimer = Timer.periodic(
-          const Duration(seconds: 3), (_) => _refreshActivationConversation());
-    }
     super.initState();
+    if (widget.supportTicketModel.purpose == 'account_activation') return;
+    if (Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
+      _refreshConversation();
+      _liveTimer = Timer.periodic(
+          const Duration(seconds: 3), (_) => _refreshConversation());
+    }
   }
 
-  Future<void> _refreshActivationConversation() async {
+  Future<void> _refreshConversation() async {
     if (!mounted || _refreshing) return;
     _refreshing = true;
     try {
@@ -48,30 +46,6 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
           .getSupportTicketReplyList(context, widget.supportTicketModel.id);
     } finally {
       _refreshing = false;
-    }
-    if (widget.supportTicketModel.purpose != 'account_activation' ||
-        _activationHandled ||
-        !mounted) {
-      return;
-    }
-    await Provider.of<ProfileController>(context, listen: false)
-        .getUserInfo(context);
-    if (!mounted) {
-      return;
-    }
-    final active = Provider.of<ProfileController>(context, listen: false)
-            .userInfoModel
-            ?.activation
-            ?.isActive ==
-        true;
-    if (active && mounted) {
-      _activationHandled = true;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(getTranslated('account_activated_successfully', context) ?? ''),
-        backgroundColor: Color(0xFF11875D),
-      ));
-      RouterHelper.getDashboardRoute(
-          action: RouteAction.pushNamedAndRemoveUntil, page: 'home');
     }
   }
 
@@ -84,12 +58,12 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rawSubject = widget.supportTicketModel.subject?.trim() ?? '';
-    final title =
-        rawSubject.isEmpty || rawSubject == 'customer_account_activation'
-            ? (getTranslated('customer_account_activation', context) ??
-                'تفعيل الحساب')
-            : rawSubject;
+    if (widget.supportTicketModel.purpose == 'account_activation') {
+      return Scaffold(
+          appBar: CustomAppBar(title: 'الدعم'),
+          body: const Center(child: Text('هذه المحادثة غير متاحة.')));
+    }
+    final title = widget.supportTicketModel.subject?.trim() ?? 'محادثة الدعم';
     return Scaffold(
       appBar: CustomAppBar(
         title: title,
@@ -104,10 +78,9 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                     itemCount: support.supportReplyList!.length,
                     reverse: true,
                     itemBuilder: (context, index) {
-                      bool isMe = (support.supportReplyList![index].adminId !=
-                              '1' ||
-                          support.supportReplyList![index].customerMessage !=
-                              null);
+                      final reply = support.supportReplyList![index];
+                      final isMe = reply.customerMessage != null ||
+                          (reply.adminMessage == null && (int.tryParse(reply.adminId ?? '') ?? 0) == 0);
                       String? message = isMe
                           ? support.supportReplyList![index].customerMessage
                           : support.supportReplyList![index].adminMessage;
@@ -207,13 +180,19 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                             border: InputBorder.none)),
                   )),
                   IconButton(
-                    onPressed: () {
-                      if (_controller.text.isEmpty &&
-                          support.pickedImageFileStored.isEmpty) {
-                      } else {
-                        support.sendReply(
-                            widget.supportTicketModel.id, _controller.text);
-                        _controller.text = '';
+                    onPressed: support.isLoading ? null : () async {
+                      final message = _controller.text.trim();
+                      if (message.isEmpty && support.pickedImageFileStored.isEmpty) return;
+                      try {
+                        final response = await support.sendReply(widget.supportTicketModel.id, message);
+                        if (!context.mounted) return;
+                        if (response.statusCode == 200) {
+                          if (_controller.text.trim() == message) _controller.clear();
+                        } else {
+                          showCustomSnackBarWidget('تعذر إرسال الرسالة، حاول مرة أخرى.', context);
+                        }
+                      } catch (_) {
+                        if (context.mounted) showCustomSnackBarWidget('تعذر إرسال الرسالة، حاول مرة أخرى.', context);
                       }
                     },
                     icon: support.isLoading

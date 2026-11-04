@@ -112,12 +112,12 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
               const Center(child: CircularProgressIndicator()),
             if (conversations?.isEmpty == true)
               const Text('ستظهر محادثتك هنا بعد إرسال المشكلة.'),
-            for (final conversation in conversations ?? <SupportTicketModel>[])
+            for (final conversation in (conversations ?? <SupportTicketModel>[])
+                .where((conversation) =>
+                    conversation.purpose != 'account_activation'))
               ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(conversation.purpose == 'account_activation'
-                      ? 'تفعيل الحساب'
-                      : conversation.subject ?? 'محادثة الدعم'),
+                  title: Text(conversation.subject ?? 'محادثة الدعم'),
                   subtitle: Text(conversation.updatedAt ?? ''),
                   trailing: const Icon(Icons.chevron_left),
                   onTap: () => Navigator.push(
