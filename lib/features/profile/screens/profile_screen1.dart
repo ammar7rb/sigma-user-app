@@ -14,7 +14,6 @@ import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/signup_m
 import 'package:flutter_sixvalley_ecommerce/features/auth/enums/from_page.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/domain/models/profile_model.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/delete_account_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/image_size_checker.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
@@ -223,8 +222,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
                       Positioned(
                         right: 15, top: 15,
                         child: InkWell(
-                          onTap: () => showModalBottomSheet(backgroundColor: Colors.transparent,
-                              context: context, builder: (_)=>  DeleteAccountBottomSheet(customerId: profile.userID)),
+                          onTap: () => RouterHelper.getSettingsRoute(action: RouteAction.push),
 
                           child: Container(
                             height: 30, width: 30,

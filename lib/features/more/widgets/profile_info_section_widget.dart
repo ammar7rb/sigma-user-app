@@ -1,7 +1,6 @@
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/delete_account_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/profile_image_shortcut.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -174,21 +173,16 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                         PopupMenuItem(
                             value: 'edit', child: Text('تعديل الملف الشخصي')),
                         PopupMenuItem(
-                            value: 'delete', child: Text('حذف الحساب'))
+                            value: 'settings', child: Text('الإعدادات'))
                       ],
                       onSelected: (action) {
                         if (action == 'edit') {
                           RouterHelper.getProfileScreen1Route(
                               action: RouteAction.push);
                         }
-                        if (action == 'delete' &&
+                        if (action == 'settings' &&
                             profile.userInfoModel != null) {
-                          showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              useSafeArea: true,
-                              builder: (_) => DeleteAccountBottomSheet(
-                                  customerId: '${profile.userInfoModel!.id}'));
+                          RouterHelper.getSettingsRoute(action: RouteAction.push);
                         }
                       },
                     ),

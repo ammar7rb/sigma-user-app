@@ -1,3 +1,6 @@
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/account_deletion_sheet.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_expanded_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/setting/widgets/select_language_bottom_sheet_widget.dart';
@@ -68,6 +71,29 @@ class SettingsScreen extends StatelessWidget {
                             : 'جميع الأسعار معروضة بالجنيه المصري.')),
                   ]),
                 ),
+                if (context.read<AuthController>().isLoggedIn()) ...[
+                  const SizedBox(height: 18),
+                  _SettingsTile(
+                    icon: Icons.lock_outline,
+                    title: localization.isLtr ? 'Change password' : 'تغيير كلمة المرور',
+                    subtitle: localization.isLtr ? 'Open profile security fields' : 'افتح حقول كلمة المرور في الملف الشخصي',
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => RouterHelper.getProfileScreen1Route(action: RouteAction.push),
+                  ),
+                  const SizedBox(height: 18),
+                  _SettingsTile(
+                    icon: Icons.delete_outline,
+                    title: localization.isLtr ? 'Delete account' : 'حذف الحساب',
+                    subtitle: localization.isLtr ? 'Verify your password to continue' : 'تحقق من كلمة المرور للمتابعة',
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      builder: (_) => const DeleteAccountBottomSheet(customerId: ''),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
