@@ -73,7 +73,7 @@ void main() {
   });
 
   testWidgets(
-      'global activation and expiry banners remain independent across content changes',
+      'retired activation stays hidden while expiry notices survive content changes',
       (tester) async {
     final auth = _AuthStub();
     final profile = _ProfileStub()
@@ -95,10 +95,10 @@ void main() {
                     onRenew: () => renewals++,
                     child: Scaffold(body: Text(screen)))));
     await tester.pumpWidget(app('المنتجات'));
-    expect(find.text('حسابك بانتظار التفعيل'), findsOneWidget);
+    expect(find.text('حسابك بانتظار التفعيل'), findsNothing);
     expect(find.textContaining('انتهى اشتراكك'), findsOneWidget);
     await tester.pumpWidget(app('إتمام الشراء'));
-    expect(find.text('حسابك بانتظار التفعيل'), findsOneWidget);
+    expect(find.text('حسابك بانتظار التفعيل'), findsNothing);
     await tester.tap(find.textContaining('انتهى اشتراكك'));
     expect(renewals, 1);
     profile.profile = ProfileModel.fromJson({
@@ -144,10 +144,11 @@ void main() {
       final order = Orders()
         ..orderStatus = 'pending'
         ..customerFulfillmentStatus = 'pending_requirements'
-        ..customerPendingReasons = [
-          'account_activation',
-          'monthly_subscription'
-        ];
+        ..customerPendingReasons = ['monthly_subscription']
+        ..purchaseEligibility = {
+          'stage': 'waiting_for_package',
+          'next_action': 'choose_package'
+        };
       await tester.pumpWidget(MaterialApp(
           theme: entry.$2,
           home: Directionality(
@@ -173,7 +174,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.textContaining('الدفع قيد المراجعة'), findsOneWidget);
       expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-      expect(find.text('تواصل لتفعيل الحساب'), findsOneWidget);
+      expect(find.text('تواصل لتفعيل الحساب'), findsNothing);
       await expectLater(find.byType(Scaffold),
           matchesGoldenFile('goldens/customer_eligibility_${entry.$1}.png'));
     });

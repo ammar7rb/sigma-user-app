@@ -23,8 +23,16 @@ void main() {
     final placeholder = RegExp(r'\{[A-Za-z_]+\}');
     for (final key in english.keys) {
       expect(
-        placeholder.allMatches('${arabic[key]}').map((match) => match.group(0)).toList()..sort(),
-        placeholder.allMatches('${english[key]}').map((match) => match.group(0)).toList()..sort(),
+        placeholder
+            .allMatches('${arabic[key]}')
+            .map((match) => match.group(0))
+            .toList()
+          ..sort(),
+        placeholder
+            .allMatches('${english[key]}')
+            .map((match) => match.group(0))
+            .toList()
+          ..sort(),
         reason: 'Translation placeholders differ for $key',
       );
     }
@@ -68,7 +76,8 @@ void main() {
 
     expect(cartWidget, isNot(contains('CustomCheckbox')));
     expect(profile, contains('if (isGuestMode) ...['));
-    expect(support, contains("rawSubject == 'customer_account_activation'"));
+    expect(support,
+        isNot(contains("rawSubject == 'customer_account_activation'")));
     expect(support, contains('Icons.add_photo_alternate_outlined'));
     expect(images, contains('onboarding_secure_payment.png'));
     expect(images, contains('onboarding_medical_delivery.png'));
@@ -146,7 +155,8 @@ void main() {
     expect(transfer, contains('senderNameController'));
     expect(transfer, contains('senderIdentifierController'));
     expect(transfer, contains('_pickedImage'));
-    expect(insurance, contains("getTranslated('deposit_insurance_balance', context)"));
+    expect(insurance,
+        contains("getTranslated('deposit_insurance_balance', context)"));
     expect(pubspec, contains('family: Cairo'));
   });
 

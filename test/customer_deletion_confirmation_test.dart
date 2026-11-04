@@ -16,6 +16,18 @@ class DeletionAdapter implements HttpClientAdapter {
   Future<ResponseBody> fetch(RequestOptions options,
       Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     requests.add(options);
+    if (options.path.endsWith('/begin')) {
+      return ResponseBody.fromString(
+          '{"stage":2,"flow_token":"test-flow"}', 200,
+          headers: {
+            Headers.contentTypeHeader: ['application/json']
+          });
+    }
+    if (options.path.endsWith('/reason')) {
+      return ResponseBody.fromString('{"stage":3}', 200, headers: {
+        Headers.contentTypeHeader: ['application/json']
+      });
+    }
     return ResponseBody.fromString(
         '{"errors":{"deletion":["لا يمكن حذف الحساب أثناء وجود طلبات جارية."]}}',
         422,
@@ -67,8 +79,8 @@ void main() {
   testWidgets('cancel closes confirmation without making a deletion request',
       (tester) async {
     await show(tester);
-    expect(find.byType(TextField), findsNothing);
-    expect(find.text('نعم، حذف الحساب'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('متابعة'), findsOneWidget);
     await tester.tap(find.text('إلغاء'));
     await tester.pumpAndSettle();
     expect(adapter.requests, isEmpty);
@@ -76,16 +88,40 @@ void main() {
   });
 
   testWidgets(
-      'confirm submits once without password or reason and shows server errors',
+      'password reason and reconfirmation are required and server rejection preserves the account',
       (tester) async {
     await show(tester);
-    await tester.tap(find.text('نعم، حذف الحساب'));
-    await tester.tap(find.text('نعم، حذف الحساب'));
+    await tester.enterText(find.byType(TextField), 'abc123');
+    await tester.tap(find.text('متابعة'));
+    await tester.tap(find.text('متابعة'));
     await tester.pumpAndSettle();
     expect(adapter.requests, hasLength(1));
-    expect(adapter.requests.single.path,
-        '/api/v1/customer/account-deletion/confirm');
-    expect(adapter.requests.single.data, {'confirmation': true});
+    await tester.enterText(find.byType(TextField), 'Account deletion test');
+    await tester.tap(find.text('متابعة'));
+    await tester.pumpAndSettle();
+    expect(adapter.requests, hasLength(2));
+    await tester.enterText(find.byType(TextField), 'abc123');
+    expect(tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull);
+    await tester.tap(find.byType(CheckboxListTile));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'حذف الحساب'));
+    await tester.tap(find.widgetWithText(FilledButton, 'حذف الحساب'));
+    await tester.pumpAndSettle();
+    expect(adapter.requests, hasLength(3));
+    expect(adapter.requests.map((request) => request.path), [
+      '/api/v1/customer/account-deletion/begin',
+      '/api/v1/customer/account-deletion/reason',
+      '/api/v1/customer/account-deletion/finish',
+    ]);
+    expect(adapter.requests.first.data, {'password': 'abc123'});
+    expect(adapter.requests[1].data,
+        {'flow_token': 'test-flow', 'reason': 'Account deletion test'});
+    expect(adapter.requests.last.data, {
+      'flow_token': 'test-flow',
+      'password': 'abc123',
+      'confirmation': true
+    });
     expect(find.text('لا يمكن حذف الحساب أثناء وجود طلبات جارية.'),
         findsOneWidget);
     expect(find.byType(DeleteAccountBottomSheet), findsOneWidget);
