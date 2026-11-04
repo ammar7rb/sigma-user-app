@@ -51,11 +51,12 @@ class _WalletWithdrawalScreenState extends State<WalletWithdrawalScreen> {
     try {
       final response =
           await di.sl<DioClient>().get('/api/v1/customer/wallet/withdrawals');
-      if (mounted)
+      if (mounted) {
         setState(() {
           data = response.data as Map;
           error = null;
         });
+      }
     } catch (_) {
       if (mounted) setState(() => error = 'تعذر تحميل طلبات السحب.');
     }
@@ -101,9 +102,10 @@ class _WalletWithdrawalScreenState extends State<WalletWithdrawalScreen> {
         pending = null;
         await load();
       }
-      if (mounted)
+      if (mounted) {
         setState(
             () => error = 'تعذر تأكيد طلب السحب. راجع البيانات وأعد المحاولة.');
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -126,26 +128,18 @@ class _WalletWithdrawalScreenState extends State<WalletWithdrawalScreen> {
           if (data == null)
             const LinearProgressIndicator()
           else ...[
-            Text('رسوم الإدارة والتشغيل ' +
-                fee.toString() +
-                '%. تبدأ المهلة من اعتماد الإدارة.'),
+            Text('رسوم الإدارة والتشغيل $fee%. تبدأ المهلة من اعتماد الإدارة.'),
             TextField(
               controller: amount,
               enabled: !busy && pending == null,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              decoration:
-                  InputDecoration(labelText: 'مبلغ السحب (' + currency + ')'),
+              decoration: InputDecoration(labelText: 'مبلغ السحب ($currency)'),
               onChanged: (_) => setState(() {}),
             ),
-            Text('الرسوم ' +
-                (value * fee / 100).toStringAsFixed(2) +
-                ' ' +
-                currency),
-            Text('الصافي ' +
-                (value * (1 - fee / 100)).toStringAsFixed(2) +
-                ' ' +
-                currency),
+            Text('الرسوم ${(value * fee / 100).toStringAsFixed(2)} $currency'),
+            Text(
+                'الصافي ${(value * (1 - fee / 100)).toStringAsFixed(2)} $currency'),
             CheckboxListTile(
               value: accepted,
               onChanged: busy || pending != null
@@ -162,14 +156,9 @@ class _WalletWithdrawalScreenState extends State<WalletWithdrawalScreen> {
             for (final row
                 in (data!['withdrawals'] as Map?)?['data'] as List? ?? [])
               ListTile(
-                title: Text('طلب #' +
-                    row['id'].toString() +
-                    ' · ' +
-                    row['status'].toString()),
-                subtitle: Text('الصافي ' +
-                    row['net_amount'].toString() +
-                    ' بعملة المحفظة الأساسية\nموعد الصرف ' +
-                    (row['due_at'] ?? 'بعد الاعتماد').toString()),
+                title: Text('طلب #${row['id']} · ${row['status']}'),
+                subtitle: Text(
+                    'الصافي ${row['net_amount']} بعملة المحفظة الأساسية\nموعد الصرف ${row['due_at'] ?? 'بعد الاعتماد'}'),
               ),
           ],
         ]),
