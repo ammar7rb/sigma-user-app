@@ -362,8 +362,8 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
               'request_key': requestKey,
               'transfer_schema': 'sender_v2',
               'sender_phone': EgyptPhoneHelper.normalizeLocal(senderPhone.text),
-              'sender_name': senderName.text.trim(),
-              'method_information[sender_name]': senderName.text.trim(),
+              if (channel != 'instapay') 'sender_name': senderName.text.trim(),
+              if (channel != 'instapay') 'method_information[sender_name]': senderName.text.trim(),
               'method_information[sender_wallet_or_phone]':
                   senderPhone.text.trim(),
               if (note.text.trim().isNotEmpty) 'payment_note': note.text.trim(),
@@ -463,14 +463,13 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              if (channel != 'instapay')
+                TextFormField(
                   controller: senderName,
                   maxLength: 100,
                   decoration: InputDecoration(
                       counterText: '',
-                      labelText: channel == 'instapay'
-                          ? 'اسم الحساب الخاص بك'
-                          : 'اسم المحفظة الخاصة بك',
+                      labelText: 'اسم المحفظة الخاصة بك',
                       hintText: tr('transfer_sender_full_name_hint')),
                   validator: (value) =>
                       (value?.trim().isEmpty ?? true) ? tr('required') : null),
