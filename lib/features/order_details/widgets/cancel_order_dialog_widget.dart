@@ -69,7 +69,7 @@ class _CancelOrderDialogWidgetState extends State<CancelOrderDialogWidget> {
                               if(context.mounted) {
                                 Navigator.pop(context);
                                 Navigator.pop(context);
-                                showCustomSnackBarWidget(getTranslated('order_cancelled_successfully', context)!, context, snackBarType: SnackBarType.success);
+                                showCustomSnackBarWidget(value.response?.data['message']?.toString() ?? 'Cancellation request sent', context, snackBarType: SnackBarType.success);
                               }
                             }
                           });
