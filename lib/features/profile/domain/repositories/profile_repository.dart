@@ -52,19 +52,19 @@ class ProfileRepository implements ProfileRepositoryInterface {
     if (pass.isEmpty) {
       fields.addAll(<String, String>{
         '_method': 'put',
-        'f_name': userInfoModel.fName!,
-        'l_name': userInfoModel.lName!,
+        'f_name': userInfoModel.fName ?? '',
+        'l_name': userInfoModel.lName ?? '',
         'phone': userInfoModel.phone!,
-        'email': userInfoModel.email!
+        'email': userInfoModel.email ?? ''
       });
     } else {
       fields.addAll(<String, String>{
         '_method': 'put',
-        'f_name': userInfoModel.fName!,
-        'l_name': userInfoModel.lName!,
+        'f_name': userInfoModel.fName ?? '',
+        'l_name': userInfoModel.lName ?? '',
         'phone': userInfoModel.phone!,
         'password': pass,
-        'email': userInfoModel.email!
+        'email': userInfoModel.email ?? ''
       });
     }
     final currentPassword = userInfoModel.currentPassword;
@@ -73,6 +73,7 @@ class ProfileRepository implements ProfileRepositoryInterface {
       fields['current_password'] = currentPassword ?? '';
       fields['password_confirmation'] = pass;
     }
+    fields['organization_name'] = userInfoModel.organizationName ?? '';
     request.fields.addAll(fields);
 
     http.StreamedResponse response = await request.send();

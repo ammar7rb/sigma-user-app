@@ -44,6 +44,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _organizationController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -73,8 +74,6 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
   final emailToolTipKey = GlobalKey<State<Tooltip>>();
 
   Future<void> _updateUserAccount() async {
-    String firstName = _firstNameController.text.trim();
-    String lastName = _lastNameController.text.trim();
     String phoneNumber = _phoneController.text.trim();
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
@@ -83,13 +82,10 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
        && Provider.of<ProfileController>(context, listen: false).userInfoModel!.lName == _lastNameController.text
        && Provider.of<ProfileController>(context, listen: false).userInfoModel!.phone == _phoneController.text
        && Provider.of<ProfileController>(context, listen: false).userInfoModel!.email == _emailController.text
+       && (Provider.of<ProfileController>(context, listen: false).userInfoModel!.organizationName ?? '') == _organizationController.text
        && file == null && _passwordController.text.isEmpty && _confirmPasswordController.text.isEmpty
     ) {
       showCustomSnackBarWidget(getTranslated('change_something_to_update', context), context, snackBarType: SnackBarType.warning);
-    } else if (firstName.isEmpty) {
-      showCustomSnackBarWidget(getTranslated('first_name_is_required', context), context, snackBarType: SnackBarType.warning);
-    } else if(lastName.isEmpty) {
-      showCustomSnackBarWidget(getTranslated('last_name_is_required', context), context, snackBarType: SnackBarType.warning);
     } else if (phoneNumber.isEmpty) {
       showCustomSnackBarWidget(getTranslated('phone_must_be_required', context), context, snackBarType: SnackBarType.warning);
     } else if((password.isNotEmpty && password.length < 8) || (confirmPassword.isNotEmpty && confirmPassword.length < 8)) {
@@ -105,6 +101,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       updateUserInfoModel.method = 'put';
       updateUserInfoModel.fName = _firstNameController.text;
       updateUserInfoModel.lName = _lastNameController.text;
+      updateUserInfoModel.organizationName = _organizationController.text.trim();
       updateUserInfoModel.phone = _phoneController.text;
       updateUserInfoModel.email = _emailController.text;
       String pass = _passwordController.text;
@@ -130,6 +127,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
   @override
   void dispose() {
     _currentPasswordController.dispose();
+    _organizationController.dispose();
     super.dispose();
   }
 
@@ -166,6 +164,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
               builder: (context,profile,_) {
                 _firstNameController.text = profile.userInfoModel?.fName ?? '';
                 _lastNameController.text = profile.userInfoModel?.lName ?? '';
+                _organizationController.text = profile.userInfoModel?.organizationName ?? '';
                 _emailController.text = profile.userInfoModel?.email ?? '';
                 _phoneController.text = profile.userInfoModel?.phone ?? '';
                 return profile.userInfoModel != null ?  Column(children: [
@@ -271,6 +270,14 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
                             nextFocus: _emailFocus,
                             hintText: profile.userInfoModel?.lName,
                             controller: _lastNameController),
+                        const SizedBox(height: Dimensions.paddingSizeLarge),
+
+                        CustomTextFieldWidget(
+                          labelText: Localizations.localeOf(context).languageCode == 'ar'
+                              ? 'اسم المؤسسة'
+                              : 'Organization name',
+                          controller: _organizationController,
+                        ),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
 
                         CustomTextFieldWidget(
