@@ -28,8 +28,8 @@ class SupportReplyModel {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     adminId = json['admin_id'].toString();
-    if(json['attachment'] != null && json['attachment'] is !String){
-      attachment = json['attachment'].cast<String>();
+    if(json['attachment'] is List){
+      attachment = (json['attachment'] as List).whereType<String>().toList();
     }else{
       attachment = [];
     }

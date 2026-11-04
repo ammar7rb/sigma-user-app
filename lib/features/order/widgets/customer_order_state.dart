@@ -13,6 +13,14 @@ class CustomerOrderState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (order.orderStatus == 'delivered') {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(12)),
+        child: Row(children: [Icon(Icons.check_circle, color: Colors.green.shade700), const SizedBox(width: 10), Text('تم التسليم', style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold))]),
+      );
+    }
     final refund = order.purchaseEligibility?['package_refund'];
     if (refund is Map) {
       final complete = refund['status'] == 'completed';
