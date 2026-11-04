@@ -102,7 +102,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                               password: _password.text,
                               referCode: widget.referCode)
                             ..phone =
-                                EgyptPhoneHelper.normalizeLocal(_phone.text);
+                                EgyptPhoneHelper.toInternational(_phone.text);
                           auth.registration(
                               registration,
                               (dynamic a, dynamic b, dynamic c, dynamic d) {},
