@@ -228,7 +228,7 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                       'تُخصم معاملات الباقات مباشرة من رصيد محفظة المنصة وتُفعّل فورًا.'),
                   if (subscription['active'] == true)
                     const Text(
-                        'الترقية بسعر الباقة الأعلى كاملًا، مع الحفاظ على تاريخ انتهاء الاشتراك الحالي.'),
+                        'يبدأ التجديد أو تغيير الباقة فترة جديدة مدتها 30 يومًا فورًا.'),
                   TextButton.icon(
                       onPressed: busy
                           ? null
@@ -244,6 +244,24 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                         'توجد عملية سابقة محفوظة في السجل. لا تُخصم تلقائيًا؛ تابع حالتها مع الإدارة.'),
                   MonthlySubscriptionSummary(
                       subscription: subscription, busy: busy, onCheckout: null),
+                  if (data?['auto_renew_enabled'] == true)
+                    const Text('التجديد التلقائي مفعّل. لإيقافه تواصل مع الإدارة.')
+                  else if (subscription['active'] == true)
+                    CheckboxListTile(
+                      value: false,
+                      title: const Text('تجديد تلقائي من رصيد المحفظة'),
+                      onChanged: busy
+                          ? null
+                          : (enabled) async {
+                              if (enabled != true) return;
+                              await act(() async {
+                                await api.post(
+                                  '/api/v1/customer/subscription/auto-renew',
+                                  data: {'auto_renew': true},
+                                );
+                              });
+                            },
+                    ),
                   if (data?['packages'] != null)
                     MonthlyPackageChoices(
                         data: data!,

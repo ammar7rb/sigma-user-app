@@ -88,10 +88,12 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
               : selected
                   ? pending!['granted_allowance']
                   : p['purchase_limit'];
-          final eligible = !active ||
-              (p['id'] != sub['package_id'] &&
-                  number(p['purchase_limit']) >
-                      number(allowance['base_limit']));
+          final baseLimit = number(allowance['base_limit']);
+          final higher = active && number(p['purchase_limit']) > baseLimit;
+          final top = active && !packages.cast<Map>().any(
+            (other) => number(other['purchase_limit']) > baseLimit,
+          );
+          final eligible = !active || current || higher || top;
           final emphasized = i % 3 == 1;
           final border = current
               ? const Color(0xFF238451)
@@ -150,7 +152,7 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
                         style:
                             theme.textTheme.bodySmall?.copyWith(color: muted)),
                     const SizedBox(height: 20),
-                    if (!current && eligible)
+                    if (eligible)
                       FilledButton(
                           style: FilledButton.styleFrom(
                               backgroundColor: emphasized
@@ -161,7 +163,9 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
                           onPressed: locked
                               ? null
                               : () => widget.onBuy(p['id'] as int, null),
-                          child: Text(active
+                          child: Text(current
+                              ? 'تجديد الباقة'
+                              : higher
                               ? 'ترقية من رصيد المحفظة'
                               : 'اشتراك من رصيد المحفظة'))
                     else
@@ -176,7 +180,7 @@ class _MonthlyPackageChoicesState extends State<MonthlyPackageChoices> {
                                   ?.copyWith(color: muted))),
                     const SizedBox(height: 20),
                     if (current) ...[
-                      Text('تجديد الحد فقط؛ يبقى تاريخ انتهاء الباقة كما هو.',
+                      Text('تجديد الحد يبقي تاريخ انتهاء الباقة كما هو.',
                           style: theme.textTheme.bodySmall
                               ?.copyWith(color: muted)),
                       const SizedBox(height: 8),
