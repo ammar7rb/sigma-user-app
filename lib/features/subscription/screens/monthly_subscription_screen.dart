@@ -118,7 +118,31 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
     } catch (e) {
       await load();
       if (mounted) {
-        setState(() => error = failure(e));
+        final message = failure(e);
+        setState(() => error = message);
+        if (message.contains('رصيد') &&
+            (message.contains('كاف') || message.contains('شحن'))) {
+          await showDialog<void>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                    title: const Text('برجاء شحن رصيدكم لإتمام العملية'),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          child: const Text('إغلاق')),
+                      FilledButton(
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const CustomerWalletScreen()));
+                          },
+                          child: const Text('شحن المحفظة'))
+                    ],
+                  ));
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && scrollController.hasClients) {
             scrollController.jumpTo(0);
@@ -224,11 +248,6 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                       padding: EdgeInsets.all(40),
                       child: Center(child: CircularProgressIndicator())),
                 if (data != null) ...[
-                  Text(
-                      'تُخصم معاملات الباقات مباشرة من رصيد محفظة المنصة وتُفعّل فورًا.'),
-                  if (subscription['active'] == true)
-                    const Text(
-                        'يبدأ التجديد أو تغيير الباقة فترة جديدة مدتها 30 يومًا فورًا.'),
                   TextButton.icon(
                       onPressed: busy
                           ? null
@@ -244,9 +263,8 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                         'توجد عملية سابقة محفوظة في السجل. لا تُخصم تلقائيًا؛ تابع حالتها مع الإدارة.'),
                   MonthlySubscriptionSummary(
                       subscription: subscription, busy: busy, onCheckout: null),
-                  if (data?['auto_renew_enabled'] == true)
-                    const Text('التجديد التلقائي مفعّل. لإيقافه تواصل مع الإدارة.')
-                  else if (subscription['active'] == true)
+                  if (data?['auto_renew_enabled'] != true &&
+                      subscription['active'] == true)
                     CheckboxListTile(
                       value: false,
                       title: const Text('تجديد تلقائي من رصيد المحفظة'),
@@ -268,8 +286,6 @@ class _MonthlySubscriptionScreenState extends State<MonthlySubscriptionScreen>
                         busy: busy || pendingTransaction != null,
                         onRenew: (packageId) =>
                             checkout(packageId: packageId, renew: true),
-                        onIncrease: (offerId, quantity) =>
-                            checkout(offerId: offerId, quantity: quantity),
                         onBuy: (packageId, offerId) =>
                             checkout(packageId: packageId, offerId: offerId)),
                   const SizedBox(height: 32),
