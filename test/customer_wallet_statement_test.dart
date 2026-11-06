@@ -26,13 +26,16 @@ class StatementAdapter implements HttpClientAdapter {
     if (options.path.endsWith('/customer/communication')) {
       return ResponseBody.fromString(
           jsonEncode({
-            'items': [
-              {
-                'description':
-                    'تمت معاملة Silver من محفظتك. تنتهي الباقة 2026/11/15.',
-                'created_at': '2026-11-05'
-              }
-            ]
+            'last_page': 2,
+            'items': options.queryParameters['page'] == 1
+                ? []
+                : [
+                    {
+                      'description':
+                          'تمت معاملة Silver من محفظتك. تنتهي الباقة 2026/11/15.',
+                      'created_at': '2026-11-05'
+                    }
+                  ]
           }),
           200,
           headers: {

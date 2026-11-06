@@ -59,33 +59,48 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         if (fromDate != null) 'from': fromDate,
         if (toDate != null) 'to': toDate
       });
-      List<Map<String, dynamic>> notices = [];
-      try {
-        final feed = await api.get('/api/v1/customer/communication',
-            queryParameters: {'type': 'notifications'});
-        final items =
-            (feed.data is Map ? feed.data['items'] : null) as List? ?? [];
-        notices = items
-            .whereType<Map>()
-            .map((item) => Map<String, dynamic>.from(item))
-            .where((item) {
-          final text = '${item['description'] ?? ''}';
-          return text.startsWith('تمت معاملة ') && text.contains('من محفظتك');
-        }).toList();
-      } catch (_) {
-        // The wallet statement remains available if the separate feed is offline.
-      }
       if (mounted && version == loadVersion) {
         setState(() {
-          packageNotices = notices;
           data = Map<String, dynamic>.from(response.data);
           error = null;
         });
+        loadPackageNotices(version);
       }
     } catch (_) {
       if (mounted && version == loadVersion) {
         setState(() => error = tr('wallet_load_failed'));
       }
+    }
+  }
+
+  Future<void> loadPackageNotices(int version) async {
+    final notices = <Map<String, dynamic>>[];
+    var pageNumber = 1;
+    var lastPage = 1;
+    try {
+      do {
+        final feed = await api.get('/api/v1/customer/communication',
+            queryParameters: {'type': 'notifications', 'page': pageNumber});
+        final payload = map(feed.data);
+        for (final item in list(payload['items']).whereType<Map>()) {
+          final notice = Map<String, dynamic>.from(item);
+          final text = '${notice['description'] ?? ''}';
+          if (text.startsWith('تمت معاملة ') && text.contains('من محفظتك')) {
+            notices.add(notice);
+          }
+          if (notices.length == 10) break;
+        }
+        lastPage = int.tryParse('${payload['last_page'] ?? 1}') ?? 1;
+        pageNumber++;
+      } while (mounted &&
+          version == loadVersion &&
+          pageNumber <= lastPage &&
+          notices.length < 10);
+      if (mounted && version == loadVersion) {
+        setState(() => packageNotices = notices);
+      }
+    } catch (_) {
+      // The wallet statement remains available if the separate feed is offline.
     }
   }
 
