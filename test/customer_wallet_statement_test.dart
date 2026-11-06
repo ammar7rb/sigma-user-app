@@ -23,6 +23,22 @@ class StatementAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? stream,
       Future<void>? cancelFuture) async {
+    if (options.path.endsWith('/customer/communication')) {
+      return ResponseBody.fromString(
+          jsonEncode({
+            'items': [
+              {
+                'description':
+                    'تمت معاملة Silver من محفظتك. تنتهي الباقة 2026/11/15.',
+                'created_at': '2026-11-05'
+              }
+            ]
+          }),
+          200,
+          headers: {
+            Headers.contentTypeHeader: ['application/json']
+          });
+    }
     queries.add(Map.from(options.queryParameters));
     return ResponseBody.fromString(
         jsonEncode({
@@ -81,6 +97,9 @@ void main() {
         create: (_) => WalletSplash(),
         child: const MaterialApp(home: CustomerWalletScreen())));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+        find.textContaining('تمت معاملة Silver من محفظتك'), 300);
+    expect(find.textContaining('تمت معاملة Silver من محفظتك'), findsOneWidget);
     await tester.scrollUntilVisible(
         find.text('تجديد الحد الائتماني · Silver'), 300);
     await tester.pumpAndSettle();
