@@ -1,3 +1,5 @@
+import 'dart:ui';
+import 'package:flutter_sixvalley_ecommerce/features/auth/screens/customer_password_recovery_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_contact_phones.dart';
@@ -346,6 +348,10 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
 
                         const CustomerContactPhones(),
                         CustomTextFieldWidget(isPassword:true,labelText:'كلمة المرور الحالية',controller:_currentPasswordController),
+                        Align(alignment: AlignmentDirectional.centerStart, child: TextButton(
+                          onPressed: () => showModalBottomSheet<void>(context: context, isScrollControlled: true, useSafeArea: true, backgroundColor: Colors.transparent,
+                            builder: (_) => BackdropFilter(filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4), child: const FractionallySizedBox(heightFactor: .9, child: CustomerPasswordRecoveryScreen()))),
+                          child: Text(Directionality.of(context) == TextDirection.rtl ? 'هل نسيت كلمة المرور؟' : 'Forgot password?'))),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
                         CustomTextFieldWidget(
                             isPassword: true,

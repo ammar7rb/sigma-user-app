@@ -1,8 +1,10 @@
-import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/wallet_withdrawal_screen.dart';
+import 'dart:ui';
+import 'package:flutter_sixvalley_ecommerce/features/auth/screens/customer_password_recovery_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/account_deletion_sheet.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/more/widgets/logout_confirm_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_expanded_app_bar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/setting/widgets/select_language_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
@@ -74,21 +76,6 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 if (context.read<AuthController>().isLoggedIn()) ...[
                   _SettingsTile(
-                    icon: Icons.account_balance_wallet_outlined,
-                    title: localization.isLtr
-                        ? 'Withdraw wallet balance'
-                        : 'سحب رصيد المحفظة',
-                    subtitle: localization.isLtr
-                        ? 'Review fees before requesting'
-                        : 'راجع الرسوم والصافي قبل الطلب',
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const WalletWithdrawalScreen())),
-                  ),
-                  const SizedBox(height: 18),
-                  _SettingsTile(
                     icon: Icons.lock_outline,
                     title: localization.isLtr
                         ? 'Change password'
@@ -102,6 +89,40 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   _SettingsTile(
+                    icon: Icons.lock_reset,
+                    title: localization.isLtr
+                        ? 'Forgot password?'
+                        : 'هل نسيت كلمة المرور؟',
+                    subtitle: localization.isLtr
+                        ? 'Request help recovering your account'
+                        : 'طلب استعادة الحساب من الدعم',
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                            child: const FractionallySizedBox(
+                                heightFactor: .9,
+                                child: CustomerPasswordRecoveryScreen()))),
+                  ),
+                  const SizedBox(height: 18),
+                  _SettingsTile(
+                    icon: Icons.logout,
+                    title: localization.isLtr ? 'Sign out' : 'تسجيل الخروج',
+                    subtitle: localization.isLtr
+                        ? 'Sign out of this account'
+                        : 'تسجيل الخروج من حسابك',
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => showModalBottomSheet(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const LogoutCustomBottomSheetWidget()),
+                  ),
+                  const SizedBox(height: 18),
+                  _SettingsTile(
                     icon: Icons.delete_outline,
                     title: localization.isLtr ? 'Delete account' : 'حذف الحساب',
                     subtitle: localization.isLtr
@@ -112,8 +133,10 @@ class SettingsScreen extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       useSafeArea: true,
-                      builder: (_) =>
-                          const DeleteAccountBottomSheet(customerId: ''),
+                      builder: (_) => BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                          child: const Material(
+                              child: DeleteAccountBottomSheet(customerId: ''))),
                     ),
                   ),
                 ],
