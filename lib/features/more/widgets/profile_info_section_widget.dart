@@ -126,6 +126,23 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                         style: textBold.copyWith(
                             color: Colors.white,
                             fontSize: Dimensions.fontSizeExtraLarge)),
+                    if (!isGuestMode && profile.userInfoModel?.isActive != null)
+                      Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: .2),
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  child: Text(
+                                      profile.userInfoModel!.isActive!
+                                          ? 'نشط'
+                                          : 'معلق',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700))))),
                     if (!isGuestMode &&
                         profile.userInfoModel?.phone != null &&
                         profile.userInfoModel!.phone!.isNotEmpty)
@@ -167,25 +184,6 @@ class ProfileInfoSectionWidget extends StatelessWidget {
                 if (!isGuestMode)
                   Column(mainAxisSize: MainAxisSize.min, children: [
                     const CustomerCommunicationHeader(color: Colors.white),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(
-                            value: 'edit', child: Text('تعديل الملف الشخصي')),
-                        PopupMenuItem(
-                            value: 'settings', child: Text('الإعدادات'))
-                      ],
-                      onSelected: (action) {
-                        if (action == 'edit') {
-                          RouterHelper.getProfileScreen1Route(
-                              action: RouteAction.push);
-                        }
-                        if (action == 'settings' &&
-                            profile.userInfoModel != null) {
-                          RouterHelper.getSettingsRoute(action: RouteAction.push);
-                        }
-                      },
-                    ),
                   ]),
               ]),
             ),

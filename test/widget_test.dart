@@ -56,7 +56,7 @@ void main() {
     expect(dashboard, isNot(contains('ProfileDashboardPreview')));
     expect(more, contains('ProfileInfoSectionWidget'));
     expect(more, contains('CustomerWalletScreen'));
-    expect(more, contains('PendingPostPurchaseInvoicesScreen'));
+    expect(more, isNot(contains('PendingPostPurchaseInvoicesScreen')));
     expect(more, contains('RouterHelper.getOrderScreenRoute'));
     expect(mainSource, contains('if (!kIsWeb)'));
   });

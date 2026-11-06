@@ -5,6 +5,7 @@ class ProfileModel {
   String? currentPassword;
   int? id;
   String? administrativeReference;
+  bool? isActive;
   String? get accountNumber => id == null
       ? administrativeReference
       : 'C${id.toString().padLeft(6, '0')}';
@@ -57,6 +58,10 @@ class ProfileModel {
   ProfileModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     administrativeReference = json['administrative_reference']?.toString();
+    final status = json['is_active'];
+    isActive = status == null
+        ? null
+        : (status == true || status == 1 || status == '1');
     name = json['name'];
     method = json['_method'];
     fName = json['f_name'];
