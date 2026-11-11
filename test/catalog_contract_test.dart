@@ -8,6 +8,6 @@ void main() {
         '/api/v1/medical-devices/4/report-payment');
     expect(CatalogContract.medicalPurchaseRequest(4),
         '/api/v1/medical-devices/4/purchase-request');
-    expect(CatalogContract.creditRequest(9), '/api/v1/credit-requests/9');
+    expect(CatalogContract.creditRequest(9), '/api/v1/credit-products/9/request');
   });
 }

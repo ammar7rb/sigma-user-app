@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/catalog/catalog_client.dart';
 import 'package:flutter_sixvalley_ecommerce/features/catalog/catalog_contract.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
+import 'package:provider/provider.dart';
 
 class CreditProductsScreen extends StatefulWidget {
   const CreditProductsScreen({super.key});
@@ -31,19 +34,44 @@ class _CreditProductsScreenState extends State<CreditProductsScreen> {
     }
   }
 
-  List<Map<String, dynamic>> get products {
-    final data = result?.data;
-    final rows = data is Map ? data['products'] : null;
-    if (rows is! List) return const [];
-    return rows
-        .whereType<Map>()
-        .map((row) => Map<String, dynamic>.from(row))
-        .toList();
-  }
+  String _price(Map<String, dynamic> product) =>
+      '${product['unit_price'] ?? product['price'] ?? '—'}';
 
-  Future<void> requestCredit(int id) async {
+  Future<void> requestCredit(Map<String, dynamic> product) async {
+    if (!context.read<AuthController>().isLoggedIn()) {
+      RouterHelper.getLoginRoute(action: RouteAction.push);
+      return;
+    }
+    final id = int.tryParse('${product['id']}');
+    if (id == null) return;
+    final message = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        final field = TextEditingController();
+        return AlertDialog(
+          title: const Text('طلب ائتمان'),
+          content: TextField(
+            controller: field,
+            maxLength: 189,
+            decoration: const InputDecoration(
+                labelText: 'رسالة للإدارة', counterText: ''),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('إلغاء')),
+            FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, field.text.trim()),
+                child: const Text('إرسال')),
+          ],
+        );
+      },
+    );
+    if (message == null || !mounted) return;
     setState(() => busy = true);
-    final response = await client.post(CatalogContract.creditRequest(id), {});
+    final response = await client.post(CatalogContract.creditRequest(id), {
+      if (message.isNotEmpty) 'message': message,
+    });
     if (mounted) {
       setState(() {
         busy = false;
@@ -54,6 +82,9 @@ class _CreditProductsScreenState extends State<CreditProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final products = result == null
+        ? const <Map<String, dynamic>>[]
+        : CatalogClient.pageItems(result!.data);
     return Scaffold(
       appBar: AppBar(title: const Text('اشترِ الآن وادفع لاحقًا')),
       body: RefreshIndicator(
@@ -61,26 +92,20 @@ class _CreditProductsScreenState extends State<CreditProductsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-                'إعلانات الإدارة فقط. الزر هنا طلب ائتمان، وليس إضافة إلى السلة.'),
+            const Text('إعلانات الإدارة. الزر طلب ائتمان، وليس إضافة إلى السلة.'),
             const SizedBox(height: 12),
             if (busy) const LinearProgressIndicator(),
-            if (notice != null) _Banner(notice!),
-            if (result != null && !result!.ok) _Banner(result!.message),
+            if (notice != null) Text(notice!),
+            if (result != null && !result!.ok) Text(result!.message),
             if (result != null && result!.ok && products.isEmpty)
-              const _Banner('لا توجد منتجات ائتمان منشورة.'),
+              const Text('لا توجد منتجات ائتمان منشورة.'),
             for (final product in products)
               Card(
                 child: ListTile(
                   title: Text('${product['name'] ?? 'منتج'}'),
-                  subtitle: Text('${product['price'] ?? product['unit_price'] ?? '—'}'),
+                  subtitle: Text(_price(product)),
                   trailing: FilledButton(
-                    onPressed: busy
-                        ? null
-                        : () {
-                            final id = int.tryParse('${product['id']}');
-                            if (id != null) requestCredit(id);
-                          },
+                    onPressed: busy ? null : () => requestCredit(product),
                     child: const Text('طلب ائتمان'),
                   ),
                 ),
@@ -90,14 +115,4 @@ class _CreditProductsScreenState extends State<CreditProductsScreen> {
       ),
     );
   }
-}
-
-class _Banner extends StatelessWidget {
-  final String text;
-  const _Banner(this.text);
-  @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text,
-          style: TextStyle(color: Theme.of(context).colorScheme.error)));
 }

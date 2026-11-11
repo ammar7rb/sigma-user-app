@@ -1,52 +1,80 @@
-# مسارات كتالوج العميل غير الموجودة على الإنتاج
+# كتالوج العميل كما في مسودة الموقع
 
-شاشات الأجهزة الطبية و«اشترِ الآن وادفع لاحقًا» في تطبيق العميل تستدعي هذه المسارات كما هي. على `bahaa` فرع `production` (`99693c0d520c` في 11 نوفمبر 2026) وفرع `codex/issues-20261111` المساران موجودان للويب فقط (`/medical-devices` و`/credit-requests/{product}`) ومن دون نسخة `api/v1`. التطبيق لا يختلق منتجات ولا يسجل نجاحًا محليًا: استجابة 404 أو 405 تظهر للمستخدم كنص «المسار غير موجود على خادم الموقع بعد».
+المصدر: [bahaa PR #2](https://github.com/ammar7rb/bahaa/pull/2) فرع `cursor/sigma-fixes-20261111-e21d` عند `f487078`. المسارات دي **مش على** GitHub `production` لحد ما المسودة تندمج وتتنشر. التطبيق يستدعيها كما هي، ولو رجع 404 يعرض أن المسار غير منشور ولا يسجل نجاحًا محليًا.
 
-لإخفاء القائمتين من التطبيق: `--dart-define=SIGMA_UNRELEASED_CATALOGS=false`.
+المصادقة: `Authorization: Bearer` على المسارات المعلّمة `auth:api`.
 
 ## الأجهزة الطبية
 
-`GET /api/v1/medical-devices?guest_id=&limit=&offset=`
+`GET /api/v1/medical-devices`
+
+رد Laravel paginator، عشرون عنصرًا في الصفحة. الأجهزة داخل `data`، وكل عنصر هو سجل `company_medical_devices`: `id`, `name`, `price`, `report_price`, `device_condition` (`new` أو `used`), `origin_country`, `description`, `specifications`, `images`, `is_published`, `sort_order`.
+
+`GET /api/v1/medical-devices/{id}`
 
 ```json
 {
-  "total_size": 1,
-  "devices": [
-    {
-      "id": 1,
-      "name": "جهاز",
-      "price": 500,
-      "report_price": 35,
-      "device_condition": "new",
-      "origin_country": "EG",
-      "description": "",
-      "images": [],
-      "purchase_unlocked": false
-    }
-  ]
+  "device": {},
+  "report_purchase": null,
+  "can_request_purchase": false,
+  "purchase_message": "تم استلام طلبكم وسيتم التواصل معكم في أقرب وقت."
 }
 ```
 
-`device_condition` هو `new` أو `used`. `purchase_unlocked` يصبح true فقط للعميل الذي سدد ثمن تقرير هذا الجهاز.
+`can_request_purchase` يبقى false إلى أن يكون لسداد التقرير `report_sent_at`.
 
-`GET /api/v1/medical-devices/{id}` يعيد نفس الحقول داخل `device` أو في الجذر.
+`POST /api/v1/medical-devices/{id}/report-payment` مع `auth:api`
 
-`POST /api/v1/medical-devices/{id}/report-payment` بهيئة `{"request_key":"<uuid>"}` يخصم ثمن التقرير من محفظة المشتريات. 200 عند النجاح، 402 أو 409 مع `message` عند نقص الرصيد. لا يُسترد ثمن التقرير.
+```json
+{ "report_price": 35 }
+```
 
-`POST /api/v1/medical-devices/{id}/purchase-request` من دون جسم. 200 و`message` = `تم استلام طلبكم وسيتم التواصل معكم في أقرب وقت` فقط إذا كان التقرير مسددًا، وإلا 409. ملف التقرير (pdf/doc/docx) يصل على تذكرة الدعم القائمة.
+`report_price` لازم يطابق سعر التقرير الحالي لثلاث خانات. الرد `201` و`{ "purchase": {} }`. تكرار الدفع لنفس الجهاز يعيد سجل السداد الحالي. نقص الرصيد أو اختلاف السعر يرجع 422 و`errors.medical_report`.
+
+`POST /api/v1/medical-devices/{id}/purchase-request` مع `auth:api` ومن غير جسم.
+
+`200`:
+
+```json
+{
+  "message": "تم استلام طلبكم وسيتم التواصل معكم في أقرب وقت.",
+  "purchase": {}
+}
+```
+
+لو التقرير لسه ما اتبعتش: 422 و`errors.medical_report` = `سيظهر طلب الشراء بعد تأكيد الدفع وإرسال التقرير الفني.`
 
 ## الائتمان
 
-`GET /api/v1/credit-products?guest_id=&limit=&offset=`
+`GET /api/v1/credit-products`
+
+Paginator. المنتجات داخل `data`. منتجات الإدارة المنشورة ذات `is_credit_listing`. الحقول المستخدمة: `id`, `name`, `unit_price`, `thumbnail_full_url`.
+
+`POST /api/v1/credit-products/{id}/request` مع `auth:api`
 
 ```json
-{"products": [{"id": 1, "name": "منتج", "unit_price": 100, "thumbnail": null}]}
+{ "message": "اختياري حتى 189 حرفًا" }
 ```
 
-منتجات الإدارة المعلّمة للشراء الآجل فقط.
+`201`:
 
-`POST /api/v1/credit-requests/{productId}` بهيئة `{"message":""}` الاختيارية. 200 مع `message`. لا يضيف المنتج إلى السلة. الطلب المكرر لنفس المنتج يرجع رسالة أن هناك طلبًا مفتوحًا.
+```json
+{
+  "message": "تم استلام طلب الائتمان رقم CR-… وسنتواصل معك.",
+  "request": {}
+}
+```
 
-## مرفقات الرسائل
+طلب مفتوح لنفس المنتج: `409` و`لديك طلب مفتوح لهذا المنتج بالفعل.` الزر ليس إضافة إلى السلة.
 
-رد العميل `POST /api/v1/customer/support-ticket/reply/{id}` ما زال يقبل `image[]` من نوع jpeg/png/jpg/gif/webp فقط. إرسال pdf أو doc من التطبيق سيُرفض إلى أن يوسّع الموقع قاعدة `image.*`.
+## رد الدعم
+
+`POST /api/v1/customer/support-ticket/reply/{id}`
+
+`message` نص حتى 5000 حرف، أو ملفات في `image[]` بحد 10. الأنواع: jpeg, png, jpg, gif, webp, pdf, doc, docx. الحد 6000 كيلوبايت للملف. الرد `200` و`Support ticket reply sent.`
+
+## ما زال غير موجود في مسودة الموقع
+
+- صور الأجهزة الطبية: الـ JSON يرجع `images` كمسارات تخزين، و`image_url` غير مضاف للنموذج، فلا يوجد رابط عام يعرضه التطبيق.
+- إنشاء تذكرة جديدة `POST /api/v1/customer/support-ticket/create` ما زال يمرّر كل المرفقات على رافع الصور ويحوّلها webp. pdf وdoc وdocx مقبولان في الرد فقط.
+- ترقيم صفحات الأجهزة والائتمان يستخدم `?page=` الافتراضي لـ Laravel، من غير `guest_id` أو فلاتر إضافية.

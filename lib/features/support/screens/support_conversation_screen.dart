@@ -104,6 +104,11 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                   child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
+                        final file = support.pickedImageFileStored[index];
+                        final extension =
+                            file.name.split('.').last.toLowerCase();
+                        final image = const ['jpg', 'jpeg', 'png', 'gif', 'webp']
+                            .contains(extension);
                         return Stack(children: [
                           Padding(
                               padding:
@@ -112,18 +117,24 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                   child: SizedBox(
                                       height: 62,
-                                      width: 62,
-                                      child: Image.file(
-                                          File(support
-                                              .pickedImageFileStored[index]
-                                              .path),
-                                          fit: BoxFit.cover)))),
+                                      width: 92,
+                                      child: image
+                                          ? Image.file(File(file.path),
+                                              fit: BoxFit.cover)
+                                          : ColoredBox(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                              child: Center(
+                                                  child: Text(extension,
+                                                      style: const TextStyle(
+                                                          fontSize: 12))))))),
                           Positioned(
                               right: 5,
                               child: InkWell(
                                   child: const Icon(Icons.cancel_outlined,
                                       color: Colors.red),
-                                  onTap: () => support.pickMultipleImage(true,
+                                  onTap: () => support.pickReplyAttachment(true,
                                       index: index)))
                         ]);
                       },
@@ -151,11 +162,10 @@ class _SupportConversationScreenState extends State<SupportConversationScreen> {
                 ),
                 child: Row(children: [
                   IconButton(
-                    tooltip:
-                        getTranslated('attach_image', context) ?? 'إرفاق صورة',
+                    tooltip: 'إرفاق صورة أو PDF أو Word',
                     visualDensity: VisualDensity.compact,
-                    onPressed: () => support.pickMultipleImage(false),
-                    icon: Icon(Icons.add_photo_alternate_outlined,
+                    onPressed: () => support.pickReplyAttachment(false),
+                    icon: Icon(Icons.attach_file_rounded,
                         size: 21, color: Theme.of(context).primaryColor),
                   ),
                   Expanded(

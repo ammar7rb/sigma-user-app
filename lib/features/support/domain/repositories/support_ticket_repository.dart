@@ -17,6 +17,29 @@ import 'package:provider/provider.dart';
 
 
 
+MediaType _replyMediaType(String filename) {
+  switch (filename.split('.').last.toLowerCase()) {
+    case 'jpg':
+    case 'jpeg':
+      return MediaType('image', 'jpeg');
+    case 'png':
+      return MediaType('image', 'png');
+    case 'gif':
+      return MediaType('image', 'gif');
+    case 'webp':
+      return MediaType('image', 'webp');
+    case 'pdf':
+      return MediaType('application', 'pdf');
+    case 'doc':
+      return MediaType('application', 'msword');
+    case 'docx':
+      return MediaType('application',
+          'vnd.openxmlformats-officedocument.wordprocessingml.document');
+    default:
+      return MediaType('application', 'octet-stream');
+  }
+}
+
 class SupportTicketRepository implements SupportTicketRepositoryInterface{
   final DioClient? dioClient;
   SupportTicketRepository({required this.dioClient});
@@ -71,9 +94,12 @@ class SupportTicketRepository implements SupportTicketRepositoryInterface{
     http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse('${AppConstants.baseUrl}${AppConstants.supportTicketReplyUri}$ticketID'));
     request.headers.addAll(<String,String>{'Authorization': 'Bearer ${Provider.of<AuthController>(Get.context!, listen: false).getUserToken()}'});
     for(int i=0; i<file.length;i++){
-      Uint8List list = await file[i]!.readAsBytes();
-      var part = http.MultipartFile('image[]', file[i]!.readAsBytes().asStream(),
-          list.length, filename: basename(file[i]!.path), contentType: MediaType('image', 'jpg'));
+      final picked = file[i];
+      if (picked == null) continue;
+      final name = picked.name.isNotEmpty ? picked.name : basename(picked.path);
+      Uint8List list = await picked.readAsBytes();
+      var part = http.MultipartFile('image[]', picked.readAsBytes().asStream(),
+          list.length, filename: name, contentType: _replyMediaType(name));
       request.files.add(part);
     }
     Map<String, String> fields = {};

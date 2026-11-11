@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/catalog/catalog_client.dart';
 import 'package:flutter_sixvalley_ecommerce/features/catalog/catalog_contract.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
+import 'package:provider/provider.dart';
 
 class MedicalDevicesScreen extends StatefulWidget {
   const MedicalDevicesScreen({super.key});
@@ -30,17 +33,10 @@ class _MedicalDevicesScreenState extends State<MedicalDevicesScreen> {
     }
   }
 
-  List<Map<String, dynamic>> get devices {
-    final data = result?.data;
-    if (data is! Map || data['devices'] is! List) return const [];
-    return (data['devices'] as List)
-        .whereType<Map>()
-        .map((row) => Map<String, dynamic>.from(row))
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final devices =
+        result == null ? const <Map<String, dynamic>>[] : CatalogClient.pageItems(result!.data);
     return Scaffold(
       appBar: AppBar(title: const Text('الأجهزة الطبية')),
       body: RefreshIndicator(
@@ -49,11 +45,10 @@ class _MedicalDevicesScreenState extends State<MedicalDevicesScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             const Text(
-                'المنتجات هنا من الإدارة. طلب التقرير الفني يُدفع من المحفظة، وطلب الشراء يظهر بعد سداد التقرير فقط.'),
+                'منتجات الإدارة. سداد التقرير من المحفظة، وطلب الشراء يظهر بعد إرسال التقرير.'),
             const SizedBox(height: 12),
             if (busy) const LinearProgressIndicator(),
-            if (result != null && !result!.ok)
-              _Notice(result!.message),
+            if (result != null && !result!.ok) _Notice(result!.message),
             if (result != null && result!.ok && devices.isEmpty)
               const _Notice('لا توجد أجهزة منشورة.'),
             for (final device in devices)
@@ -63,7 +58,7 @@ class _MedicalDevicesScreenState extends State<MedicalDevicesScreen> {
                   subtitle: Text(
                       '${device['device_condition'] == 'used' ? 'مستعمل' : 'جديد'}'
                       '${device['origin_country'] == null ? '' : ' · ${device['origin_country']}'}'
-                      '\nسعر الجهاز: ${device['price'] ?? '—'} · التقرير: ${device['report_price'] ?? '—'}'),
+                      '\nالسعر: ${device['price'] ?? '—'} · التقرير: ${device['report_price'] ?? '—'}'),
                   isThreeLine: true,
                   trailing: const Icon(Icons.chevron_left),
                   onTap: () {
@@ -106,15 +101,19 @@ class _MedicalDeviceDetailScreenState extends State<MedicalDeviceDetailScreen> {
     if (data is Map && data['device'] is Map) {
       return Map<String, dynamic>.from(data['device'] as Map);
     }
-    if (data is Map && data['id'] != null) return Map<String, dynamic>.from(data);
     return null;
   }
 
-  bool get unlocked => device?['purchase_unlocked'] == true;
+  bool get canPurchase => result?.data is Map &&
+      (result!.data as Map)['can_request_purchase'] == true;
+
+  bool get reportPaid =>
+      result?.data is Map && (result!.data as Map)['report_purchase'] != null;
 
   Future<void> load() async {
     setState(() => busy = true);
-    final response = await client.getList(CatalogContract.medicalDevice(widget.id));
+    final response =
+        await client.getList(CatalogContract.medicalDevice(widget.id));
     if (mounted) {
       setState(() {
         result = response;
@@ -123,24 +122,39 @@ class _MedicalDeviceDetailScreenState extends State<MedicalDeviceDetailScreen> {
     }
   }
 
+  bool _signedIn() {
+    final signedIn = context.read<AuthController>().isLoggedIn();
+    if (!signedIn) {
+      RouterHelper.getLoginRoute(action: RouteAction.push);
+    }
+    return signedIn;
+  }
+
   Future<void> payReport() async {
+    if (!_signedIn()) return;
+    final price = num.tryParse('${device?['report_price']}');
+    if (price == null || price <= 0) {
+      setState(() => notice = 'سعر التقرير غير متاح حاليًا.');
+      return;
+    }
     setState(() => busy = true);
     final response = await client.post(
       CatalogContract.medicalReportPayment(widget.id),
-      {'request_key': CatalogClient.requestKey()},
+      {'report_price': price},
     );
     if (!mounted) return;
     setState(() {
       busy = false;
-      notice = response.message;
+      notice = response.ok ? 'تم سداد ثمن التقرير الفني.' : response.message;
     });
     if (response.ok) await load();
   }
 
   Future<void> requestPurchase() async {
+    if (!_signedIn()) return;
     setState(() => busy = true);
-    final response = await client.post(
-        CatalogContract.medicalPurchaseRequest(widget.id), {});
+    final response = await client
+        .post(CatalogContract.medicalPurchaseRequest(widget.id), {});
     if (mounted) {
       setState(() {
         busy = false;
@@ -172,17 +186,17 @@ class _MedicalDeviceDetailScreenState extends State<MedicalDeviceDetailScreen> {
             const SizedBox(height: 8),
             Text('${item['description'] ?? ''}'),
             const SizedBox(height: 16),
-            if (!unlocked)
+            if (!reportPaid)
               FilledButton(
                   onPressed: busy ? null : payReport,
                   child: const Text('طلب تقرير فني')),
-            if (unlocked)
+            if (reportPaid && !canPurchase)
+              const Text(
+                  'سيظهر طلب الشراء بعد تأكيد الدفع وإرسال التقرير الفني.'),
+            if (canPurchase)
               FilledButton(
                   onPressed: busy ? null : requestPurchase,
                   child: const Text('طلب شراء')),
-            const SizedBox(height: 8),
-            const Text(
-                'ثمن التقرير لا يُسترد. بعد طلب الشراء يكون الرد: تم استلام طلبكم وسيتم التواصل معكم في أقرب وقت.'),
           ],
         ],
       ),
@@ -195,11 +209,6 @@ class _Notice extends StatelessWidget {
   const _Notice(this.text);
   @override
   Widget build(BuildContext context) => Card(
-        color: Theme.of(context).colorScheme.errorContainer,
-        child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(text,
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.onErrorContainer))),
+        child: Padding(padding: const EdgeInsets.all(12), child: Text(text)),
       );
 }
