@@ -93,19 +93,6 @@ class SupportTicketController extends ChangeNotifier {
 
 
 
-  Future<void> closeSupportTicket(int? ticketID) async {
-    ApiResponseModel apiResponse = await supportTicketServiceInterface.closeSupportTicket(ticketID.toString());
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      getSupportTicketList();
-      showCustomSnackBarWidget(getTranslated('ticket_closed_successfully', Get.context!), Get.context!, snackBarType: SnackBarType.success);
-    } else {
-      ApiChecker.checkApi( apiResponse);
-    }
-    notifyListeners();
-  }
-
-
-
   List<String> priority = ['urgent', 'high', 'medium', 'low'];
   int selectedPriorityIndex = -1;
   String selectedPriority = getTranslated('select_priority', Get.context!) ?? '';

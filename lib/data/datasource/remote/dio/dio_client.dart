@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/logging_interceptor.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/domain/repositories/auth_token_store.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
@@ -20,7 +21,7 @@ class DioClient {
         required this.loggingInterceptor,
         required this.sharedPreferences,
       }) {
-    token = sharedPreferences.getString(AppConstants.userLoginToken);
+    token = AuthTokenStore.token;
     countryCode = sharedPreferences.getString(AppConstants.countryCode) ?? AppConstants.languages[0].countryCode;
     dio = dioC ?? Dio();
     dio

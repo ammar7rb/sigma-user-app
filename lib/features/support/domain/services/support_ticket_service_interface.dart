@@ -9,7 +9,6 @@ abstract class SupportTicketServiceInterface{
 
   Future<dynamic> sendReply(String ticketID, String message, List<XFile?> file);
 
-  Future<dynamic> closeSupportTicket(String ticketID);
 
   Future<dynamic> getList({int? offset = 1});
 }
