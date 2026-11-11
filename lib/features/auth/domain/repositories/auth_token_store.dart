@@ -10,10 +10,16 @@ class AuthTokenStore {
   static String? token;
 
   static Future<void> initialize(SharedPreferences preferences) async {
-    token = await _storage.read(key: AppConstants.userLoginToken);
+    try {
+      token = await _storage.read(key: AppConstants.userLoginToken);
+    } catch (_) {
+      token = null;
+    }
     final legacy = preferences.getString(AppConstants.userLoginToken);
     if ((token == null || token!.isEmpty) && legacy != null && legacy.isNotEmpty && legacy != 'null') {
-      await _storage.write(key: AppConstants.userLoginToken, value: legacy);
+      try {
+        await _storage.write(key: AppConstants.userLoginToken, value: legacy);
+      } catch (_) {}
       token = legacy;
     }
     if (legacy != null) {
@@ -36,13 +42,17 @@ class AuthTokenStore {
   }
 
   static Future<void> save(String value) async {
-    await _storage.write(key: AppConstants.userLoginToken, value: value);
     token = value;
+    try {
+      await _storage.write(key: AppConstants.userLoginToken, value: value);
+    } catch (_) {}
   }
 
   static Future<void> clear(SharedPreferences preferences) async {
     token = null;
-    await _storage.delete(key: AppConstants.userLoginToken);
+    try {
+      await _storage.delete(key: AppConstants.userLoginToken);
+    } catch (_) {}
     await preferences.remove(AppConstants.userLoginToken);
   }
 }

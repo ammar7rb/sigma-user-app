@@ -650,7 +650,15 @@ class CartScreenState extends State<CartScreen> {
                 : null,
             appBar: CustomAppBar(
                 title: getTranslated('my_cart', context),
-                isBackButtonExist: widget.showBackButton),
+                isBackButtonExist: widget.showBackButton,
+                showResetIcon: true,
+                reset: IconButton(
+                  tooltip: 'المفضلة',
+                  onPressed: () => RouterHelper.getWishListRoute(
+                      action: RouteAction.push),
+                  icon: Icon(Icons.favorite_border,
+                      color: Theme.of(context).primaryColor),
+                )),
             body: SigmaResponsiveContent(
                 child: Column(children: [
               cart.cartLoading

@@ -1,3 +1,6 @@
+import 'package:flutter_sixvalley_ecommerce/features/catalog/catalog_flags.dart';
+import 'package:flutter_sixvalley_ecommerce/features/catalog/credit_products_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/catalog/medical_devices_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
@@ -275,6 +278,20 @@ class _MoreScreenState extends State<MoreScreen> {
                         () => Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) =>
                                 const MonthlySubscriptionScreen()))),
+                    if (UnreleasedCatalogs.enabled) ...[
+                      menu(
+                          Icons.medical_services_outlined,
+                          'الأجهزة الطبية',
+                          'Medical devices',
+                          () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const MedicalDevicesScreen()))),
+                      menu(
+                          Icons.credit_score_outlined,
+                          'اشتر الآن وادفع لاحقًا',
+                          'Buy now, pay later',
+                          () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const CreditProductsScreen()))),
+                    ],
                     menu(
                         Icons.settings_outlined,
                         'الإعدادات',

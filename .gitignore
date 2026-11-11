@@ -45,3 +45,13 @@ app.*.map.json
 pubspec.lock
 macos
 linux
+
+# Local signing material. Firebase client configs already tracked
+# (google-services.json, GoogleService-Info.plist) stay in git because the
+# mobile build reads them; do not add new keystores or private keys.
+*.jks
+*.keystore
+*.p12
+*.pem
+.env
+.env.*

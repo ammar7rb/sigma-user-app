@@ -93,11 +93,17 @@ class _OrderScreenState extends State<OrderScreen> {
                               vertical: Dimensions.paddingSizeSmall),
                           child: Row(children: [
                             OrderTypeButton(
-                                text: getTranslated('RUNNING', context),
+                                text: Directionality.of(context) ==
+                                        TextDirection.rtl
+                                    ? 'طلبات نشطة'
+                                    : getTranslated('RUNNING', context),
                                 index: 0),
                             const SizedBox(width: Dimensions.paddingSizeSmall),
                             OrderTypeButton(
-                                text: getTranslated('DELIVERED', context),
+                                text: Directionality.of(context) ==
+                                        TextDirection.rtl
+                                    ? 'طلبات سابقة'
+                                    : getTranslated('DELIVERED', context),
                                 index: 1),
                             const SizedBox(width: Dimensions.paddingSizeSmall),
                             Expanded(

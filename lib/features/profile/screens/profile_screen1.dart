@@ -11,6 +11,7 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widge
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_loader_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/signup_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/enums/from_page.dart';
@@ -89,6 +90,8 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       showCustomSnackBarWidget(getTranslated('change_something_to_update', context), context, snackBarType: SnackBarType.warning);
     } else if (phoneNumber.isEmpty) {
       showCustomSnackBarWidget(getTranslated('phone_must_be_required', context), context, snackBarType: SnackBarType.warning);
+    } else if (!EgyptPhoneHelper.isValidLocal(phoneNumber)) {
+      showCustomSnackBarWidget('أدخل رقم موبايل مصري من 11 رقمًا يبدأ بـ 010 أو 011 أو 012 أو 015', context, snackBarType: SnackBarType.warning);
     } else if((password.isNotEmpty && password.length < 8) || (confirmPassword.isNotEmpty && confirmPassword.length < 8)) {
       showCustomSnackBarWidget(getTranslated('minimum_password_is_8_character', context), context, snackBarType: SnackBarType.warning);
     } else if (password.isNotEmpty && _currentPasswordController.text.isEmpty) {
@@ -103,7 +106,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       updateUserInfoModel.fName = _firstNameController.text;
       updateUserInfoModel.lName = _lastNameController.text;
       updateUserInfoModel.organizationName = _organizationController.text.trim();
-      updateUserInfoModel.phone = _phoneController.text;
+      updateUserInfoModel.phone = EgyptPhoneHelper.normalizeLocal(phoneNumber);
       updateUserInfoModel.email = _emailController.text;
       String pass = _passwordController.text;
       updateUserInfoModel.currentPassword = _currentPasswordController.text;

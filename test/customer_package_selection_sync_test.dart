@@ -51,7 +51,7 @@ void main() {
                     onRenew: (_) {})))));
     expect(find.text('زيادة الحد الائتماني'), findsNothing);
     expect(find.text('باقة غير متاحة للترقية'), findsNothing);
-    expect(find.text('تجديد الباقة'), findsOneWidget);
+    expect(find.text('تجديد'), findsOneWidget);
     expect(find.text('200 ج.م'), findsOneWidget);
     expect(find.text('190 ج.م'), findsNothing);
     final subscribe = find.widgetWithText(FilledButton, 'اشترك الآن');

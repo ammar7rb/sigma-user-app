@@ -11,8 +11,6 @@ import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/col
 import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers/product_details_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/domain/models/product_details_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/min_order_quanty_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/product_details/widgets/shipping_method_dialog.dart';
-import 'package:flutter_sixvalley_ecommerce/features/shipping/domain/models/shipping_method_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/product_helper.dart';
@@ -791,17 +789,9 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
 
   void _onTapBuyNow(CartModelBody cart, BuildContext context, List<ChoiceOptions> choices, List<int>? variationIndexes, Response<dynamic>? response) {
     if(_isSelectShippingMethod(response)){
-      List<ShippingMethodModel>? shippingMethodList = [];
-
-      response?.data['shipping_method_list'].forEach((element) {
-        shippingMethodList.add(ShippingMethodModel.fromJson(element));
-      });
-
-      showDialog(context: Get.context!, builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: ChooseShippingMethodDialog(shippingMethodList, cart, choices, variationIndexes, _navigateToCheckoutScreen),
-      ));
-
+      // The product is already in the cart. Shipping is chosen on checkout
+      // after the delivery address, not on the product page.
+      RouterHelper.getDashboardRoute(action: RouteAction.push, page: 'cart');
     } else {
       CartModel cart = CartModel.fromJson(response?.data['cart']);
       _navigateToCheckoutScreen(context, cart, 0);

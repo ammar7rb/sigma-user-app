@@ -22,6 +22,9 @@ class DioClient {
         required this.sharedPreferences,
       }) {
     token = AuthTokenStore.token;
+    if (token == null || token!.isEmpty) {
+      token = sharedPreferences.getString(AppConstants.userLoginToken);
+    }
     countryCode = sharedPreferences.getString(AppConstants.countryCode) ?? AppConstants.languages[0].countryCode;
     dio = dioC ?? Dio();
     dio

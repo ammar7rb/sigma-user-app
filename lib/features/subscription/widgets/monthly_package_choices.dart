@@ -92,9 +92,9 @@ class MonthlyPackageChoices extends StatelessWidget {
                                       ? null
                                       : () => onBuy(package['id'] as int, null),
                                   child: Text(current
-                                      ? 'تجديد الباقة'
+                                      ? 'تجديد'
                                       : (higher && !atTop
-                                          ? 'ترقية الباقة'
+                                          ? 'ترقية'
                                           : 'اشترك الآن'))),
                               if (current &&
                                   renewalPrice > 0 &&

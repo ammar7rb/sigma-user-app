@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/domain/homepage_product_sections.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
@@ -71,12 +74,20 @@ class _SigmaCareHomeScreenState extends State<SigmaCareHomeScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: Text('SIGMA',
-                        style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w800,
-                            color: Theme.of(context).primaryColor))),
+                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                    child: SizedBox(
+                        height: 56,
+                        child: Stack(alignment: Alignment.center, children: [
+                          Text('SIGMA',
+                              style: TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(context).primaryColor)),
+                          if (context.watch<AuthController>().isLoggedIn())
+                            const Align(
+                                alignment: Alignment.centerLeft,
+                                child: CustomerCommunicationHeader()),
+                        ]))),
                 InkWell(
                     onTap: () =>
                         RouterHelper.getSearchRoute(action: RouteAction.push),

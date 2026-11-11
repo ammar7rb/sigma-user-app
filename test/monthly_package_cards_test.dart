@@ -70,13 +70,13 @@ void main() {
                             onBuy: (package, offer) =>
                                 chosenPackage = package)))))));
     expect(find.text('الباقة الحالية'), findsOneWidget);
-    expect(find.text('تجديد الباقة'), findsOneWidget);
+    expect(find.text('تجديد'), findsOneWidget);
     expect(find.text('زيادة الحد من رصيد المحفظة'), findsNothing);
     expect(find.text('الاشتراك في الباقة'), findsNothing);
     expect(find.textContaining('حد الشراء'), findsNothing);
     expect(find.textContaining('المدة 30'), findsNothing);
-    await tester.ensureVisible(find.text('ترقية الباقة'));
-    await tester.tap(find.text('ترقية الباقة'));
+    await tester.ensureVisible(find.text('ترقية'));
+    await tester.tap(find.text('ترقية'));
     expect(chosenPackage, 2);
     expect(tester.takeException(), isNull);
     await tester.pumpAndSettle();

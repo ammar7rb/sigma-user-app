@@ -146,7 +146,9 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   String getUserToken() {
-    return AuthTokenStore.token ?? "";
+    final secure = AuthTokenStore.token?.trim();
+    if (secure != null && secure.isNotEmpty && secure != 'null') return secure;
+    return sharedPreferences?.getString(AppConstants.userLoginToken) ?? "";
   }
 
   @override
@@ -346,7 +348,12 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   Future<void> saveUserEmailAndPassword(String userData) async {
-    final data = jsonDecode(userData) as Map<String, dynamic>;
+    Map<String, dynamic> data;
+    try {
+      data = Map<String, dynamic>.from(jsonDecode(userData) as Map);
+    } catch (_) {
+      data = {};
+    }
     data.remove('password');
     await sharedPreferences!.setString(AppConstants.userLogData, jsonEncode(data));
     await sharedPreferences!.remove(AppConstants.userPassword);

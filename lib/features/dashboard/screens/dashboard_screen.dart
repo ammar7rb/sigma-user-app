@@ -14,7 +14,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/network_info.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/app_exit_card_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/chat/screens/inbox_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/support/screens/support_ticket_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/aster_theme_home_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/fashion_theme_home_screen.dart';
@@ -99,7 +99,8 @@ class DashBoardScreenState extends State<DashBoardScreen> {
       NavigationModel(
         name: 'inbox',
         icon: Images.messageImage,
-        screen: const InboxScreen(),
+        screen: const SupportTicketScreen(
+            fromDashboard: true, isBackButtonExist: false),
       ),
       NavigationModel(
           name: 'cart',

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order/controllers/order_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order/customer_order_progress.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order/domain/models/order_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/date_converter.dart';
@@ -23,6 +26,43 @@ class OrderWidget extends StatefulWidget {
 
 class _OrderWidgetState extends State<OrderWidget> {
   final tooltipController = JustTheController();
+
+  Future<void> _requestCancellation(BuildContext context) async {
+    final orderId = widget.orderModel?.id;
+    if (orderId == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('إلغاء الطلب'),
+        content: const Text(
+            'سيُرسل طلب الإلغاء إلى الإدارة للمراجعة. لن يُلغى الطلب قبل الموافقة.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('تراجع')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('إرسال الطلب')),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final orderController = context.read<OrderController>();
+    final response = await orderController.cancelOrder(context, orderId);
+    if (!context.mounted) return;
+    final statusCode = response.response?.statusCode;
+    final body = response.response?.data;
+    final message = body is Map
+        ? body['message']?.toString()
+        : body?.toString();
+    if (statusCode == 200) {
+      showCustomSnackBarWidget(
+          message ?? 'تم إرسال طلب الإلغاء إلى الإدارة للمراجعة.',
+          context,
+          snackBarType: SnackBarType.success);
+      await orderController.getOrderList(1, orderController.selectedType);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,10 +299,17 @@ class _OrderWidgetState extends State<OrderWidget> {
                     ),
                   ),
                   const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-                  _OrderStages(
-                      status: widget.orderModel?.orderStatus,
-                      fulfillment:
-                          widget.orderModel?.customerFulfillmentStatus),
+                  Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                    Expanded(
+                        child: _OrderStages(
+                            status: widget.orderModel?.orderStatus)),
+                    if (CustomerOrderProgress.canCancel(
+                        widget.orderModel?.orderStatus))
+                      TextButton(
+                        onPressed: () => _requestCancellation(context),
+                        child: const Text('إلغاء الطلب'),
+                      ),
+                  ]),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -352,21 +399,15 @@ class _OrderWidgetState extends State<OrderWidget> {
 
 class _OrderStages extends StatelessWidget {
   final String? status;
-  final String? fulfillment;
-  const _OrderStages({this.status, this.fulfillment});
+  const _OrderStages({this.status});
   @override
   Widget build(BuildContext context) {
-    final stage = switch (status) {
-      'pending' => fulfillment == 'preparing' ? 2 : 1,
-      'confirmed' || 'processing' => 2,
-      'out_for_delivery' => 3,
-      'delivered' => 4,
-      _ => 0,
-    };
+    final stage = CustomerOrderProgress.stage(status);
     if (stage == 0) return const SizedBox.shrink();
-    final labels = Directionality.of(context) == TextDirection.rtl
-        ? ['تم الطلب', 'جاري التجهيز', 'جاري الشحن', 'تم التسليم']
-        : ['Ordered', 'Preparing', 'Shipping', 'Delivered'];
+    final arabic = Directionality.of(context) == TextDirection.rtl;
+    final labels = arabic
+        ? CustomerOrderProgress.labels
+        : const ['Preparing', 'Shipping', 'Delivered'];
     final theme = Theme.of(context);
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
