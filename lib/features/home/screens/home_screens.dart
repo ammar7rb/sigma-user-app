@@ -26,6 +26,7 @@ import 'package:flutter_sixvalley_ecommerce/features/home/widgets/product_list_w
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/product_type_popup_menu_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/search_home_page_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/controllers/notification_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/widgets/home_category_product_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/widgets/latest_product_list_widget.dart';
@@ -406,61 +407,25 @@ class _SigmaHomeHeader extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: 22,
-            child: Consumer<NotificationController>(
-              builder: (context, notificationController, _) {
-                final hasNotifications = notificationController
-                        .notificationModel?.notification?.isNotEmpty ??
-                    false;
-                return InkWell(
-                  borderRadius: BorderRadius.circular(22),
-                  onTap: () => RouterHelper.getNotificationRoute(
-                      action: RouteAction.push),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.dividerColor),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: .06),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Center(
-                          child: Icon(
-                            Icons.notifications_none_rounded,
-                            color: theme.primaryColor,
-                            size: 24,
-                          ),
-                        ),
-                        if (hasNotifications)
-                          Positioned(
-                            top: 8,
-                            right: 9,
-                            child: Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.error,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: theme.cardColor),
-                              ),
-                            ),
-                          ),
-                      ],
+            left: 8,
+            child: context.watch<AuthController>().isLoggedIn()
+                ? const CustomerCommunicationHeader()
+                : InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () => RouterHelper.getNotificationRoute(
+                        action: RouteAction.push),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: theme.dividerColor),
+                      ),
+                      child: Icon(Icons.notifications_none_rounded,
+                          color: theme.primaryColor, size: 24),
                     ),
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 
 class CustomerAccountNumberWidget extends StatelessWidget {
@@ -12,11 +13,19 @@ class CustomerAccountNumberWidget extends StatelessWidget {
         spacing: 6,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Text(getTranslated('your_account_number_is', context) ?? '',
-              style: TextStyle(color: color, fontWeight: FontWeight.w600)),
           SelectableText(accountNumber,
               textDirection: TextDirection.ltr,
               style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+          IconButton(
+              tooltip: getTranslated('copy', context) ?? 'نسخ رقم الحساب',
+              icon: Icon(Icons.content_copy_rounded, color: color, size: 19),
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: accountNumber));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم نسخ رقم الحساب')));
+                }
+              }),
         ],
       );
 }

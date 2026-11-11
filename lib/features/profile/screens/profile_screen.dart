@@ -1,3 +1,4 @@
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_contact_phones.dart';
 import 'dart:io';
@@ -15,7 +16,6 @@ import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/delete_account_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -208,11 +208,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: Dimensions.paddingSizeDefault),
                       child: InkWell(
-                        onTap: () => showModalBottomSheet(
-                            backgroundColor: Colors.transparent,
-                            context: context,
-                            builder: (_) => DeleteAccountBottomSheet(
-                                customerId: profile.userID)),
+                        onTap: () => RouterHelper.getSettingsRoute(action: RouteAction.push),
                         child: Container(
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(

@@ -10,6 +10,5 @@ abstract class SupportTicketRepositoryInterface extends RepositoryInterface<Supp
 
   Future<dynamic> sendReply(String ticketID, String message, List<XFile?> file);
 
-  Future<dynamic> closeSupportTicket(String ticketID);
 
 }

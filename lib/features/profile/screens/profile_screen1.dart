@@ -1,3 +1,5 @@
+import 'dart:ui';
+import 'package:flutter_sixvalley_ecommerce/features/auth/screens/customer_password_recovery_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_account_number_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_communication_header.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/customer_contact_phones.dart';
@@ -9,12 +11,12 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widge
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_loader_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/signup_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/enums/from_page.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/domain/models/profile_model.dart';
-import 'package:flutter_sixvalley_ecommerce/features/profile/widgets/delete_account_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/image_size_checker.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
@@ -44,6 +46,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _organizationController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -73,8 +76,6 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
   final emailToolTipKey = GlobalKey<State<Tooltip>>();
 
   Future<void> _updateUserAccount() async {
-    String firstName = _firstNameController.text.trim();
-    String lastName = _lastNameController.text.trim();
     String phoneNumber = _phoneController.text.trim();
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
@@ -83,15 +84,14 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
        && Provider.of<ProfileController>(context, listen: false).userInfoModel!.lName == _lastNameController.text
        && Provider.of<ProfileController>(context, listen: false).userInfoModel!.phone == _phoneController.text
        && Provider.of<ProfileController>(context, listen: false).userInfoModel!.email == _emailController.text
+       && (Provider.of<ProfileController>(context, listen: false).userInfoModel!.organizationName ?? '') == _organizationController.text
        && file == null && _passwordController.text.isEmpty && _confirmPasswordController.text.isEmpty
     ) {
       showCustomSnackBarWidget(getTranslated('change_something_to_update', context), context, snackBarType: SnackBarType.warning);
-    } else if (firstName.isEmpty) {
-      showCustomSnackBarWidget(getTranslated('first_name_is_required', context), context, snackBarType: SnackBarType.warning);
-    } else if(lastName.isEmpty) {
-      showCustomSnackBarWidget(getTranslated('last_name_is_required', context), context, snackBarType: SnackBarType.warning);
     } else if (phoneNumber.isEmpty) {
       showCustomSnackBarWidget(getTranslated('phone_must_be_required', context), context, snackBarType: SnackBarType.warning);
+    } else if (!EgyptPhoneHelper.isValidLocal(phoneNumber)) {
+      showCustomSnackBarWidget('أدخل رقم موبايل مصري من 11 رقمًا يبدأ بـ 010 أو 011 أو 012 أو 015', context, snackBarType: SnackBarType.warning);
     } else if((password.isNotEmpty && password.length < 8) || (confirmPassword.isNotEmpty && confirmPassword.length < 8)) {
       showCustomSnackBarWidget(getTranslated('minimum_password_is_8_character', context), context, snackBarType: SnackBarType.warning);
     } else if (password.isNotEmpty && _currentPasswordController.text.isEmpty) {
@@ -105,7 +105,8 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
       updateUserInfoModel.method = 'put';
       updateUserInfoModel.fName = _firstNameController.text;
       updateUserInfoModel.lName = _lastNameController.text;
-      updateUserInfoModel.phone = _phoneController.text;
+      updateUserInfoModel.organizationName = _organizationController.text.trim();
+      updateUserInfoModel.phone = EgyptPhoneHelper.normalizeLocal(phoneNumber);
       updateUserInfoModel.email = _emailController.text;
       String pass = _passwordController.text;
       updateUserInfoModel.currentPassword = _currentPasswordController.text;
@@ -130,6 +131,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
   @override
   void dispose() {
     _currentPasswordController.dispose();
+    _organizationController.dispose();
     super.dispose();
   }
 
@@ -166,6 +168,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
               builder: (context,profile,_) {
                 _firstNameController.text = profile.userInfoModel?.fName ?? '';
                 _lastNameController.text = profile.userInfoModel?.lName ?? '';
+                _organizationController.text = profile.userInfoModel?.organizationName ?? '';
                 _emailController.text = profile.userInfoModel?.email ?? '';
                 _phoneController.text = profile.userInfoModel?.phone ?? '';
                 return profile.userInfoModel != null ?  Column(children: [
@@ -224,8 +227,7 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
                       Positioned(
                         right: 15, top: 15,
                         child: InkWell(
-                          onTap: () => showModalBottomSheet(backgroundColor: Colors.transparent,
-                              context: context, builder: (_)=>  DeleteAccountBottomSheet(customerId: profile.userID)),
+                          onTap: () => RouterHelper.getSettingsRoute(action: RouteAction.push),
 
                           child: Container(
                             height: 30, width: 30,
@@ -271,6 +273,14 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
                             nextFocus: _emailFocus,
                             hintText: profile.userInfoModel?.lName,
                             controller: _lastNameController),
+                        const SizedBox(height: Dimensions.paddingSizeLarge),
+
+                        CustomTextFieldWidget(
+                          labelText: Localizations.localeOf(context).languageCode == 'ar'
+                              ? 'اسم المؤسسة'
+                              : 'Organization name',
+                          controller: _organizationController,
+                        ),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
 
                         CustomTextFieldWidget(
@@ -341,6 +351,10 @@ class _ProfileScreen1State extends State<ProfileScreen1> {
 
                         const CustomerContactPhones(),
                         CustomTextFieldWidget(isPassword:true,labelText:'كلمة المرور الحالية',controller:_currentPasswordController),
+                        Align(alignment: AlignmentDirectional.centerStart, child: TextButton(
+                          onPressed: () => showModalBottomSheet<void>(context: context, isScrollControlled: true, useSafeArea: true, backgroundColor: Colors.transparent,
+                            builder: (_) => BackdropFilter(filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4), child: const FractionallySizedBox(heightFactor: .9, child: CustomerPasswordRecoveryScreen()))),
+                          child: Text(Directionality.of(context) == TextDirection.rtl ? 'هل نسيت كلمة المرور؟' : 'Forgot password?'))),
                         const SizedBox(height: Dimensions.paddingSizeLarge),
                         CustomTextFieldWidget(
                             isPassword: true,

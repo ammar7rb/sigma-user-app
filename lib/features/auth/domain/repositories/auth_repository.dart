@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/domain/repositories/auth_token_store.dart';
 
 
 class AuthRepository implements AuthRepoInterface{
@@ -127,12 +129,8 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   Future<void> saveUserToken(String token) async {
+    await AuthTokenStore.save(token);
     dioClient!.updateHeader(token, null);
-    try {
-      await sharedPreferences!.setString(AppConstants.userLoginToken, token);
-    } catch (e) {
-      rethrow;
-    }
   }
 
   @override
@@ -148,7 +146,9 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   String getUserToken() {
-    return sharedPreferences!.getString(AppConstants.userLoginToken) ?? "";
+    final secure = AuthTokenStore.token?.trim();
+    if (secure != null && secure.isNotEmpty && secure != 'null') return secure;
+    return sharedPreferences?.getString(AppConstants.userLoginToken) ?? "";
   }
 
   @override
@@ -186,8 +186,9 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   Future<bool> clearSharedData() async {
-    sharedPreferences?.remove(AppConstants.userLoginToken);
-    sharedPreferences?.remove(AppConstants.guestId);
+    dioClient?.updateHeader('', null);
+    await AuthTokenStore.clear(sharedPreferences!);
+    await sharedPreferences!.remove(AppConstants.guestId);
     return true;
   }
 
@@ -347,11 +348,15 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   Future<void> saveUserEmailAndPassword(String userData) async {
+    Map<String, dynamic> data;
     try {
-      await sharedPreferences!.setString(AppConstants.userLogData, userData);
-    } catch (e) {
-      rethrow;
+      data = Map<String, dynamic>.from(jsonDecode(userData) as Map);
+    } catch (_) {
+      data = {};
     }
+    data.remove('password');
+    await sharedPreferences!.setString(AppConstants.userLogData, jsonEncode(data));
+    await sharedPreferences!.remove(AppConstants.userPassword);
   }
 
   @override
@@ -361,13 +366,14 @@ class AuthRepository implements AuthRepoInterface{
 
   @override
   String getUserPassword() {
-    return sharedPreferences!.getString(AppConstants.userPassword) ?? "";
+    return "";
   }
 
   @override
   Future<bool> clearUserEmailAndPassword() async {
     await sharedPreferences!.remove(AppConstants.userPassword);
-    return await sharedPreferences!.remove(AppConstants.userEmail);
+    await sharedPreferences!.remove(AppConstants.userEmail);
+    return sharedPreferences!.remove(AppConstants.userLogData);
   }
 
   @override

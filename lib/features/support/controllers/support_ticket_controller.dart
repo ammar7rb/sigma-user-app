@@ -11,6 +11,7 @@ import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SupportTicketController extends ChangeNotifier {
@@ -93,19 +94,6 @@ class SupportTicketController extends ChangeNotifier {
 
 
 
-  Future<void> closeSupportTicket(int? ticketID) async {
-    ApiResponseModel apiResponse = await supportTicketServiceInterface.closeSupportTicket(ticketID.toString());
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      getSupportTicketList();
-      showCustomSnackBarWidget(getTranslated('ticket_closed_successfully', Get.context!), Get.context!, snackBarType: SnackBarType.success);
-    } else {
-      ApiChecker.checkApi( apiResponse);
-    }
-    notifyListeners();
-  }
-
-
-
   List<String> priority = ['urgent', 'high', 'medium', 'low'];
   int selectedPriorityIndex = -1;
   String selectedPriority = getTranslated('select_priority', Get.context!) ?? '';
@@ -140,6 +128,48 @@ class SupportTicketController extends ChangeNotifier {
 
       for(XFile image in _pickedImageFiles){
         pickedImageFileStored.add(image);
+      }
+    }
+    notifyListeners();
+  }
+
+  static const replyExtensions = [
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'webp',
+    'pdf',
+    'doc',
+    'docx',
+  ];
+
+  Future<void> pickReplyAttachment(bool isRemove, {int? index}) async {
+    if (isRemove) {
+      if (index != null && index < pickedImageFileStored.length) {
+        pickedImageFileStored.removeAt(index);
+      }
+    } else {
+      final files = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: replyExtensions,
+      );
+      for (final file in files) {
+          if (pickedImageFileStored.length >= 10) {
+            showCustomSnackBarWidget(
+                'الحد عشر مرفقات.', Get.context!,
+                snackBarType: SnackBarType.warning);
+            break;
+          }
+          final length = file.lengthSync();
+          if (length != null && length > 6000 * 1024) {
+            showCustomSnackBarWidget(
+                '«${file.name}» أكبر من 6 ميجا.', Get.context!,
+                snackBarType: SnackBarType.warning);
+            continue;
+          }
+          if (file.path == null) continue;
+          pickedImageFileStored.add(file.xFile);
       }
     }
     notifyListeners();

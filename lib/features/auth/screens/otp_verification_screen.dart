@@ -230,7 +230,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                           countryCode:  userCountryCode,
                                           phoneNumber: widget.userInput?.substring(userCountryCode.length),
                                           email: null,
-                                          password: null,
                                         ));
                                       } else {
                                         authProvider.clearUserEmailAndPassword();

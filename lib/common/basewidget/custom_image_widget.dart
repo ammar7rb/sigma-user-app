@@ -1,3 +1,6 @@
+import 'package:provider/provider.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -13,6 +16,25 @@ class CustomImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final url = Uri.tryParse(image);
+    final base = Uri.parse(AppConstants.baseUrl);
+    if (url != null &&
+        url.scheme == base.scheme &&
+        url.host == base.host &&
+        url.port == base.port &&
+        RegExp(r'/account-photos/(customer|seller)/[0-9]+$').hasMatch(url.path)) {
+      final token = context.read<AuthController>().getUserToken();
+      return Image.network(
+        image,
+        headers: {'Authorization': 'Bearer $token'},
+        fit: fit,
+        height: height,
+        width: width,
+        errorBuilder: (context, error, stack) =>
+            Image.asset(placeholder!, height: height, width: width, fit: fit),
+      );
+    }
+
     return CachedNetworkImage(
       placeholder: (context, url) => Image.asset(placeholder?? Images.placeholder, height: height, width: width, fit: BoxFit.cover),
       imageUrl: image, fit: fit?? BoxFit.cover,

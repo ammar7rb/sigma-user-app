@@ -19,19 +19,25 @@ class OrderScreen extends StatefulWidget {
   final bool isBacButtonExist;
   final bool fromDashboard;
   final bool fromPlaceOrder;
-  const OrderScreen({super.key, this.isBacButtonExist = true, this.fromDashboard = false, this.fromPlaceOrder = false}) ;
+  const OrderScreen(
+      {super.key,
+      this.isBacButtonExist = true,
+      this.fromDashboard = false,
+      this.fromPlaceOrder = false});
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  ScrollController scrollController  = ScrollController();
-   bool isGuestMode = !Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn();
+  ScrollController scrollController = ScrollController();
+  bool isGuestMode =
+      !Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn();
   @override
   void initState() {
-    if(!isGuestMode){
-      Provider.of<OrderController>(context, listen: false).setIndex(0, notify: false);
+    if (!isGuestMode) {
+      Provider.of<OrderController>(context, listen: false)
+          .setIndex(0, notify: false);
     }
     super.initState();
   }
@@ -41,74 +47,135 @@ class _OrderScreenState extends State<OrderScreen> {
     return PopScope(
       canPop: Navigator.canPop(context),
       onPopInvokedWithResult: (didPop, result) async {
-        if(widget.fromPlaceOrder) {
-          RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
+        if (widget.fromPlaceOrder) {
+          RouterHelper.getDashboardRoute(
+              action: RouteAction.pushReplacement, page: 'home');
         } else {
           return;
         }
       },
       child: RefreshIndicator(
         onRefresh: () async {
-          return await Provider.of<OrderController>(context, listen: false).getOrderList(
-            1, Provider.of<OrderController>(context, listen: false).selectedType, refresh: true
-          );
+          return await Provider.of<OrderController>(context, listen: false)
+              .getOrderList(
+                  1,
+                  Provider.of<OrderController>(context, listen: false)
+                      .selectedType,
+                  refresh: true);
         },
         child: Scaffold(
-         appBar: CustomAppBar(title: getTranslated('order', context), isBackButtonExist: widget.isBacButtonExist,
-         onBackPressed: () {
-           if(widget.fromPlaceOrder) {
-             RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
-           } else {
-             Navigator.of(context).pop();
-           }
-          },
-         ),
-          body: isGuestMode ? NotLoggedInWidget(message: getTranslated('to_view_the_order_history', context), fromPage: widget.fromDashboard ? '${RouterHelper.dashboardScreen}?page=orders' : RouterHelper.orderScreen, ) :
-          Consumer<OrderController>(
-            builder: (context, orderController, child) {
-              return Column(children: [
-
-
-                Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: Dimensions.paddingSizeSmall),
-                  child: Row(children: [
-                    OrderTypeButton(text: getTranslated('RUNNING', context), index: 0),
-                    const SizedBox(width: Dimensions.paddingSizeSmall),
-                    OrderTypeButton(text: getTranslated('DELIVERED', context), index: 1)])),
-
-
-
-                  Expanded(child: orderController.orderModel != null ? (orderController.orderModel!.orders != null &&
-                      orderController.orderModel!.orders!.isNotEmpty)?
-                    SingleChildScrollView(
-                      controller: scrollController,
-                      child: PaginatedListView(scrollController: scrollController,
-                        onPaginate: (int? offset) async{
-                          await orderController.getOrderList(offset!, orderController.selectedType);
-                        },
-                        totalSize: orderController.orderModel?.totalSize,
-                        offset: orderController.orderModel?.offset != null ? int.parse(orderController.orderModel!.offset!):1,
-                        itemView: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: orderController.orderModel?.orders!.length,
-                          padding: const EdgeInsets.all(0),
-                          itemBuilder: (context, index) => OrderWidget(orderModel: orderController.orderModel?.orders![index]),
-                        ),
-                      ),
-                    ) : const NoInternetOrDataScreenWidget(isNoInternet: false, icon: Images.noOrder, message: 'no_order_found') :
-                      const OrderShimmerWidget()
-                  )
-
-                ],
-              );
-            }
+          appBar: CustomAppBar(
+            title: getTranslated('order', context),
+            isBackButtonExist: widget.isBacButtonExist,
+            onBackPressed: () {
+              if (widget.fromPlaceOrder) {
+                RouterHelper.getDashboardRoute(
+                    action: RouteAction.pushReplacement, page: 'home');
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
+          body: isGuestMode
+              ? NotLoggedInWidget(
+                  message: getTranslated('to_view_the_order_history', context),
+                  fromPage: widget.fromDashboard
+                      ? '${RouterHelper.dashboardScreen}?page=orders'
+                      : RouterHelper.orderScreen,
+                )
+              : Consumer<OrderController>(
+                  builder: (context, orderController, child) {
+                  return Column(
+                    children: [
+                      Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: Dimensions.paddingSizeLarge,
+                              vertical: Dimensions.paddingSizeSmall),
+                          child: Row(children: [
+                            OrderTypeButton(
+                                text: Directionality.of(context) ==
+                                        TextDirection.rtl
+                                    ? 'طلبات نشطة'
+                                    : getTranslated('RUNNING', context),
+                                index: 0),
+                            const SizedBox(width: Dimensions.paddingSizeSmall),
+                            OrderTypeButton(
+                                text: Directionality.of(context) ==
+                                        TextDirection.rtl
+                                    ? 'طلبات سابقة'
+                                    : getTranslated('DELIVERED', context),
+                                index: 1),
+                            const SizedBox(width: Dimensions.paddingSizeSmall),
+                            Expanded(
+                                child: TextButton(
+                                    onPressed: () =>
+                                        RouterHelper.getGuestTrackOrderRoute(
+                                            action: RouteAction.push),
+                                    style: TextButton.styleFrom(
+                                        padding: EdgeInsets.zero),
+                                    child: Container(
+                                        height: 35,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .primaryColor
+                                                .withValues(alpha: .07),
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(Directionality.of(context) ==
+                                                    TextDirection.rtl
+                                                ? 'تتبع الطلبات'
+                                                : 'Track orders'))))),
+                          ])),
+                      Expanded(
+                          child: orderController.orderModel != null
+                              ? (orderController.orderModel!.orders != null &&
+                                      orderController
+                                          .orderModel!.orders!.isNotEmpty)
+                                  ? SingleChildScrollView(
+                                      controller: scrollController,
+                                      child: PaginatedListView(
+                                        scrollController: scrollController,
+                                        onPaginate: (int? offset) async {
+                                          await orderController.getOrderList(
+                                              offset!,
+                                              orderController.selectedType);
+                                        },
+                                        totalSize: orderController
+                                            .orderModel?.totalSize,
+                                        offset: orderController
+                                                    .orderModel?.offset !=
+                                                null
+                                            ? int.parse(orderController
+                                                .orderModel!.offset!)
+                                            : 1,
+                                        itemView: ListView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          itemCount: orderController
+                                              .orderModel?.orders!.length,
+                                          padding: const EdgeInsets.all(0),
+                                          itemBuilder: (context, index) =>
+                                              OrderWidget(
+                                                  orderModel: orderController
+                                                      .orderModel
+                                                      ?.orders![index]),
+                                        ),
+                                      ),
+                                    )
+                                  : const NoInternetOrDataScreenWidget(
+                                      isNoInternet: false,
+                                      icon: Images.noOrder,
+                                      message: 'no_order_found')
+                              : const OrderShimmerWidget())
+                    ],
+                  );
+                }),
         ),
       ),
     );
   }
 }
-
-
-
-

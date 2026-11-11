@@ -110,8 +110,30 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
             ],
             if (conversations == null && error == null)
               const Center(child: CircularProgressIndicator()),
-            if (conversations?.isEmpty == true)
-              const Text('ستظهر محادثتك هنا بعد إرسال المشكلة.'),
+            if (conversations != null &&
+                conversations!
+                    .where((conversation) =>
+                        conversation.purpose != 'account_activation')
+                    .isEmpty)
+              Card(
+                  child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.support_agent_outlined,
+                                size: 34,
+                                color: Theme.of(context).primaryColor),
+                            const SizedBox(height: 16),
+                            Text('لا توجد محادثات بعد',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 8),
+                            const Text(
+                                'ابدأ بالتواصل مع الدعم، وستجد الرسائل والردود هنا.'),
+                          ]))),
             for (final conversation in (conversations ?? <SupportTicketModel>[])
                 .where((conversation) =>
                     conversation.purpose != 'account_activation'))

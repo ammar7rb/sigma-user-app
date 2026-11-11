@@ -14,14 +14,13 @@ void main() {
         .load();
   });
   testWidgets(
-      'active package exposes paid state and separate upgrade and increase',
+      'active package exposes renewal and upgrade without credit increase',
       (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     int? chosenPackage;
-    int? chosenQuantity;
     await tester.pumpWidget(MaterialApp(
         theme: ThemeData(
             fontFamily: 'Cairo',
@@ -68,22 +67,17 @@ void main() {
                                 }
                               ]
                             },
-                            onIncrease: (offer, quantity) =>
-                                chosenQuantity = quantity,
                             onBuy: (package, offer) =>
                                 chosenPackage = package)))))));
-    expect(find.text('مدفوع · الباقة الحالية'), findsOneWidget);
+    expect(find.text('الباقة الحالية'), findsOneWidget);
+    expect(find.text('تجديد'), findsOneWidget);
+    expect(find.text('زيادة الحد من رصيد المحفظة'), findsNothing);
     expect(find.text('الاشتراك في الباقة'), findsNothing);
     expect(find.textContaining('حد الشراء'), findsNothing);
     expect(find.textContaining('المدة 30'), findsNothing);
-    await tester.ensureVisible(find.text('ترقية من رصيد المحفظة'));
-    await tester.tap(find.text('ترقية من رصيد المحفظة'));
+    await tester.ensureVisible(find.text('ترقية'));
+    await tester.tap(find.text('ترقية'));
     expect(chosenPackage, 2);
-    await tester.ensureVisible(find.text('5,000 ج.م').last);
-    await tester.tap(find.text('5,000 ج.م').last);
-    await tester.ensureVisible(find.text('زيادة الحد من رصيد المحفظة'));
-    await tester.tap(find.text('زيادة الحد من رصيد المحفظة'));
-    expect(chosenQuantity, 5);
     expect(tester.takeException(), isNull);
     await tester.pumpAndSettle();
     await expectLater(find.byType(Scaffold),

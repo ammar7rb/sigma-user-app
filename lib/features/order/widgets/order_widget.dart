@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order/controllers/order_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order/customer_order_progress.dart';
 import 'package:flutter_sixvalley_ecommerce/features/order/domain/models/order_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/date_converter.dart';
@@ -13,7 +16,6 @@ import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:provider/provider.dart';
 
-
 class OrderWidget extends StatefulWidget {
   final Orders? orderModel;
   const OrderWidget({super.key, this.orderModel});
@@ -25,21 +27,57 @@ class OrderWidget extends StatefulWidget {
 class _OrderWidgetState extends State<OrderWidget> {
   final tooltipController = JustTheController();
 
+  Future<void> _requestCancellation(BuildContext context) async {
+    final orderId = widget.orderModel?.id;
+    if (orderId == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('إلغاء الطلب'),
+        content: const Text(
+            'سيُرسل طلب الإلغاء إلى الإدارة للمراجعة. لن يُلغى الطلب قبل الموافقة.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('تراجع')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('إرسال الطلب')),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final orderController = context.read<OrderController>();
+    final response = await orderController.cancelOrder(context, orderId);
+    if (!context.mounted) return;
+    final statusCode = response.response?.statusCode;
+    final body = response.response?.data;
+    final message = body is Map
+        ? body['message']?.toString()
+        : body?.toString();
+    if (statusCode == 200) {
+      showCustomSnackBarWidget(
+          message ?? 'تم إرسال طلب الإلغاء إلى الإدارة للمراجعة.',
+          context,
+          snackBarType: SnackBarType.success);
+      await orderController.getOrderList(1, orderController.selectedType);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-
     double orderAmount = 0;
     double tax = 0;
 
-    if(widget.orderModel?.orderType == 'POS') {
+    if (widget.orderModel?.orderType == 'POS') {
       double itemsPrice = 0;
       double discount = 0;
       double? eeDiscount = 0;
 
       double coupon = 0;
       double shipping = 0;
-      if (widget.orderModel?.details != null && widget.orderModel!.details!.isNotEmpty ) {
+      if (widget.orderModel?.details != null &&
+          widget.orderModel!.details!.isNotEmpty) {
         coupon = widget.orderModel?.discountAmount ?? 0;
         shipping = widget.orderModel?.shippingCost ?? 0;
         tax = widget.orderModel?.totalTaxAmount ?? 0;
@@ -49,20 +87,17 @@ class _OrderWidgetState extends State<OrderWidget> {
           discount = discount + orderDetails.discount!;
           // tax = tax + orderDetails.tax!;
         }
-        if(widget.orderModel!.orderType == 'POS'){
-          if(widget.orderModel!.extraDiscountType == 'percent'){
-            eeDiscount = itemsPrice * (widget.orderModel!.extraDiscount!/100);
-          }else{
+        if (widget.orderModel!.orderType == 'POS') {
+          if (widget.orderModel!.extraDiscountType == 'percent') {
+            eeDiscount = itemsPrice * (widget.orderModel!.extraDiscount! / 100);
+          } else {
             eeDiscount = widget.orderModel!.extraDiscount;
           }
         }
       }
-      double subTotal = itemsPrice +tax - discount;
+      double subTotal = itemsPrice + tax - discount;
 
       orderAmount = subTotal + shipping - coupon - (eeDiscount ?? 0);
-
-
-
 
       // double ? _extraDiscountAnount = 0;
       // if(orderModel.extraDiscount != null){
@@ -79,16 +114,13 @@ class _OrderWidgetState extends State<OrderWidget> {
       // orderAmount = totalOrderAmount - totalDiscount;
       //
       // orderAmount = orderModel.orderAmount! - orderModel.totalTaxAmount!;
-
-
     }
-
-
 
     return InkWell(
       onTap: () {
         if (_hasInsuranceAction(widget.orderModel?.commerceFlowStatus)) {
-          RouterHelper.getCustomerOrderInsuranceRoute(action: RouteAction.push, orderId: widget.orderModel!.id!);
+          RouterHelper.getCustomerOrderInsuranceRoute(
+              action: RouteAction.push, orderId: widget.orderModel!.id!);
         } else {
           RouterHelper.getOrderDetailsScreenRoute(
             action: RouteAction.push,
@@ -119,7 +151,10 @@ class _OrderWidgetState extends State<OrderWidget> {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(width: 1, color: Theme.of(context).primaryColor.withValues(alpha: 0.15)),
+                border: Border.all(
+                    width: 1,
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.15)),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -129,13 +164,17 @@ class _OrderWidgetState extends State<OrderWidget> {
                   fit: BoxFit.cover,
                   placeholder: Images.placeholder,
                   image: widget.orderModel?.sellerIs == 'admin'
-                    ? Provider.of<SplashController>(context, listen: false).configModel ?.inHouseShop?.imageFullUrl?.path ?? ''
-                    : '${widget.orderModel?.seller?.shop?.imageFullUrl?.path}',
+                      ? Provider.of<SplashController>(context, listen: false)
+                              .configModel
+                              ?.inHouseShop
+                              ?.imageFullUrl
+                              ?.path ??
+                          ''
+                      : '${widget.orderModel?.seller?.shop?.imageFullUrl?.path}',
                 ),
               ),
             ),
             const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,52 +183,77 @@ class _OrderWidgetState extends State<OrderWidget> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
+                          child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${getTranslated('order', context)!} #${widget.orderModel!.id}',
+                            style: textBold.copyWith(
+                              fontSize: Dimensions.fontSizeSmall,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                          if (widget.orderModel?.editedStatus == 1)
                             Text(
-                              '${getTranslated('order', context)!} #${widget.orderModel!.id}',
-                              style: textBold.copyWith(
-                                fontSize: Dimensions.fontSizeSmall,
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                              '(${getTranslated('edited', context)})',
+                              style: textMedium.copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.color,
+                                  fontSize: Dimensions.fontSizeSmall),
+                            ),
+                          SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                          if (widget.orderModel?.editedStatus == 1 &&
+                              ((widget.orderModel?.editDueAmount ?? 0) > 0 ||
+                                  (widget.orderModel?.editReturnAmount ?? 0) >
+                                      0))
+                            JustTheTooltip(
+                              backgroundColor: Colors.black87,
+                              controller: tooltipController,
+                              preferredDirection: AxisDirection.up,
+                              tailLength: 10,
+                              tailBaseWidth: 20,
+                              content: Container(
+                                  width: 250,
+                                  padding: const EdgeInsets.all(
+                                      Dimensions.paddingSizeSmall),
+                                  child: Text(
+                                      (widget.orderModel?.editDueAmount ?? 0) >
+                                              0
+                                          ? getTranslated(
+                                              'you_will_pay_due_the_amount',
+                                              context)!
+                                          : (widget.orderModel
+                                                          ?.editReturnAmount ??
+                                                      0) >
+                                                  0
+                                              ? getTranslated(
+                                                  'admin_return_the_excess_amount_to_you',
+                                                  context)!
+                                              : '',
+                                      style: titleRegular.copyWith(
+                                          color: Colors.white,
+                                          fontSize:
+                                              Dimensions.fontSizeDefault))),
+                              child: InkWell(
+                                onTap: () => tooltipController.showTooltip(),
+                                child: CustomAssetImageWidget(
+                                    (widget.orderModel?.editDueAmount ?? 0) > 0
+                                        ? Images.orderDueAmountIcon
+                                        : (widget.orderModel
+                                                        ?.editReturnAmount ??
+                                                    0) >
+                                                0
+                                            ? Images.orderReturnAmountIcon
+                                            : Images.placeholder,
+                                    height: 16,
+                                    width: 16),
                               ),
                             ),
-
-
-                            if(widget.orderModel?.editedStatus == 1)
-                              Text('(${getTranslated('edited', context)})',
-                                style: textMedium.copyWith(color: Theme.of(context).textTheme.headlineMedium?.color,fontSize: Dimensions.fontSizeSmall),
-                              ),
-                            SizedBox(width: Dimensions.paddingSizeExtraSmall),
-
-                            if(widget.orderModel?.editedStatus == 1 && ((widget.orderModel?.editDueAmount ?? 0) > 0 || (widget.orderModel?.editReturnAmount ?? 0) > 0))
-                              JustTheTooltip(
-                                backgroundColor: Colors.black87,
-                                controller: tooltipController,
-                                preferredDirection: AxisDirection.up,
-                                tailLength: 10,
-                                tailBaseWidth: 20,
-                                content: Container(width: 250,
-                                  padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                                  child: Text(
-                                    (widget.orderModel?.editDueAmount ?? 0) > 0 ? getTranslated('you_will_pay_due_the_amount', context)! :
-                                    (widget.orderModel?.editReturnAmount ?? 0) > 0 ? getTranslated('admin_return_the_excess_amount_to_you', context)! : '',
-                                    style: titleRegular.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeDefault)
-                                  )
-                                ),
-                                child: InkWell(
-                                  onTap: ()=>  tooltipController.showTooltip(),
-                                  child: CustomAssetImageWidget(
-                                    (widget.orderModel?.editDueAmount ?? 0) > 0 ?
-                                    Images.orderDueAmountIcon : (widget.orderModel?.editReturnAmount ?? 0) > 0 ? Images.orderReturnAmountIcon : Images.placeholder,
-                                    height: 16, width: 16
-                                  ),
-                                ),
-                              ),
-
-                          ],
-                        )
-                      ),
+                        ],
+                      )),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: Dimensions.paddingSizeEight,
@@ -197,68 +261,91 @@ class _OrderWidgetState extends State<OrderWidget> {
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
-                          color: _getStatusBgColor(context, widget.orderModel!.orderStatus),
+                          color: _getStatusBgColor(
+                              context, widget.orderModel!.orderStatus),
                         ),
                         child: Text(
-                          widget.orderModel?.customerFulfillmentStatus == 'preparing' && widget.orderModel?.orderStatus == 'pending'
+                          widget.orderModel?.customerFulfillmentStatus ==
+                                      'preparing' &&
+                                  widget.orderModel?.orderStatus == 'pending'
                               ? 'قيد التجهيز'
-                              : _hasInsuranceAction(widget.orderModel?.commerceFlowStatus)
-                              ? (getTranslated('insurance_action_required', context) ?? '')
-                              : (getTranslated(
-                                      widget.orderModel!.orderStatus == 'pending'
-                                          ? 'RUNNING'
-                                          : widget.orderModel!.orderStatus,
-                                      context) ??
-                                  ''),
+                              : _hasInsuranceAction(
+                                      widget.orderModel?.commerceFlowStatus)
+                                  ? (getTranslated('insurance_action_required',
+                                          context) ??
+                                      '')
+                                  : (getTranslated(
+                                          widget.orderModel!.orderStatus ==
+                                                  'pending'
+                                              ? 'RUNNING'
+                                              : widget.orderModel!.orderStatus,
+                                          context) ??
+                                      ''),
                           style: textBold.copyWith(
                             fontSize: Dimensions.fontSizeSmall,
-                            color: _getStatusTextColor(context, widget.orderModel!.orderStatus),
+                            color: _getStatusTextColor(
+                                context, widget.orderModel!.orderStatus),
                           ),
                         ),
                       ),
                     ],
                   ),
-
                   Text(
-                    DateConverter.localDateToIsoStringAMPMOrder(DateTime.parse(widget.orderModel!.createdAt!)),
-                    style: textMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).textTheme.titleMedium?.color,),
+                    DateConverter.localDateToIsoStringAMPMOrder(
+                        DateTime.parse(widget.orderModel!.createdAt!)),
+                    style: textMedium.copyWith(
+                      fontSize: Dimensions.fontSizeSmall,
+                      color: Theme.of(context).textTheme.titleMedium?.color,
+                    ),
                   ),
                   const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-
+                  Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                    Expanded(
+                        child: _OrderStages(
+                            status: widget.orderModel?.orderStatus)),
+                    if (CustomerOrderProgress.canCancel(
+                        widget.orderModel?.orderStatus))
+                      TextButton(
+                        onPressed: () => _requestCancellation(context),
+                        child: const Text('إلغاء الطلب'),
+                      ),
+                  ]),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         PriceConverter.convertPrice(
                           context,
-                          widget.orderModel!.orderType == 'POS' ? orderAmount : widget.orderModel!.orderAmount,
+                          widget.orderModel!.orderType == 'POS'
+                              ? orderAmount
+                              : widget.orderModel!.orderAmount,
                         ),
                         style: textBold.copyWith(
                           fontSize: Dimensions.fontSizeDefault,
                           color: Theme.of(context).primaryColor,
                         ),
                       ),
-
-
-
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             '${widget.orderModel?.orderDetailsCount ?? 0} ',
-                            style: textBold.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).textTheme.bodyLarge?.color,),
+                            style: textBold.copyWith(
+                              fontSize: Dimensions.fontSizeSmall,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
                           ),
-
                           Text(
                             '${getTranslated('products', context)}',
-                            style: textMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).textTheme.bodyLarge?.color,),
+                            style: textMedium.copyWith(
+                              fontSize: Dimensions.fontSizeSmall,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                            ),
                           ),
                         ],
                       ),
-
-
-
-
                     ],
                   ),
                 ],
@@ -274,7 +361,10 @@ class _OrderWidgetState extends State<OrderWidget> {
     switch (status) {
       case 'delivered':
       case 'confirmed':
-        return Theme.of(context).colorScheme.onTertiaryContainer.withValues(alpha: .1);
+        return Theme.of(context)
+            .colorScheme
+            .onTertiaryContainer
+            .withValues(alpha: .1);
       case 'pending':
         return Theme.of(context).primaryColor.withValues(alpha: .1);
       case 'processing':
@@ -304,5 +394,46 @@ class _OrderWidgetState extends State<OrderWidget> {
       default:
         return Theme.of(context).colorScheme.secondary;
     }
+  }
+}
+
+class _OrderStages extends StatelessWidget {
+  final String? status;
+  const _OrderStages({this.status});
+  @override
+  Widget build(BuildContext context) {
+    final stage = CustomerOrderProgress.stage(status);
+    if (stage == 0) return const SizedBox.shrink();
+    final arabic = Directionality.of(context) == TextDirection.rtl;
+    final labels = arabic
+        ? CustomerOrderProgress.labels
+        : const ['Preparing', 'Shipping', 'Delivered'];
+    final theme = Theme.of(context);
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Wrap(spacing: 4, runSpacing: 4, children: [
+          for (var i = 0; i < labels.length; i++)
+            Semantics(
+                label: labels[i],
+                selected: i + 1 == stage,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: i + 1 <= stage
+                          ? theme.primaryColor
+                          : theme.primaryColor.withValues(alpha: .07),
+                      borderRadius: BorderRadius.circular(6)),
+                  child: Text(labels[i],
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: i + 1 == stage
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: i + 1 <= stage
+                              ? Colors.white
+                              : theme.colorScheme.onSurface)),
+                ))
+        ]));
   }
 }

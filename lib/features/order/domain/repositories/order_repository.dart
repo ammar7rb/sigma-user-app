@@ -35,7 +35,10 @@ class OrderRepository implements OrderRepositoryInterface{
   @override
   Future<ApiResponseModel> cancelOrder(int? orderId) async {
     try {
-      final response = await dioClient!.get('${AppConstants.cancelOrderUri}?order_id=$orderId');
+      final response = await dioClient!.post(
+        AppConstants.cancelOrderUri,
+        data: {'order_id': orderId},
+      );
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));

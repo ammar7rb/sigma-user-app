@@ -1,6 +1,5 @@
 import 'package:flutter_sixvalley_ecommerce/helper/egypt_phone_helper.dart';
 import 'dart:math';
-import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +9,7 @@ import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_clien
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/widgets/transfer_recipient_card.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 
 /// The same restricted balances and review queue used by the customer website.
@@ -23,6 +23,7 @@ class CustomerWalletScreen extends StatefulWidget {
 class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
   final DioClient api = di.sl<DioClient>();
   Map<String, dynamic>? data;
+  List<Map<String, dynamic>> packageNotices = [];
   String? error;
   int page = 1;
   int depositsPage = 1;
@@ -63,11 +64,43 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
           data = Map<String, dynamic>.from(response.data);
           error = null;
         });
+        loadPackageNotices(version);
       }
     } catch (_) {
       if (mounted && version == loadVersion) {
         setState(() => error = tr('wallet_load_failed'));
       }
+    }
+  }
+
+  Future<void> loadPackageNotices(int version) async {
+    final notices = <Map<String, dynamic>>[];
+    var pageNumber = 1;
+    var lastPage = 1;
+    try {
+      do {
+        final feed = await api.get('/api/v1/customer/communication',
+            queryParameters: {'type': 'notifications', 'page': pageNumber});
+        final payload = map(feed.data);
+        for (final item in list(payload['items']).whereType<Map>()) {
+          final notice = Map<String, dynamic>.from(item);
+          final text = '${notice['description'] ?? ''}';
+          if (text.startsWith('تمت معاملة ') && text.contains('من محفظتك')) {
+            notices.add(notice);
+          }
+          if (notices.length == 10) break;
+        }
+        lastPage = int.tryParse('${payload['last_page'] ?? 1}') ?? 1;
+        pageNumber++;
+      } while (mounted &&
+          version == loadVersion &&
+          pageNumber <= lastPage &&
+          notices.length < 10);
+      if (mounted && version == loadVersion) {
+        setState(() => packageNotices = notices);
+      }
+    } catch (_) {
+      // The wallet statement remains available if the separate feed is offline.
     }
   }
 
@@ -176,37 +209,6 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                   if (error != null) Text(error!),
                   balance('purchase_wallet', data!['purchase_balance'],
                       Icons.shopping_bag_outlined, 'purchase'),
-                  Card(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          leading: Icon(Icons.calendar_month_outlined,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer),
-                          title: Text('الاشتراك الشهري',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
-                                  fontWeight: FontWeight.w700)),
-                          subtitle: Text(
-                              map(data!['subscription'])['active'] == true
-                                  ? 'فعال · متبقي ${map(data!['subscription'])['remaining_days']} يومًا'
-                                  : 'إدارة الاشتراك والدفع',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer)),
-                          trailing: const Icon(Icons.chevron_left),
-                          onTap: () async {
-                            await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        const MonthlySubscriptionScreen()));
-                            await load();
-                          })),
                   const SizedBox(height: 20),
                   Text(tr('wallet_deposit_history'),
                       style: Theme.of(context).textTheme.titleLarge),
@@ -222,9 +224,16 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Text(tr('wallet_no_records'))),
                   const SizedBox(height: 20),
+                  pagination('deposits', true),
                   Text(tr('wallet_history'),
                       style: Theme.of(context).textTheme.titleLarge),
-                  pagination('deposits', true),
+                  for (final notice in packageNotices)
+                    card(ListTile(
+                        leading: const Icon(Icons.notifications_none),
+                        title: Text('${notice['description'] ?? ''}'),
+                        subtitle: Text('${notice['created_at'] ?? ''}'),
+                        onTap: () => RouterHelper.getNotificationRoute(
+                            action: RouteAction.push))),
                   DropdownButtonFormField<String>(
                       initialValue: entryType,
                       decoration:
@@ -362,8 +371,9 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
               'request_key': requestKey,
               'transfer_schema': 'sender_v2',
               'sender_phone': EgyptPhoneHelper.normalizeLocal(senderPhone.text),
-              'sender_name': senderName.text.trim(),
-              'method_information[sender_name]': senderName.text.trim(),
+              if (channel != 'instapay') 'sender_name': senderName.text.trim(),
+              if (channel != 'instapay')
+                'method_information[sender_name]': senderName.text.trim(),
               'method_information[sender_wallet_or_phone]':
                   senderPhone.text.trim(),
               if (note.text.trim().isNotEmpty) 'payment_note': note.text.trim(),
@@ -463,17 +473,17 @@ class _CustomerDepositScreenState extends State<CustomerDepositScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                  controller: senderName,
-                  maxLength: 100,
-                  decoration: InputDecoration(
-                      counterText: '',
-                      labelText: channel == 'instapay'
-                          ? 'اسم الحساب الخاص بك'
-                          : 'اسم المحفظة الخاصة بك',
-                      hintText: tr('transfer_sender_full_name_hint')),
-                  validator: (value) =>
-                      (value?.trim().isEmpty ?? true) ? tr('required') : null),
+              if (channel != 'instapay')
+                TextFormField(
+                    controller: senderName,
+                    maxLength: 100,
+                    decoration: InputDecoration(
+                        counterText: '',
+                        labelText: 'اسم المحفظة الخاصة بك',
+                        hintText: tr('transfer_sender_full_name_hint')),
+                    validator: (value) => (value?.trim().isEmpty ?? true)
+                        ? tr('required')
+                        : null),
               TextFormField(
                   controller: note,
                   maxLength: 1000,

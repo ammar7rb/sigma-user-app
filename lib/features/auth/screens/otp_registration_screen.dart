@@ -248,7 +248,6 @@ class _OtpRegistrationScreenState extends State<OtpRegistrationScreen> {
                                                       .substring(userCountryCode
                                                           .length),
                                                   email: email,
-                                                  password: null,
                                                 ));
                                               } else {
                                                 authProvider
@@ -280,7 +279,6 @@ class _OtpRegistrationScreenState extends State<OtpRegistrationScreen> {
                                                 countryCode: '+20',
                                                 phoneNumber: phone,
                                                 email: email,
-                                                password: null,
                                               ));
 
                                               if (context.mounted) {

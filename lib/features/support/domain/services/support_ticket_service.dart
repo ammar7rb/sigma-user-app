@@ -9,11 +9,6 @@ class SupportTicketService implements SupportTicketServiceInterface{
   SupportTicketService({required this.supportTicketRepositoryInterface});
 
   @override
-  Future closeSupportTicket(String ticketID) async{
-    return await supportTicketRepositoryInterface.closeSupportTicket(ticketID);
-  }
-
-  @override
   Future createNewSupportTicket(SupportTicketBody supportTicketModel, List<XFile?> file) async{
     return await supportTicketRepositoryInterface.createNewSupportTicket(supportTicketModel, file);
   }

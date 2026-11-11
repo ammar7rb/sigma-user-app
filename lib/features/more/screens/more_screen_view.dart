@@ -1,6 +1,8 @@
+import 'package:flutter_sixvalley_ecommerce/features/catalog/catalog_flags.dart';
+import 'package:flutter_sixvalley_ecommerce/features/catalog/credit_products_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/catalog/medical_devices_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
@@ -8,15 +10,12 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/sigma_responsive_c
 import 'package:dio/dio.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/di_container.dart' as di;
-import 'package:flutter_sixvalley_ecommerce/features/order_insurance/screens/pending_post_purchase_invoices_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/domain/models/account_overview_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/customer_wallet_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
-import 'package:flutter_sixvalley_ecommerce/features/more/widgets/logout_confirm_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/widgets/profile_info_section_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/more/widgets/more_horizontal_section_widget.dart';
 import 'package:provider/provider.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -53,7 +52,6 @@ class _AccountOverviewSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pendingCount = data?.pendingInvoicesCount ?? 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, 0,
           Dimensions.paddingSizeDefault, Dimensions.paddingSizeSmall),
@@ -102,7 +100,9 @@ class _AccountOverviewSection extends StatelessWidget {
                       value: data!.subscriptionActive
                           ? 'مدفوع · ${data!.subscriptionPackageName ?? ''}\nمتبقي ${data!.subscriptionRemainingDays} يومًا'
                           : 'اشترك أو جدّد',
-                      icon: data!.subscriptionActive ? Icons.verified : Icons.calendar_month_outlined,
+                      icon: data!.subscriptionActive
+                          ? Icons.verified
+                          : Icons.calendar_month_outlined,
                       color: const Color(0xFF14A673),
                       onTap: () async {
                         await Navigator.of(context).push(MaterialPageRoute(
@@ -113,88 +113,6 @@ class _AccountOverviewSection extends StatelessWidget {
                     ),
                   ),
                 ]),
-                const CreditLimitStrip(profile: true),
-                if (data!.insuranceEnabled ||
-                    data!.taxEnabled ||
-                    pendingCount > 0) ...[
-                  const SizedBox(height: 10),
-                  Material(
-                    color: pendingCount > 0
-                        ? (Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF3A2B19)
-                            : const Color(0xFFFFF3D9))
-                        : Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(18),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(18),
-                      onTap: () async {
-                        await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) =>
-                              const PendingPostPurchaseInvoicesScreen(),
-                        ));
-                        await onChanged();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: .15),
-                              borderRadius: BorderRadius.circular(13),
-                            ),
-                            child: const Icon(Icons.pending_actions_rounded,
-                                color: Color(0xFFE88700)),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  getTranslated('pending_completion_orders',
-                                          context) ??
-                                      'Pending completion orders',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700),
-                                ),
-                                Text(
-                                  pendingCount > 0
-                                      ? '${getTranslated('pending_orders_count', context) ?? 'Pending'}: $pendingCount'
-                                      : getTranslated(
-                                              'no_pending_completion_orders',
-                                              context) ??
-                                          'No pending orders',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).hintColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (pendingCount > 0)
-                            Container(
-                              width: 28,
-                              height: 28,
-                              alignment: Alignment.center,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFE88700),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text('$pendingCount',
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700)),
-                            ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.chevron_right_rounded),
-                        ]),
-                      ),
-                    ),
-                  ),
-                ],
               ]),
       ),
     );
@@ -328,7 +246,6 @@ class _MoreScreenState extends State<MoreScreen> {
                 onRefresh: _loadWalletOverview,
                 child: ListView(children: [
                   const ProfileInfoSectionWidget(),
-                  const MoreHorizontalSection(),
                   if (auth.isLoggedIn()) ...[
                     _AccountOverviewSection(
                         data: _walletOverview,
@@ -343,51 +260,58 @@ class _MoreScreenState extends State<MoreScreen> {
                         () => RouterHelper.getProfileScreen1Route(
                             action: RouteAction.push)),
                     menu(
-                        Icons.location_on_outlined,
-                        'العناوين المحفوظة',
-                        'Saved addresses',
-                        () => RouterHelper.getAddressListScreen(
-                            action: RouteAction.push)),
-                    menu(
                         Icons.receipt_long_outlined,
-                        'الطلبات السابقة',
-                        'Order history',
+                        'الطلبات',
+                        'Orders',
                         () => RouterHelper.getOrderScreenRoute(
                             action: RouteAction.push, isBackButtonExist: true)),
                     menu(
-                        Icons.pending_actions,
-                        'الطلبات المعلقة',
-                        'Pending orders',
+                        Icons.account_balance_wallet_outlined,
+                        'المحفظة',
+                        'Wallet',
+                        () => RouterHelper.getWalletRoute(
+                            action: RouteAction.push, isBackButtonExist: true)),
+                    menu(
+                        Icons.calendar_month_outlined,
+                        'الاشتراكات',
+                        'Subscriptions',
                         () => Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) =>
-                                const PendingPostPurchaseInvoicesScreen()))),
+                                const MonthlySubscriptionScreen()))),
+                    if (UnreleasedCatalogs.enabled) ...[
+                      menu(
+                          Icons.medical_services_outlined,
+                          'الأجهزة الطبية',
+                          'Medical devices',
+                          () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const MedicalDevicesScreen()))),
+                      menu(
+                          Icons.credit_score_outlined,
+                          'اشتر الآن وادفع لاحقًا',
+                          'Buy now, pay later',
+                          () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const CreditProductsScreen()))),
+                    ],
+                    menu(
+                        Icons.settings_outlined,
+                        'الإعدادات',
+                        'Settings',
+                        () => RouterHelper.getSettingsRoute(
+                            action: RouteAction.push)),
                     menu(
                         Icons.support_agent,
-                        'المساعدة والدعم',
-                        'Help & support',
+                        'الدعم الفني',
+                        'Support',
                         () => RouterHelper.getSupportTicketRoute(
                             action: RouteAction.push)),
+                  ] else ...[
+                    menu(
+                        Icons.login,
+                        'تسجيل الدخول',
+                        'Sign in',
+                        () => RouterHelper.getLoginRoute(
+                            action: RouteAction.push)),
                   ],
-                  menu(
-                      Icons.lock_reset,
-                      'نسيت كلمة المرور؟',
-                      'Forgot password?',
-                      () => RouterHelper.getForgetPasswordScreenRoute(
-                          action: RouteAction.push)),
-                  menu(
-                      Icons.logout,
-                      auth.isLoggedIn() ? 'تسجيل الخروج' : 'تسجيل الدخول',
-                      auth.isLoggedIn() ? 'Sign out' : 'Sign in', () {
-                    if (!auth.isLoggedIn()) {
-                      RouterHelper.getLoginRoute(action: RouteAction.push);
-                    } else {
-                      showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) =>
-                              const LogoutCustomBottomSheetWidget());
-                    }
-                  }),
                   const SizedBox(height: 24),
                 ]))));
   }

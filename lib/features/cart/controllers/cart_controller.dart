@@ -107,7 +107,14 @@ class CartController extends ChangeNotifier {
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
       Navigator.of(Get.context!).pop();
       _addToCartLoading = false;
-      showCustomSnackBarWidget(apiResponse.response!.data['message'], Get.context!, snackBarType: SnackBarType.success);
+      final data = apiResponse.response!.data;
+      final shippingDeferred = data is Map && data['status'] == 2;
+      showCustomSnackBarWidget(
+          shippingDeferred
+              ? 'تمت إضافة المنتج. اختيار الشحن يتم عند تأكيد الشراء.'
+              : data['message'],
+          Get.context!,
+          snackBarType: SnackBarType.success);
       getCartData(Get.context!);
     } else {
       _addToCartLoading = false;

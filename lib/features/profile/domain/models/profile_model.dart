@@ -5,12 +5,14 @@ class ProfileModel {
   String? currentPassword;
   int? id;
   String? administrativeReference;
+  bool? isActive;
   String? get accountNumber => id == null
       ? administrativeReference
       : 'C${id.toString().padLeft(6, '0')}';
   String? name;
   String? method;
   String? fName;
+  String? organizationName;
   String? lName;
   String? phone;
   String? image;
@@ -56,9 +58,14 @@ class ProfileModel {
   ProfileModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     administrativeReference = json['administrative_reference']?.toString();
+    final status = json['is_active'];
+    isActive = status == null
+        ? null
+        : (status == true || status == 1 || status == '1');
     name = json['name'];
     method = json['_method'];
     fName = json['f_name'];
+    organizationName = json['organization_name'];
     lName = json['l_name'];
     phone = json['phone'];
     image = json['image'];
@@ -113,6 +120,7 @@ class ProfileModel {
     data['name'] = name;
     data['_method'] = method;
     data['f_name'] = fName;
+    data['organization_name'] = organizationName;
     data['l_name'] = lName;
     data['phone'] = phone;
     data['image'] = image;

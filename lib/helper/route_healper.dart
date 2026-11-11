@@ -1077,9 +1077,9 @@ class RouterHelper {
                 pageIndex: page == 'home'
                     ? 0
                     : page == 'inbox'
-                        ? 1
+                        ? 2
                         : page == 'cart'
-                            ? 2
+                            ? 3
                             : page == 'orders'
                                 ? 3
                                 : page == 'more'
