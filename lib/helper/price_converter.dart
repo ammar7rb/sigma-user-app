@@ -11,7 +11,7 @@ class PriceConverter {
         price = price! - ((discount / 100) * price);
       }
     }
-    bool singleCurrency = Provider.of<SplashController>(context, listen: false).configModel!.currencyModel == 'single_currency';
+    bool singleCurrency = true; // Egyptian pounds only: never convert prices.
     bool inRight = Provider.of<SplashController>(context, listen: false).configModel!.currencySymbolPosition == 'right';
 
     // return '${inRight ? '' : Provider.of<SplashController>(context, listen: false).myCurrency!.symbol}'
@@ -56,7 +56,7 @@ class PriceConverter {
   }
 
   static String getUnitCurrency (BuildContext context, double? price) {
-    bool singleCurrency = Provider.of<SplashController>(context, listen: false).configModel!.currencyModel == 'single_currency';
+    bool singleCurrency = true; // Egyptian pounds only: never convert prices.
     bool inRight = Provider.of<SplashController>(context, listen: false).configModel!.currencySymbolPosition == 'right';
 
     return '${inRight ? '' : Provider.of<SplashController>(context, listen: false).myCurrency!.symbol}'
@@ -74,7 +74,7 @@ class PriceConverter {
       }
     }
     final splashProvider = Provider.of<SplashController>(context, listen: false);
-    bool singleCurrency = splashProvider.configModel!.currencyModel == 'single_currency';
+    bool singleCurrency = true; // Egyptian pounds only: never convert prices.
 
     return (singleCurrency? price : price!
         * splashProvider.myCurrency!.exchangeRate!

@@ -65,7 +65,7 @@ class _LoyaltyPointConverterDialogueWidgetState extends State<LoyaltyPointConver
                       onChanged: (value) {
                         if(value.isNotEmpty) {
                           setState(() {
-                            convertPointAmount = double.parse(value) / ((exchangeRate ?? 0) /  (Provider.of<SplashController>(context, listen: false).myCurrency!.exchangeRate ?? 1));
+                            convertPointAmount = double.parse(value) / (exchangeRate ?? 1);
 
                           });
                         }else{
@@ -107,7 +107,7 @@ class _LoyaltyPointConverterDialogueWidgetState extends State<LoyaltyPointConver
                     PointWithTextWidget(pointColor: Theme.of(context).textTheme.bodyLarge?.color,
                       textColor: Theme.of(context).textTheme.bodyLarge?.color,
                       text: '${exchangeRate ?? 0}  ${getTranslated('note_point_two', context)} '
-                        '${PriceConverter.getUnitCurrency(context, ((exchangeRate ?? 0) / ((exchangeRate ?? 0) / (Provider.of<SplashController>(context, listen: false).myCurrency!.exchangeRate ?? 1))) )}'),
+                        '${PriceConverter.getUnitCurrency(context, 1.0)}'),
                       const SizedBox(height: Dimensions.paddingSizeSmall),
 
                     PointWithTextWidget(pointColor: Theme.of(context).textTheme.bodyLarge?.color,
