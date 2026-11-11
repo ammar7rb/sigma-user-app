@@ -52,10 +52,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                   labelText: getTranslated('first_name', context),
                   inputType: TextInputType.name,
                   inputAction: TextInputAction.next,
-                  required: true,
-                  validator: (value) => (value ?? '').trim().isEmpty
-                      ? getTranslated('first_name_field_is_required', context)
-                      : null),
+                  required: false),
               const SizedBox(height: 16),
               CustomTextFieldWidget(
                   controller: _phone,
