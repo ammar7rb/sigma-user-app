@@ -183,6 +183,7 @@ import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.d
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/domain/repositories/auth_token_store.dart';
 import 'data/datasource/remote/dio/logging_interceptor.dart';
 import 'features/loyaltyPoint/domain/repositories/loyalty_point_repository.dart';
 import 'features/search_product/domain/repositories/search_product_repository.dart';
@@ -192,6 +193,7 @@ final sl = GetIt.instance;
 Future<void> init() async {
   // Core
   final sharedPreferences = await SharedPreferences.getInstance();
+  await AuthTokenStore.initialize(sharedPreferences);
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => Dio());
   sl.registerLazySingleton(() => LoggingInterceptor());

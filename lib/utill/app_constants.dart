@@ -89,8 +89,6 @@ class AppConstants {
       '/api/v1/customer/support-ticket/conv/';
   static const String supportTicketReplyUri =
       '/api/v1/customer/support-ticket/reply/';
-  static const String closeSupportTicketUri =
-      '/api/v1/customer/support-ticket/close/';
   static const String submitReviewUri = '/api/v1/products/reviews/submit';
   static const String getOrderWiseReview = '/api/v1/products/review/';
   static const String updateOrderWiseReview = '/api/v1/products/review/update';

@@ -134,7 +134,6 @@ class _ExistingAccountBottomSheetState extends State<ExistingAccountBottomSheet>
                             UserLogData(
                               phoneNumber: widget.profileModel.phone,
                               email: widget.profileModel.email,
-                              password: null,
                             ),
                           );
                           RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil);
@@ -181,7 +180,6 @@ class _ExistingAccountBottomSheetState extends State<ExistingAccountBottomSheet>
                             UserLogData(
                               phoneNumber: widget.profileModel.phone,
                               email: widget.profileModel.email,
-                              password: null,
                             ),
                           );
                           RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil);

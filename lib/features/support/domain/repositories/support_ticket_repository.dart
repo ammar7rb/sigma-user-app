@@ -88,18 +88,6 @@ class SupportTicketRepository implements SupportTicketRepositoryInterface{
 
 
   @override
-  Future<ApiResponseModel> closeSupportTicket(String ticketID) async {
-    try {
-      final response = await dioClient!.get('${AppConstants.closeSupportTicketUri}$ticketID');
-      return ApiResponseModel.withSuccess(response);
-    } catch (e) {
-      return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
-    }
-  }
-
-
-
-  @override
   Future delete(int id) {
     // TODO: implement delete
     throw UnimplementedError();

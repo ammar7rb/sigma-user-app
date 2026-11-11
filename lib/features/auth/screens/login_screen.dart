@@ -71,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
         countryCode = '+20';
         _emailPhoneController?.text = userData.phoneNumber ?? '';
       }
-      _passwordController!.text = userData.password ?? '';
     }
   }
 
@@ -521,15 +520,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                                                 countryCode,
                                                             phoneNumber:
                                                                 isNumber
-                                                                    ? userInput
+                                                                    ? _emailPhoneController!.text.trim()
                                                                     : null,
                                                             email: isNumber
                                                                 ? null
                                                                 : userInput,
-                                                            password: password,
                                                           ));
                                                         } else {
-                                                          // authProvider.clearUserLogData();
+                                                          await authProvider.clearUserEmailAndPassword();
                                                         }
                                                         if (widget.fromPage ==
                                                                 '/dashboard' &&

@@ -717,8 +717,7 @@ class AuthController with ChangeNotifier {
               countryCode: countryCode,
               phoneNumber: CountryCodeHelper.extractPhoneNumber(
                   countryCode, phoneNumber),
-              email: null,
-              password: null));
+              email: null));
         }
         if (token != null) {
           await authServiceInterface.saveUserToken(token);
