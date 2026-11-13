@@ -1,5 +1,6 @@
 import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/features/credit_products/screens/credit_products_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/subscription/widgets/credit_limit_strip.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
@@ -336,6 +337,12 @@ class _MoreScreenState extends State<MoreScreen> {
                         error: _walletOverviewError,
                         onRetry: _loadWalletOverview,
                         onChanged: _loadWalletOverview),
+                    menu(
+                        Icons.credit_score_outlined,
+                        'اشتر الآن وادفع لاحقًا',
+                        'Buy now, pay later',
+                        () => Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => const CreditProductsScreen()))),
                     menu(
                         Icons.person_outline,
                         'الملف الشخصي',
