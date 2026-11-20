@@ -36,6 +36,16 @@ class AuthService implements AuthServiceInterface{
   }
 
   @override
+  String? getGuestOrderToken() {
+    return authRepoInterface.getGuestOrderToken();
+  }
+
+  @override
+  Future<void> saveGuestOrderToken(String? token) {
+    return authRepoInterface.saveGuestOrderToken(token);
+  }
+
+  @override
   String getUserEmail() {
     return authRepoInterface.getUserEmail();
   }

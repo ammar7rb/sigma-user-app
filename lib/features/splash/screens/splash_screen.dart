@@ -94,7 +94,7 @@ class SplashScreenState extends State<SplashScreen> {
           listen: false,
         ).configModel;
 
-        Future.delayed(const Duration(milliseconds: 0)).then((_) {
+        Future.delayed(const Duration(milliseconds: 0)).then((_) async {
           if (compareVersions(minimumVersion!, AppConstants.appVersion) == 1) {
             RouterHelper.getUpdateRoute(
               action: RouteAction.pushReplacement,
@@ -126,6 +126,10 @@ class SplashScreenState extends State<SplashScreen> {
                 );
               } else if (widget.body!.type == 'notification') {
                 RouterHelper.getNotificationRoute(
+                  action: RouteAction.pushReplacement,
+                );
+              } else if (widget.body!.type == 'customer_package') {
+                RouterHelper.getMonthlySubscriptionRoute(
                   action: RouteAction.pushReplacement,
                 );
               } else if (widget.body!.type == 'wallet') {
@@ -208,7 +212,7 @@ class SplashScreenState extends State<SplashScreen> {
                 action: RouteAction.pushReplacement,
               );
             } else {
-              Provider.of<AuthController>(
+              await Provider.of<AuthController>(
                 Get.context!,
                 listen: false,
               ).getGuestIdUrl();
@@ -229,7 +233,7 @@ class SplashScreenState extends State<SplashScreen> {
         });
         //  });
       },
-      (ConfigModel? configModel) {
+      (ConfigModel? configModel) async {
         String? minimumVersion = "0";
         UserAppVersionControl? appVersion = Provider.of<SplashController>(
           Get.context!,
@@ -276,6 +280,10 @@ class SplashScreenState extends State<SplashScreen> {
               );
             } else if (widget.body!.type == 'notification') {
               RouterHelper.getNotificationRoute(
+                action: RouteAction.pushReplacement,
+              );
+            } else if (widget.body!.type == 'customer_package') {
+              RouterHelper.getMonthlySubscriptionRoute(
                 action: RouteAction.pushReplacement,
               );
             } else if (widget.body!.type == 'wallet') {
@@ -347,7 +355,7 @@ class SplashScreenState extends State<SplashScreen> {
               action: RouteAction.pushReplacement,
             );
           } else {
-            Provider.of<AuthController>(
+            await Provider.of<AuthController>(
               Get.context!,
               listen: false,
             ).getGuestIdUrl();

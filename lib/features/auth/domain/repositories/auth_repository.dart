@@ -166,13 +166,28 @@ class AuthRepository implements AuthRepoInterface{
   }
 
   @override
+  String? getGuestOrderToken() {
+    return sharedPreferences!.getString(AppConstants.guestOrderToken);
+  }
+
+  @override
+  Future<void> saveGuestOrderToken(String? token) async {
+    if (token == null || token.isEmpty) {
+      await sharedPreferences!.remove(AppConstants.guestOrderToken);
+    } else {
+      await sharedPreferences!.setString(AppConstants.guestOrderToken, token);
+    }
+  }
+
+  @override
   bool isGuestIdExist() {
     return sharedPreferences!.containsKey(AppConstants.guestId);
   }
 
   @override
   Future<bool> clearGuestId() async {
-    sharedPreferences!.remove(AppConstants.guestId);
+    await sharedPreferences!.remove(AppConstants.guestId);
+    await sharedPreferences!.remove(AppConstants.guestOrderToken);
     return true;
   }
 
@@ -187,7 +202,8 @@ class AuthRepository implements AuthRepoInterface{
   @override
   Future<bool> clearSharedData() async {
     sharedPreferences?.remove(AppConstants.userLoginToken);
-    sharedPreferences?.remove(AppConstants.guestId);
+    await sharedPreferences?.remove(AppConstants.guestId);
+    await sharedPreferences?.remove(AppConstants.guestOrderToken);
     return true;
   }
 

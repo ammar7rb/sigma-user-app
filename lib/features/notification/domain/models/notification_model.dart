@@ -42,6 +42,14 @@ class NotificationItem {
   String? updatedAt;
   NotificationSeenBy? seen;
 
+  /// Server event key for payment and package notices (customer_event_key).
+  String? eventKey;
+
+  /// True for "payment accepted, order waits for a package" notices; tapping one
+  /// opens the packages screen.
+  bool get asksForPackage =>
+      RegExp(r'^initial-order-\d+-requirements$').hasMatch(eventKey ?? '');
+
 
   NotificationItem(
       {this.id,
@@ -73,6 +81,7 @@ class NotificationItem {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     seen = json['notification_seen_by'] != null ? NotificationSeenBy.fromJson(json['notification_seen_by']) : null;
+    eventKey = json['customer_event_key']?.toString();
 
   }
 }

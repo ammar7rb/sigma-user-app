@@ -14,10 +14,20 @@ class OrderDetailsRepository implements OrderDetailsRepositoryInterface{
   final DioClient? dioClient;
   OrderDetailsRepository({required this.dioClient});
 
+  Map<String, dynamic> get _privateOrderParameters {
+    final auth = Provider.of<AuthController>(Get.context!, listen: false);
+    final token = auth.getGuestOrderToken();
+    return {
+      'guest_id': auth.getGuestToken(),
+      if (token != null && token.isNotEmpty) 'guest_token': token,
+    };
+  }
+
   @override
   Future<ApiResponseModel> get(String orderID) async {
     try {
-      final response = await dioClient!.get(AppConstants.orderDetailsUri+orderID);
+      final response = await dioClient!.get(AppConstants.orderDetailsUri+orderID,
+          queryParameters: _privateOrderParameters);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -27,7 +37,8 @@ class OrderDetailsRepository implements OrderDetailsRepositoryInterface{
   @override
   Future<ApiResponseModel> getOrderFromOrderId(String orderID) async {
     try {
-      final response = await dioClient!.get('${AppConstants.getOrderFromOrderId}$orderID&guest_id=${Provider.of<AuthController>(Get.context!, listen: false).getGuestToken()}');
+      final response = await dioClient!.get('${AppConstants.getOrderFromOrderId}$orderID',
+          queryParameters: _privateOrderParameters);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));
@@ -131,7 +142,8 @@ class OrderDetailsRepository implements OrderDetailsRepositoryInterface{
   @override
   Future getOrderInvoice(String orderID) async{
     try {
-      final response = await dioClient!.get('${AppConstants.generateInvoice}$orderID');
+      final response = await dioClient!.get('${AppConstants.generateInvoice}$orderID',
+          queryParameters: _privateOrderParameters);
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
       return ApiResponseModel.withError(ApiErrorHandler.getMessage(e));

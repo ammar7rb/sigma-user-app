@@ -280,10 +280,10 @@ class _OnlySocialLoginWidgetState extends State<OnlySocialLoginWidget> {
 
                 Center(
                   child: InkWell(
-                    onTap: ()=> {
+                    onTap: () async {
                       if (!Provider.of<AuthController>(context, listen: false).isLoading) {
-                        Provider.of<AuthController>(context, listen: false).getGuestIdUrl(),
-                        RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil),
+                        await Provider.of<AuthController>(context, listen: false).getGuestIdUrl();
+                        RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil);
                       }
                     },
                     child: RichText(text: TextSpan(children: [

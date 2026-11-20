@@ -17,9 +17,9 @@ class OnBoardingScreen extends StatelessWidget {
 
   final PageController _pageController = PageController();
 
-  void _finish(BuildContext context) {
+  Future<void> _finish(BuildContext context) async {
     Provider.of<SplashController>(context, listen: false).disableIntro();
-    Provider.of<AuthController>(context, listen: false).getGuestIdUrl();
+    await Provider.of<AuthController>(context, listen: false).getGuestIdUrl();
     RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil);
   }
 

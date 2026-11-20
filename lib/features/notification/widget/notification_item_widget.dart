@@ -7,6 +7,7 @@ import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/widget/notification_dialog_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 
 class NotificationItemWidget extends StatelessWidget {
   final NotificationItem notificationItem;
@@ -20,6 +21,11 @@ class NotificationItemWidget extends StatelessWidget {
         return InkWell(
             onTap:(){
               notificationController.seenNotification(notificationItem.id!);
+              if (notificationItem.asksForPackage) {
+                // "Payment accepted, order waits for a package": go straight to the packages.
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MonthlySubscriptionScreen()));
+                return;
+              }
               showModalBottomSheet(
                   backgroundColor: Colors.transparent,
                   context: context, builder: (context) => NotificationDialogWidget(notificationModel: notificationItem),

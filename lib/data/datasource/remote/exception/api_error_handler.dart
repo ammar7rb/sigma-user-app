@@ -48,7 +48,10 @@ class ApiErrorHandler {
                   } else{
                     errorDescription = error.response!.data['message'];
                   }
-                  Provider.of<AuthController>(Get.context!,listen: false).clearSharedData();
+                  final authController = Provider.of<AuthController>(Get.context!, listen: false);
+                  if (authController.isLoggedIn()) {
+                    authController.clearSharedData();
+                  }
                   break;
                 case 404:
                   break;

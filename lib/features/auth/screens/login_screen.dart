@@ -803,21 +803,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                         Center(
                                           child: InkWell(
-                                            onTap: () => {
+                                            onTap: () async {
                                               if (!authProvider.isLoading &&
-                                                  widget.showBackButton)
-                                                {
-                                                  authProvider.getGuestIdUrl(),
-                                                  RouterHelper
-                                                      .getDashboardRoute(
-                                                          page: 'home',
-                                                          action: RouteAction
-                                                              .pushReplacement)
-                                                },
-                                              if (!widget.showBackButton)
-                                                {
-                                                  Navigator.of(context).pop(),
-                                                }
+                                                  widget.showBackButton) {
+                                                await authProvider.getGuestIdUrl();
+                                                RouterHelper
+                                                    .getDashboardRoute(
+                                                        page: 'home',
+                                                        action: RouteAction
+                                                            .pushReplacement);
+                                              }
+                                              if (!widget.showBackButton && context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
                                             },
                                             child: RichText(
                                                 text: TextSpan(children: [

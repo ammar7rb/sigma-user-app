@@ -62,6 +62,7 @@ import 'package:flutter_sixvalley_ecommerce/features/tracking/screens/tracking_r
 import 'package:flutter_sixvalley_ecommerce/features/update/screen/update_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/add_fund_to_wallet_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wallet/screens/customer_wallet_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/subscription/screens/monthly_subscription_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/screens/wishlist_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/screens/dashboard_screen.dart';
@@ -157,6 +158,7 @@ class RouterHelper {
   static const String trackingResultScreen = '/tracking-result';
   static const String updateScreen = '/update';
   static const String walletScreen = '/wallet';
+  static const String monthlySubscriptionScreen = '/monthly-subscription';
   static const String addFundToWalletScreen = '/add-fund-wallet';
   static const String wishListScreen = '/wish-list';
   static const String selectLocationScreen = '/select-location-screen';
@@ -847,6 +849,11 @@ class RouterHelper {
 
   static String getUpdateRoute({RouteAction? action}) {
     return _navigateRoute(updateScreen, route: action);
+  }
+
+  /// Packages screen (customer monthly subscription), opened from package notices.
+  static String getMonthlySubscriptionRoute({RouteAction? action}) {
+    return _navigateRoute(monthlySubscriptionScreen, route: action);
   }
 
   static String getWalletRoute({RouteAction? action, bool? isBackButtonExist}) {
@@ -1648,6 +1655,10 @@ class RouterHelper {
         GoRoute(
           path: walletScreen,
           builder: (context, state) => const CustomerWalletScreen(),
+        ),
+        GoRoute(
+          path: monthlySubscriptionScreen,
+          builder: (context, state) => const MonthlySubscriptionScreen(),
         ),
         GoRoute(
           path: RouterHelper.addFundToWalletScreen,

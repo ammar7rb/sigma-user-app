@@ -45,6 +45,8 @@ class NotificationHelper {
             _openOrderNotification(payload);
           } else if(payload.type == 'wallet') {
             RouterHelper.getWalletRoute(action: RouteAction.pushReplacement, isBackButtonExist: true);
+          } else if(payload.type == 'customer_package') {
+            RouterHelper.getMonthlySubscriptionRoute(action: RouteAction.push);
           } else if(payload.type == 'chatting') {
             RouterHelper.getInboxScreenRoute(
               action: RouteAction.pushReplacement,
@@ -130,6 +132,8 @@ class NotificationHelper {
 
           } else if(notificationBody.type == 'wallet') {
             RouterHelper.getWalletRoute(action: RouteAction.pushReplacement, isBackButtonExist: true);
+          } else if(notificationBody.type == 'customer_package') {
+            RouterHelper.getMonthlySubscriptionRoute(action: RouteAction.push);
           } else if(notificationBody.type == 'notification') {
             RouterHelper.getNotificationRoute(action: RouteAction.pushReplacement, fromNotification: true);
           } else if(notificationBody.type == 'chatting') {
@@ -267,6 +271,8 @@ class NotificationHelper {
       );
     }else if(data['type'] == 'wallet') {
       return NotificationBody(type: 'wallet');
+    }else if(data['type'] == 'customer_package') {
+      return NotificationBody(type: 'customer_package');
     }else if(data['type'] == 'block') {
       return NotificationBody(type: 'block');
     }else if(data['type'] == 'product_restock_update') {

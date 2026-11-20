@@ -224,10 +224,10 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
 
                               Center(
                                 child: InkWell(
-                                  onTap: () {
+                                  onTap: () async {
                                     if (!authProvider.isLoading) {
                                       authProvider.removeGoogleLogIn();
-                                      authProvider.getGuestIdUrl();
+                                      await authProvider.getGuestIdUrl();
                                       RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil);
                                     }
                                   },

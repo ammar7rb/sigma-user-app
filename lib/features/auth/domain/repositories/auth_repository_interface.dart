@@ -20,6 +20,10 @@ abstract class AuthRepoInterface<T> implements RepositoryInterface{
   String getUserToken();
   
   String? getGuestIdToken();
+
+  String? getGuestOrderToken();
+
+  Future<void> saveGuestOrderToken(String? token);
   
   bool isGuestIdExist();
   

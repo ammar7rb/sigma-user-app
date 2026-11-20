@@ -18,6 +18,10 @@ abstract class AuthServiceInterface{
 
   String? getGuestIdToken();
 
+  String? getGuestOrderToken();
+
+  Future<void> saveGuestOrderToken(String? token);
+
   bool isGuestIdExist();
 
   bool isLoggedIn();

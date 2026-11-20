@@ -1032,6 +1032,10 @@ class AuthController with ChangeNotifier {
     return authServiceInterface.getGuestIdToken();
   }
 
+  String? getGuestOrderToken() {
+    return authServiceInterface.getGuestOrderToken();
+  }
+
   bool isLoggedIn() {
     return authServiceInterface.isLoggedIn();
   }
@@ -1209,9 +1213,11 @@ class AuthController with ChangeNotifier {
     ApiResponseModel apiResponse = await authServiceInterface.getGuestId();
     if (apiResponse.response != null &&
         apiResponse.response!.statusCode == 200) {
-      authServiceInterface
+      await authServiceInterface
           .saveGuestId(apiResponse.response!.data['guest_id'].toString());
-      authServiceInterface
+      await authServiceInterface.saveGuestOrderToken(
+          apiResponse.response!.data['guest_token'] as String?);
+      await authServiceInterface
           .saveGuestCartId(apiResponse.response!.data['guest_id'].toString());
     } else {
       ApiChecker.checkApi(apiResponse);

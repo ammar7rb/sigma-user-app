@@ -267,6 +267,7 @@ class AppConstants {
   // sharePreference
   static const String userLoginToken = 'user_login_token';
   static const String guestId = 'guestId';
+  static const String guestOrderToken = 'guest_order_token';
   static const String user = 'user';
   static const String userEmail = 'user_email';
   static const String userPassword = 'user_password';

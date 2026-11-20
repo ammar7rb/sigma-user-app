@@ -4,7 +4,6 @@ import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_contr
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/screens/cart_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/screens/category_screen.dart';
-import 'package:flutter_sixvalley_ecommerce/features/chat/controllers/chat_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/models/navigation_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/dashboard_menu_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/deal/controllers/flash_deal_controller.dart';
@@ -52,10 +51,6 @@ class DashBoardScreenState extends State<DashBoardScreen> {
     if (Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
       Provider.of<CartController>(context, listen: false).mergeGuestCart();
       Provider.of<WishListController>(context, listen: false).getWishList('');
-      Provider.of<ChatController>(context, listen: false)
-          .getChatList(1, reload: false, userType: 0);
-      Provider.of<ChatController>(context, listen: false)
-          .getChatList(1, reload: false, userType: 1);
       Provider.of<RestockController>(context, listen: false)
           .getRestockProductList(1, getAll: true);
       Provider.of<ProfileController>(context, listen: false)
